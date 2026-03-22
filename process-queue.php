@@ -104,7 +104,10 @@ function processTask($task) {
                 "responseSchema" => ["type" => "OBJECT", "properties" => ["viewBox" => [ "type" => "STRING" ], "paths" => ["type" => "ARRAY", "items" => ["type" => "OBJECT", "properties" => ["id" => [ "type" => "STRING" ], "d" => [ "type" => "STRING" ], "stroke" => [ "type" => "STRING" ], "strokeWidth" => [ "type" => "NUMBER" ]], "required" => ["id", "d"]]]], "required" => ["viewBox", "paths"]]
             ]
         ];
-        $headers = ["Content-Type: application/json"];
+        $headers = [
+            "Content-Type: application/json",
+            "HTTP-Referer: https://kidcolor.storywalla.com"
+        ];
     } else {
         return;
     }
