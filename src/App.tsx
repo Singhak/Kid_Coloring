@@ -29,6 +29,7 @@ import confetti from 'canvas-confetti';
 import { auth, db } from './firebase';
 import { 
   signInWithPopup, 
+  signInWithRedirect,
   GoogleAuthProvider, 
   signOut 
 } from 'firebase/auth';
@@ -40,6 +41,8 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 import { SvgPath, HistoryState } from './types';
 import { 
@@ -104,7 +107,11 @@ export default function App() {
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      if (Capacitor.isNativePlatform()) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        await signInWithPopup(auth, provider);
+      }
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -376,12 +383,27 @@ export default function App() {
         }
 
         const pngUrl = tempCanvas.toDataURL("image/png");
-        const downloadLink = document.createElement("a");
-        downloadLink.href = pngUrl;
-        downloadLink.download = "my-coloring-page.png";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
+        
+        if (Capacitor.isNativePlatform()) {
+          const base64Data = pngUrl.split(',')[1];
+          Filesystem.writeFile({
+            path: `kidcolor-${Date.now()}.png`,
+            data: base64Data,
+            directory: Directory.Documents
+          }).then(() => {
+            alert("Masterpiece saved to your Documents folder!");
+          }).catch(err => {
+            console.error("Save failed:", err);
+            alert("Could not save image.");
+          });
+        } else {
+          const downloadLink = document.createElement("a");
+          downloadLink.href = pngUrl;
+          downloadLink.download = `kidcolor-${Date.now()}.png`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        }
       }
       URL.revokeObjectURL(mainUrl);
     });
