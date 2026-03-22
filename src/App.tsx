@@ -194,6 +194,21 @@ export default function App() {
 
     if (isGenerating) return;
 
+    const handleFallback = () => {
+      // 50% chance to use cache (if available), 50% chance to use JS generation
+      const useCache = Math.random() > 0.5;
+      const cached = getFromCache(selectedCategory);
+      
+      if (useCache && cached) {
+        setPaths(cached.paths);
+        setViewBox(cached.viewBox);
+        setHistory([{ paths: cached.paths }]);
+        setHistoryIndex(0);
+      } else {
+        generateProceduralImage(selectedCategory);
+      }
+    };
+
     // Rate limiting check
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
@@ -203,17 +218,7 @@ export default function App() {
       setIsRateLimited(true);
       setTimeout(() => setIsRateLimited(false), 4000);
       
-      // Try cache first
-      const cached = getFromCache(selectedCategory);
-      if (cached) {
-        setPaths(cached.paths);
-        setViewBox(cached.viewBox);
-        setHistory([{ paths: cached.paths }]);
-        setHistoryIndex(0);
-        return;
-      }
-      
-      generateProceduralImage(selectedCategory);
+      handleFallback();
       return;
     }
 
@@ -263,16 +268,7 @@ export default function App() {
           console.warn("Confetti failed to launch:", confettiError);
         }
       } else {
-        // Fallback to cache or procedural
-        const cached = getFromCache(selectedCategory);
-        if (cached) {
-          setPaths(cached.paths);
-          setViewBox(cached.viewBox);
-          setHistory([{ paths: cached.paths }]);
-          setHistoryIndex(0);
-        } else {
-          generateProceduralImage(selectedCategory);
-        }
+        handleFallback();
       }
     } catch (error: any) {
       const isQuotaError = error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
@@ -287,15 +283,7 @@ export default function App() {
 
       if (generationId !== currentGenerationId.current) return;
       
-      const cached = getFromCache(selectedCategory);
-      if (cached) {
-        setPaths(cached.paths);
-        setViewBox(cached.viewBox);
-        setHistory([{ paths: cached.paths }]);
-        setHistoryIndex(0);
-      } else {
-        generateProceduralImage(selectedCategory);
-      }
+      handleFallback();
     } finally {
       if (generationId === currentGenerationId.current) {
         setIsGenerating(false);
