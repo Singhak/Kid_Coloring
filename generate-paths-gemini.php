@@ -81,8 +81,9 @@ $queueFile = $queueDir . '/tasks.txt';
 $task = json_encode(["provider" => "openrouter", "subject" => $subject, "category" => $category]) . PHP_EOL;
 file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
 
-// Load API key (ensure this is set in your server's environment variables)
-$apiKey = "AIzaSyAZqyz7HPmEFPGD-mf5_A6iGHJCgwaA3Yo"; //getenv("GEMINI_API_KEY");
+// Load API key securely from .env file
+$env = file_exists(__DIR__ . '/.env') ? parse_ini_file(__DIR__ . '/.env') : [];
+$apiKey = $env['GEMINI_API_KEY'] ?? getenv("GEMINI_API_KEY");
 
 if (!$apiKey) {
     logApiError("GEMINI_API_KEY is not configured on the server.", $subject);

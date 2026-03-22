@@ -74,9 +74,10 @@ function processTask($task) {
     
     $safeSubject = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($category));
     $cacheFile = $cacheDir . '/' . $safeSubject . '.json';
+    $env = file_exists(__DIR__ . '/.env') ? parse_ini_file(__DIR__ . '/.env') : [];
 
     if ($provider === 'openrouter') {
-        $apiKey = "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";
+        $apiKey = $env['OPENROUTER_API_KEY'] ?? getenv("OPENROUTER_API_KEY");
         $url = "https://openrouter.ai/api/v1/chat/completions";
         $data = [
             "models" => ["nvidia/nemotron-3-super-120b-a12b:free","arcee-ai/trinity-mini:free","openrouter/free"],
@@ -93,7 +94,7 @@ function processTask($task) {
             "Content-Type: application/json"
         ];
     } else if ($provider === 'gemini') {
-        $apiKey = "AIzaSyAZqyz7HPmEFPGD-mf5_A6iGHJCgwaA3Yo";
+        $apiKey = $env['GEMINI_API_KEY'] ?? getenv("GEMINI_API_KEY");
         $model = "gemini-3-flash-preview";
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
         $prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and easy for a child to color.\nReturn ONLY a JSON object with the following structure:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include any fill colors in the paths.";

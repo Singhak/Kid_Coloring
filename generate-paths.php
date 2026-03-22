@@ -81,8 +81,9 @@ $queueFile = $queueDir . '/tasks.txt';
 $task = json_encode(["provider" => "openrouter", "subject" => $subject, "category" => $category]) . PHP_EOL;
 file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
 
-// Load API key (store this securely)
-$apiKey = "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"; //getenv("OPENROUTER_API_KEY"); // or hardcode if needed
+// Load API key securely from .env file
+$env = file_exists(__DIR__ . '/.env') ? parse_ini_file(__DIR__ . '/.env') : [];
+$apiKey = $env['OPENROUTER_API_KEY'] ?? getenv("OPENROUTER_API_KEY");
 
 if (!$apiKey) {
     logApiError("OPENROUTER_API_KEY is not configured on the server.", $subject);
