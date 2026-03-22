@@ -354,13 +354,13 @@ export default function App() {
           ctx.fillStyle = "#A0A0A0";
           ctx.font = "bold 20px Arial";
           ctx.textAlign = "left";
-          ctx.fillText("Created with Magic at", 430, footerY + 8);
+          ctx.fillText("Created with Magic at KidColor - kidColor.storywalla.com", 430, footerY + 8);
         } catch (e) {
           // Fallback if logo fails
           ctx.fillStyle = "#2D3436";
           ctx.font = "black 40px Arial";
           ctx.textAlign = "center";
-          ctx.fillText("Created by KidColor", 500, footerY + 10);
+          ctx.fillText("Created by KidColor - kidColor.storywalla.com", 500, footerY + 10);
         }
 
         const pngUrl = tempCanvas.toDataURL("image/png");
