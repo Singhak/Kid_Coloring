@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 function logApiError($message, $subject) {
     $logFile = __DIR__ . '/api_error.log';
     $timestamp = date("Y-m-d H:i:s");
-    file_put_contents($logFile, "[$timestamp] [Subject: $subject] " . print_r($message, true) . PHP_EOL, FILE_APPEND);
+    file_put_contents($logFile, "[$timestamp] [Gemini - Subject: $subject] " . print_r($message, true) . PHP_EOL, FILE_APPEND);
 }
 
 // Get JSON input

@@ -137,6 +137,7 @@ function processTask($task) {
             if (file_exists($cacheFile)) { $fileData = json_decode(file_get_contents($cacheFile), true); if (is_array($fileData)) { $cacheData = $fileData; } }
             if (count($cacheData) >= 30) { array_shift($cacheData); }
             $cacheData[] = $newImage;
+            logCronError("Generated new image for subject '$subject' and cached it.", $subject);
             file_put_contents($cacheFile, json_encode($cacheData), LOCK_EX);
         }
     }
