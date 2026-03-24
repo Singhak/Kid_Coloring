@@ -78,7 +78,7 @@ if (!is_dir($queueDir)) {
     mkdir($queueDir, 0777, true);
 }
 $queueFile = $queueDir . '/tasks.txt';
-$task = json_encode(["provider" => "openrouter", "subject" => $subject, "category" => $category]) . PHP_EOL;
+$task = json_encode(["provider" => "gemini", "subject" => $subject, "category" => $category]) . PHP_EOL;
 file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
 
 // Load API key securely from .env file
@@ -139,7 +139,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     "Content-Type: application/json",
-    "HTTP-Referer: https://kidcolor.storywalla.com"
+    "Referer: https://kidcolor.storywalla.com"
 ]);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 

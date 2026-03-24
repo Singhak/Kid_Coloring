@@ -77,6 +77,7 @@ function processTask($task) {
     $env = file_exists(__DIR__ . '/.env') ? parse_ini_file(__DIR__ . '/.env') : [];
 
     if ($provider === 'openrouter') {
+        logCronError("Processing OpenRouter task for subject '$subject'.", $subject);
         $apiKey = $env['OPENROUTER_API_KEY'] ?? getenv("OPENROUTER_API_KEY");
         $url = "https://openrouter.ai/api/v1/chat/completions";
         $data = [
@@ -94,6 +95,7 @@ function processTask($task) {
             "Content-Type: application/json"
         ];
     } else if ($provider === 'gemini') {
+        logCronError("Processing Gemini task for subject '$subject'.", $subject);
         $apiKey = $env['GEMINI_API_KEY'] ?? getenv("GEMINI_API_KEY");
         $model = "gemini-3-flash-preview";
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
@@ -107,7 +109,7 @@ function processTask($task) {
         ];
         $headers = [
             "Content-Type: application/json",
-            "HTTP-Referer: https://kidcolor.storywalla.com"
+            "Referer: https://kidcolor.storywalla.com"
         ];
     } else {
         return;
@@ -137,7 +139,7 @@ function processTask($task) {
             if (file_exists($cacheFile)) { $fileData = json_decode(file_get_contents($cacheFile), true); if (is_array($fileData)) { $cacheData = $fileData; } }
             if (count($cacheData) >= 30) { array_shift($cacheData); }
             $cacheData[] = $newImage;
-            logCronError("Generated new image for subject '$subject' and cached it.", $subject);
+            logCronError("'$provider' Generated new image for subject '$subject' and cached it.", $subject);
             file_put_contents($cacheFile, json_encode($cacheData), LOCK_EX);
         }
     }
