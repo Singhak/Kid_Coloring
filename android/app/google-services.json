@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "912207058376",
+    "project_id": "nearby-1096",
+    "storage_bucket": "nearby-1096.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:912207058376:android:0c81ae77957eab72381cfd",
+        "android_client_info": {
+          "package_name": "com.storywalla.kidcolor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "912207058376-9ess4o79g4s03js7u1d99hg7jcfnpim2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBi73f2KKgYhTQKb-A9x4cRrCzg5VV95uM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "912207058376-9ess4o79g4s03js7u1d99hg7jcfnpim2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

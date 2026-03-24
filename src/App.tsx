@@ -29,8 +29,8 @@ import confetti from 'canvas-confetti';
 import { auth, db } from './firebase';
 import { 
   signInWithPopup, 
-  signInWithRedirect,
   GoogleAuthProvider, 
+  signInWithCredential,
   signOut 
 } from 'firebase/auth';
 import { 
@@ -43,6 +43,7 @@ import {
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 
 import { SvgPath, HistoryState } from './types';
 import { 
@@ -105,11 +106,17 @@ export default function App() {
   }, [user]);
 
   const handleLogin = async () => {
-    const provider = new GoogleAuthProvider();
     try {
       if (Capacitor.isNativePlatform()) {
-        await signInWithRedirect(auth, provider);
+        const result = await FirebaseAuthentication.signInWithGoogle({
+          useCredentialManager: false,
+        });
+        if (result.credential?.idToken) {
+          const credential = GoogleAuthProvider.credential(result.credential.idToken);
+          await signInWithCredential(auth, credential);
+        }
       } else {
+        const provider = new GoogleAuthProvider();
         await signInWithPopup(auth, provider);
       }
     } catch (error) {
@@ -404,7 +411,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCF0] font-sans text-[#4A4A4A] overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-[#FDFCF0] font-sans text-[#4A4A4A] overflow-hidden flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       {/* Header */}
       <header className="p-3 md:p-6 flex items-center justify-between bg-white border-b-2 border-[#E6E6E6] shadow-sm shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
