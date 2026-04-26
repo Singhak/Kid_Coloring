@@ -84,7 +84,7 @@ function processTask($task) {
             "models" => ["nvidia/nemotron-3-super-120b-a12b:free","arcee-ai/trinity-mini:free","openrouter/free"],
             "messages" => [
                 ["role" => "system", "content" => "You are a specialized SVG path generator for kids' coloring books. You only output valid JSON."],
-                ["role" => "user", "content" => "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and easy for a child to color.\nReturn ONLY a JSON object with:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include fill colors."]
+                ["role" => "user", "content" => "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and it can be easy, medium or difficult for a child to color.\nReturn ONLY a JSON object with:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include fill colors."]
             ],
             "response_format" => ["type" => "json_object"]
         ];
@@ -99,7 +99,7 @@ function processTask($task) {
         $apiKey = $env['GEMINI_API_KEY'] ?? getenv("GEMINI_API_KEY");
         $model = "gemini-3-flash-preview";
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
-        $prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and easy for a child to color.\nReturn ONLY a JSON object with the following structure:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include any fill colors in the paths.";
+        $prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and it can be easy, medium or difficult for a child to color.\nReturn ONLY a JSON object with the following structure:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include any fill colors in the paths.";
         $data = [
             "contents" => [["parts" => [["text" => $prompt]]]],
             "generationConfig" => [

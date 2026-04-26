@@ -94,7 +94,7 @@ if (!$apiKey) {
     exit;
 }
 
-$prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and easy for a child to color.\nReturn ONLY a JSON object with the following structure:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include any fill colors in the paths.";
+$prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and it can be easy, medium or difficult for a child to color.\nReturn ONLY a JSON object with the following structure:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include any fill colors in the paths.";
 
 // Prepare request body targeting Gemini's REST API Schema constraints
 $data = [

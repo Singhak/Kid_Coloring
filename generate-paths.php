@@ -107,7 +107,7 @@ $data = [
             "role" => "user",
             "content" => "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.
             The SVG should consist of multiple closed paths so they can be filled with color.
-            The drawing should be clear and easy for a child to color.
+            The drawing should be clear and it can be easy, medium or difficult for a child to color.
             Return ONLY a JSON object with:
             {
               \"viewBox\": \"0 0 500 500\",
