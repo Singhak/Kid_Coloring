@@ -5,14 +5,56 @@ import { Crown, Sparkles, Download, X } from 'lucide-react';
 interface UpgradeModalProps {
   showUpgradeModal: boolean;
   setShowUpgradeModal: (show: boolean) => void;
-  handleUpgrade: () => void;
+  user: any; // Add user prop
+  isPro: boolean; // Add isPro prop
+  trialEndDate: Date | null; // Add trialEndDate prop
+  isSubscribed: boolean; // Add isSubscribed prop
+  handleLogin: () => void; // Pass handleLogin directly
+  handleSubscribe: () => void; // New prop for subscription action
 }
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({
   showUpgradeModal,
   setShowUpgradeModal,
-  handleUpgrade,
+  user,
+  isPro,
+  trialEndDate,
+  isSubscribed,
+  handleLogin,
+  handleSubscribe,
 }) => {
+  const now = new Date();
+  const isTrialActive = trialEndDate && trialEndDate.getTime() > now.getTime();
+  const daysRemaining = trialEndDate ? Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+  let title = "Unlock Magic!";
+  let description = "Login to unlock AI magic, extra colors, and save your masterpieces!";
+  let actionButtonText = "Login with Google";
+  let actionButtonOnClick: () => void = handleLogin; // Explicitly type to avoid TS error with conditional assignment
+  let showFeatures = true;
+  let showFreeForLoggedIn = true;
+
+  if (user) {
+    showFreeForLoggedIn = false; // Already logged in
+    if (isSubscribed) {
+      title = "You're a Magic Explorer!";
+      description = "All features are unlocked. Thank you for your support!";
+      actionButtonText = "Continue Coloring";
+      actionButtonOnClick = () => setShowUpgradeModal(false);
+      showFeatures = false;
+    } else if (isTrialActive) {
+      title = `Trial Active! ${daysRemaining} Days Left`;
+      description = "Enjoy all Pro features during your trial. Subscribe to keep the magic going!";
+      actionButtonText = "Subscribe Now";
+      actionButtonOnClick = handleSubscribe;
+    } else {
+      title = "Trial Expired!";
+      description = "Your 15-day trial has ended. Subscribe to continue using Pro features!";
+      actionButtonText = "Subscribe Now";
+      actionButtonOnClick = handleSubscribe;
+    }
+  }
+
   return (
     <AnimatePresence>
       {showUpgradeModal && (
@@ -43,13 +85,14 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
               </div>
 
               <h2 className="text-3xl font-black text-[#2D3436] mb-2">
-                Unlock Magic!
+                {title}
               </h2>
               <p className="text-[#5A5A5A] font-medium mb-8">
-                Login to unlock AI magic, extra colors, and save your masterpieces!
+                {description}
               </p>
 
-              <div className="w-full space-y-4 mb-8">
+              {showFeatures && (
+                <div className="w-full space-y-4 mb-8">
                 <div className="flex items-center gap-4 p-4 bg-[#FDFCF0] rounded-2xl border-2 border-[#FFD93D]/30">
                   <div className="w-10 h-10 bg-[#FFD93D] rounded-xl flex items-center justify-center shrink-0">
                     <Sparkles className="w-6 h-6 text-white" />
@@ -69,16 +112,19 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   </div>
                 </div>
               </div>
+              )}
 
               <button
-                onClick={handleUpgrade}
+                onClick={actionButtonOnClick}
                 className="w-full py-5 bg-[#FF6B6B] text-white font-black text-xl rounded-2xl shadow-lg hover:bg-[#FF5252] transition-all active:scale-95 mb-4"
               >
-                Login with Google
+                {actionButtonText}
               </button>
-              <p className="text-[10px] text-[#A0A0A0] font-bold uppercase tracking-widest">
-                Completely free for logged-in users!
+              {showFreeForLoggedIn && (
+                <p className="text-[10px] text-[#A0A0A0] font-bold uppercase tracking-widest">
+                Login with Google to start your 15-day free trial!
               </p>
+              )}
             </div>
           </motion.div>
         </div>
