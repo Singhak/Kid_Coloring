@@ -1,7 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- */ 
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react'; 
 import { Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -13,12 +13,13 @@ import {
   GoogleAuthProvider, 
   signOut 
 } from 'firebase/auth';
-import { 
+import {
   doc, 
   getDoc, 
   setDoc, 
   onSnapshot,
-  serverTimestamp 
+  serverTimestamp,
+  Timestamp
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Capacitor } from '@capacitor/core';
@@ -47,13 +48,22 @@ import MagicPaletteModal from './components/MagicPaletteModal';
 import UpgradeModal from './components/UpgradeModal';
 import { saveToCache, getFromCache } from './services/cacheService';
 
+// Declare Razorpay global object
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 // --- App Component ---
 
 // --- App Component ---
 
 export default function App() {
-  const [user] = useAuthState(auth);
-  const isPro = !!user;
+  const [user] = useAuthState(auth); // Firebase user object
+  const [isPro, setIsPro] = useState(false); // Derived state: true if subscribed or trial active
+  const [trialEndDate, setTrialEndDate] = useState<Date | null>(null); // User's trial end date
+  const [isSubscribed, setIsSubscribed] = useState(false); // User's subscription status
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProColors, setShowProColors] = useState(false);
   const [paths, setPaths] = useState<SvgPath[]>([]);
@@ -66,6 +76,7 @@ export default function App() {
   const [isRateLimited, setIsRateLimited] = useState(false);
   const aiGenerationTimestamps = useRef<number[]>([]);
   const currentGenerationId = useRef<number>(0);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [viewBox, setViewBox] = useState("0 0 500 500");
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -77,27 +88,65 @@ export default function App() {
 
   // Sync user profile
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsPro(false);
+      setTrialEndDate(null);
+      setIsSubscribed(false);
+      return;
+    }
 
     const userRef = doc(db, 'users', user.uid);
-    const checkUser = async () => {
-      const snap = await getDoc(userRef);
-      if (!snap.exists()) {
+    const unsubscribe = onSnapshot(userRef, async (snap) => {
+      const userData = snap.data();
+      let currentTrialEndDate: Date | null = null;
+      let currentIsSubscribed = false;
+
+      if (!userData || !userData.createdAt) {
+        // New user or old user without createdAt, set initial data including trial end date
+        const now = new Date();
+        const trialEndTimestamp = Timestamp.fromMillis(now.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days from now
         await setDoc(userRef, {
           uid: user.uid,
           email: user.email,
-          createdAt: serverTimestamp()
-        });
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          createdAt: serverTimestamp(), // Use serverTimestamp for consistency
+          trialEndDate: trialEndTimestamp,
+          isSubscribed: false,
+        }, { merge: true });
+
+        currentTrialEndDate = trialEndTimestamp.toDate();
+        currentIsSubscribed = false;
+      } else {
+        // Existing user
+        currentTrialEndDate = userData.trialEndDate?.toDate() || null;
+        currentIsSubscribed = userData.isSubscribed || false;
+
+        // If trialEndDate is missing for an old user but createdAt exists, set it now
+        if (!userData.trialEndDate && userData.createdAt) {
+          const createdDate = userData.createdAt.toDate();
+          const trialEndTimestamp = Timestamp.fromMillis(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000);
+          await setDoc(userRef, { trialEndDate: trialEndTimestamp }, { merge: true });
+          currentTrialEndDate = trialEndTimestamp.toDate();
+        }
       }
-    };
-    checkUser();
+
+      setTrialEndDate(currentTrialEndDate);
+      setIsSubscribed(currentIsSubscribed);
+
+      const now = new Date();
+      const isTrialActive = currentTrialEndDate && currentTrialEndDate.getTime() > now.getTime();
+      setIsPro(currentIsSubscribed || isTrialActive);
+    });
+
+    return () => unsubscribe();
   }, [user]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
       if (Capacitor.isNativePlatform()) {
-        await signInWithRedirect(auth, provider);
+        await signInWithRedirect(auth, provider); // For native platforms
       } else {
         await signInWithPopup(auth, provider);
       }
@@ -108,11 +157,127 @@ export default function App() {
 
   const handleLogout = () => signOut(auth);
 
-  const handleUpgrade = () => {
+  // Function to load Razorpay script
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.getElementById('razorpay-checkout-script')) {
+        setRazorpayLoaded(true);
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.id = 'razorpay-checkout-script';
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => {
+        setRazorpayLoaded(true);
+        resolve(true);
+      };
+      script.onerror = () => { console.error("Failed to load Razorpay SDK."); resolve(false); };
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleUpgrade = () => { // This function is now primarily for opening the modal.
+    // The modal itself will handle login/subscription actions.
+    setShowUpgradeModal(false);
+  };
+
+  const handleSubscribe = async () => {
     if (!user) {
       handleLogin();
+      return;
     }
-    setShowUpgradeModal(false);
+
+    // 1. Load Razorpay script
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      alert("Failed to load payment gateway. Please try again.");
+      return;
+    }
+
+    // 2. Create Razorpay Order via backend
+    try {
+      const orderResponse = await fetch('/api/create-razorpay-order.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          amount: 999, // Amount in smallest currency unit (e.g., 999 for INR 9.99)
+          currency: 'INR', // Or your desired currency
+          receipt: `receipt_${user.uid}_${Date.now()}`,
+        }),
+      });
+
+      const orderData = await orderResponse.json();
+
+      if (!orderResponse.ok || orderData.error) {
+        throw new Error(orderData.error || 'Failed to create Razorpay order.');
+      }
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Your Razorpay Key ID from .env
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'KidColor Subscription',
+        description: 'Monthly Subscription for Pro Features',
+        image: '/logo.svg', // Your app logo
+        order_id: orderData.id,
+        handler: async function (response: any) {
+          // 3. Verify payment via backend
+          try {
+            const verifyResponse = await fetch('/api/verify-razorpay-payment.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                userId: user.uid,
+              }),
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (!verifyResponse.ok || verifyData.error) {
+              throw new Error(verifyData.error || 'Payment verification failed.');
+            }
+
+            // Payment successful, Firestore listener will update isSubscribed
+            setShowUpgradeModal(false);
+            alert("Subscription successful! Welcome to KidColor Pro!");
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#FFD93D', '#4D96FF', '#6BCB77'] });
+
+          } catch (error: any) {
+            console.error("Payment verification error:", error);
+            alert(`Payment verification failed: ${error.message}`);
+          }
+        },
+        prefill: { name: user.displayName || '', email: user.email || '' },
+        theme: { color: '#FF6B6B' },
+        modal: { ondismiss: function() { alert('Payment cancelled by user.'); } }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error: any) {
+      console.error("Subscription process failed:", error);
+      alert(`Subscription failed: ${error.message}`);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+    if (window.confirm("Are you sure you want to cancel your subscription? This will revoke access to Pro features at the end of your current billing period.")) {
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, { isSubscribed: false }, { merge: true });
+      alert("Subscription cancelled. You will lose access to Pro features at the end of your current billing cycle.");
+      setShowUpgradeModal(false); // Close modal if open
+    }
   };
 
   const saveToHistory = useCallback((newPaths: SvgPath[]) => {
@@ -397,6 +562,7 @@ export default function App() {
       <AppHeader
         user={user}
         isPro={isPro}
+        isSubscribed={isSubscribed} // Pass isSubscribed
         handleLogin={handleLogin}
         handleLogout={handleLogout}
         downloadImage={downloadImage}
@@ -404,6 +570,8 @@ export default function App() {
         redo={redo}
         historyIndex={historyIndex}
         historyLength={history.length}
+        setShowUpgradeModal={setShowUpgradeModal} // Pass setShowUpgradeModal
+        handleCancelSubscription={handleCancelSubscription} // Pass handleCancelSubscription
       />
 
       <main className="flex-1 flex flex-col lg:flex-row p-4 lg:p-8 gap-6 overflow-hidden">
@@ -487,7 +655,12 @@ export default function App() {
       <UpgradeModal
         showUpgradeModal={showUpgradeModal}
         setShowUpgradeModal={setShowUpgradeModal}
-        handleUpgrade={handleUpgrade}
+        user={user} // Pass user
+        isPro={isPro} // Pass isPro
+        trialEndDate={trialEndDate} // Pass trialEndDate
+        isSubscribed={isSubscribed} // Pass isSubscribed
+        handleLogin={handleLogin} // Pass handleLogin
+        handleSubscribe={handleSubscribe} // Pass handleSubscribe
       />
     </div>
   );
