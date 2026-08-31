@@ -9,6 +9,7 @@ import {
   MousePointer2 
 } from 'lucide-react';
 import { Category, Template } from './types';
+import { REALISTIC_TEMPLATES } from './constants/realisticTemplates';
 
 export const COLORS = [
   '#FF6B6B', '#FF9248', '#FFD93D', '#6BCB77', '#4D96FF', '#9B72AA', 
@@ -33,13 +34,13 @@ export const PRO_COLORS = [
 ];
 
 export const CATEGORIES: Category[] = [
-  { id: 'random', label: 'Random', icon: Sparkles, color: '#FFD93D' },
-  { id: 'animal', label: 'Animals', icon: ImageIcon, color: '#FF6B6B' },
-  { id: 'nature', label: 'Nature', icon: ImageIcon, color: '#6BCB77' },
-  { id: 'plant', label: 'Plants', icon: ImageIcon, color: '#829460' },
-  { id: 'human', label: 'People', icon: MousePointer2, color: '#4D96FF' },
-  { id: 'space', label: 'Space', icon: Sparkles, color: '#9B72AA' },
-  { id: 'vehicles', label: 'Vehicles', icon: ImageIcon, color: '#F76E11' },
+  { id: 'random', label: 'Random', icon: Sparkles, color: '#FFD93D', emoji: '🎲' },
+  { id: 'animal', label: 'Animals', icon: ImageIcon, color: '#FF6B6B', emoji: '🦁' },
+  { id: 'nature', label: 'Nature', icon: ImageIcon, color: '#6BCB77', emoji: '🌲' },
+  { id: 'plant', label: 'Plants', icon: ImageIcon, color: '#20BF6B', emoji: '🌻' },
+  { id: 'human', label: 'People', icon: MousePointer2, color: '#4D96FF', emoji: '👑' },
+  { id: 'space', label: 'Space', icon: Sparkles, color: '#9B72AA', emoji: '🚀' },
+  { id: 'vehicles', label: 'Vehicles', icon: ImageIcon, color: '#FA8231', emoji: '🚗' },
 ];
 
 export const SUBJECTS_BY_CATEGORY: Record<string, string[]> = {
@@ -52,6 +53,7 @@ export const SUBJECTS_BY_CATEGORY: Record<string, string[]> = {
 };
 
 export const STATIC_TEMPLATES: Template[] = [
+  ...REALISTIC_TEMPLATES,
   {
     name: 'Happy House',
     category: 'nature',

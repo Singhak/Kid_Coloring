@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react'; 
-import { Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { auth, db } from './firebase';
 import { 
@@ -15,7 +13,6 @@ import {
 } from 'firebase/auth';
 import {
   doc, 
-  getDoc, 
   setDoc, 
   onSnapshot,
   serverTimestamp,
@@ -25,28 +22,24 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 
-import { SvgPath, HistoryState } from './types';
+import { SvgPath, Template } from './types';
 import { 
   COLORS, 
   COLORS_LEFT, 
   COLORS_RIGHT, 
-  PRO_COLORS, 
-  CATEGORIES, 
-  STATIC_TEMPLATES,
-  ALL_SUBJECTS,
-  SUBJECTS_BY_CATEGORY
+  STATIC_TEMPLATES
 } from './constants'; 
-import { generateProceduralPaths, getImageUsingAPI } from './services/imageGenerator';
+import { generateDynamicAiColoringImage } from './services/dynamicAiGenerator';
+import { generateProceduralPaths } from './services/imageGenerator';
 import AppHeader from './components/AppHeader';
-import DesktopColorPalette from './components/DesktopColorPalette';
+import ColorPaletteDock from './components/ColorPaletteDock';
 import CategorySelector from './components/CategorySelector';
 import CanvasArea from './components/CanvasArea';
-import MobileColorPalette from './components/MobileColorPalette';
 import AppFooter from './components/AppFooter';
 import RateLimitNotification from './components/RateLimitNotification';
 import MagicPaletteModal from './components/MagicPaletteModal';
+import MagicPromptModal from './components/MagicPromptModal';
 import UpgradeModal from './components/UpgradeModal';
-import { saveToCache, getFromCache } from './services/cacheService';
 
 // Declare Razorpay global object
 declare global {
@@ -57,8 +50,6 @@ declare global {
 
 // --- App Component ---
 
-// --- App Component ---
-
 export default function App() {
   const [user] = useAuthState(auth); // Firebase user object
   const [isPro, setIsPro] = useState(false); // Derived state: true if subscribed or trial active
@@ -66,19 +57,23 @@ export default function App() {
   const [isSubscribed, setIsSubscribed] = useState(false); // User's subscription status
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProColors, setShowProColors] = useState(false);
+  const [showMagicPromptModal, setShowMagicPromptModal] = useState(false);
   const [paths, setPaths] = useState<SvgPath[]>([]);
-  const [history, setHistory] = useState<HistoryState[]>([]);
+  const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
+  const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
+  const [restoredDataUrl, setRestoredDataUrl] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
   const [selectedCategory, setSelectedCategory] = useState('random');
   const [showTemplates, setShowTemplates] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRateLimited, setIsRateLimited] = useState(false);
-  const aiGenerationTimestamps = useRef<number[]>([]);
   const currentGenerationId = useRef<number>(0);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
-  const [viewBox, setViewBox] = useState("0 0 500 500");
-  const svgRef = useRef<SVGSVGElement>(null);
+  const [viewBox, setViewBox] = useState("0 0 1000 1000");
+  
+  const paintCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const lineArtCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Initialize with a random template
   useEffect(() => {
@@ -102,15 +97,14 @@ export default function App() {
       let currentIsSubscribed = false;
 
       if (!userData || !userData.createdAt) {
-        // New user or old user without createdAt, set initial data including trial end date
         const now = new Date();
-        const trialEndTimestamp = Timestamp.fromMillis(now.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days from now
+        const trialEndTimestamp = Timestamp.fromMillis(now.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days
         await setDoc(userRef, {
           uid: user.uid,
           email: user.email,
           displayName: user.displayName,
           photoURL: user.photoURL,
-          createdAt: serverTimestamp(), // Use serverTimestamp for consistency
+          createdAt: serverTimestamp(),
           trialEndDate: trialEndTimestamp,
           isSubscribed: false,
         }, { merge: true });
@@ -118,11 +112,9 @@ export default function App() {
         currentTrialEndDate = trialEndTimestamp.toDate();
         currentIsSubscribed = false;
       } else {
-        // Existing user
         currentTrialEndDate = userData.trialEndDate?.toDate() || null;
         currentIsSubscribed = userData.isSubscribed || false;
 
-        // If trialEndDate is missing for an old user but createdAt exists, set it now
         if (!userData.trialEndDate && userData.createdAt) {
           const createdDate = userData.createdAt.toDate();
           const trialEndTimestamp = Timestamp.fromMillis(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000);
@@ -146,7 +138,7 @@ export default function App() {
     const provider = new GoogleAuthProvider();
     try {
       if (Capacitor.isNativePlatform()) {
-        await signInWithRedirect(auth, provider); // For native platforms
+        await signInWithRedirect(auth, provider);
       } else {
         await signInWithPopup(auth, provider);
       }
@@ -157,7 +149,6 @@ export default function App() {
 
   const handleLogout = () => signOut(auth);
 
-  // Function to load Razorpay script
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       if (document.getElementById('razorpay-checkout-script')) {
@@ -177,25 +168,18 @@ export default function App() {
     });
   };
 
-  const handleUpgrade = () => { // This function is now primarily for opening the modal.
-    // The modal itself will handle login/subscription actions.
-    setShowUpgradeModal(false);
-  };
-
   const handleSubscribe = async () => {
     if (!user) {
       handleLogin();
       return;
     }
 
-    // 1. Load Razorpay script
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
       alert("Failed to load payment gateway. Please try again.");
       return;
     }
 
-    // 2. Create Razorpay Order via backend
     try {
       const orderResponse = await fetch('/api/create-razorpay-order.php', {
         method: 'POST',
@@ -204,8 +188,8 @@ export default function App() {
         },
         body: JSON.stringify({
           userId: user.uid,
-          amount: 999, // Amount in smallest currency unit (e.g., 999 for INR 9.99)
-          currency: 'INR', // Or your desired currency
+          amount: 999,
+          currency: 'INR',
           receipt: `receipt_${user.uid}_${Date.now()}`,
         }),
       });
@@ -217,15 +201,14 @@ export default function App() {
       }
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Your Razorpay Key ID from .env
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
         name: 'KidColor Subscription',
         description: 'Monthly Subscription for Pro Features',
-        image: '/logo.svg', // Your app logo
+        image: '/logo.svg',
         order_id: orderData.id,
         handler: async function (response: any) {
-          // 3. Verify payment via backend
           try {
             const verifyResponse = await fetch('/api/verify-razorpay-payment.php', {
               method: 'POST',
@@ -246,7 +229,6 @@ export default function App() {
               throw new Error(verifyData.error || 'Payment verification failed.');
             }
 
-            // Payment successful, Firestore listener will update isSubscribed
             setShowUpgradeModal(false);
             alert("Subscription successful! Welcome to KidColor Pro!");
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#FFD93D', '#4D96FF', '#6BCB77'] });
@@ -276,78 +258,55 @@ export default function App() {
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, { isSubscribed: false }, { merge: true });
       alert("Subscription cancelled. You will lose access to Pro features at the end of your current billing cycle.");
-      setShowUpgradeModal(false); // Close modal if open
+      setShowUpgradeModal(false);
     }
   };
 
-  const saveToHistory = useCallback((newPaths: SvgPath[]) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push({ paths: [...newPaths] });
-    // Limit history size
-    if (newHistory.length > 50) newHistory.shift();
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  }, [history, historyIndex]);
+  const handleHistoryPush = useCallback((dataUrl: string) => {
+    setHistory((prev) => {
+      const newHistory = prev.slice(0, historyIndex + 1);
+      newHistory.push(dataUrl);
+      if (newHistory.length > 40) newHistory.shift();
+      return newHistory;
+    });
+    setHistoryIndex((prev) => Math.min(prev + 1, 39));
+  }, [historyIndex]);
 
-  const undo = () => {
+  const undo = useCallback(() => {
     if (historyIndex > 0) {
       const prevIndex = historyIndex - 1;
-      setPaths(history[prevIndex].paths);
       setHistoryIndex(prevIndex);
+      setRestoredDataUrl(history[prevIndex]);
     }
-  };
+  }, [historyIndex, history]);
 
-  const redo = () => {
+  const redo = useCallback(() => {
     if (historyIndex < history.length - 1) {
       const nextIndex = historyIndex + 1;
-      setPaths(history[nextIndex].paths);
       setHistoryIndex(nextIndex);
+      setRestoredDataUrl(history[nextIndex]);
     }
-  };
+  }, [historyIndex, history]);
 
-  const handleFill = (pathId: string) => {
-    const newPaths = paths.map(p => 
-      p.id === pathId ? { ...p, fill: selectedColor } : p
-    );
-    setPaths(newPaths);
-    saveToHistory(newPaths);
-  };
-
-  const selectTemplate = (template: typeof STATIC_TEMPLATES[0]) => {
-    const newPaths = template.paths.map(p => ({
+  const selectTemplate = (template: Template) => {
+    setCurrentImageUrl(null);
+    const newPaths = (template.paths || []).map(p => ({
       ...p,
       fill: '#FFFFFF',
-      stroke: p.stroke || '#000000',
-      strokeWidth: p.strokeWidth || 3
+      stroke: p.stroke || '#1A1A1A',
+      strokeWidth: p.strokeWidth || 4
     }));
     setPaths(newPaths);
-    setViewBox(template.viewBox);
-    setHistory([{ paths: newPaths }]);
-    setHistoryIndex(0);
+    setViewBox(template.viewBox || "0 0 1000 1000");
+    setHistory([]);
+    setHistoryIndex(-1);
+    setRestoredDataUrl(null);
     setShowTemplates(false);
     setSelectedCategory(template.category);
   };
 
-  const generateProceduralImage = (category: string) => {
-    const result = generateProceduralPaths(category);
-    const newPaths = result.paths;
-    setPaths(newPaths);
-    setViewBox(result.viewBox || "0 0 500 500");
-    setHistory([{ paths: newPaths }]);
-    setHistoryIndex(0);
-    setShowTemplates(false);
-    
-    try {
-      confetti({
-        particleCount: 50,
-        spread: 40,
-        origin: { y: 0.7 },
-        colors: ['#FFD93D', '#4D96FF', '#FFFFFF']
-      });
-    } catch (e) {}
-  };
-
-  const generateRandomImage = async () => {
+  // Dynamic AI generation using high-quality Diffusion line art
+  const handleGenerateAiImage = async (customPrompt?: string) => {
     if (!isPro) {
       setShowUpgradeModal(true);
       return;
@@ -355,68 +314,23 @@ export default function App() {
 
     if (isGenerating) return;
 
-    const handleFallback = () => {
-      // 50% chance to use cache (if available), 50% chance to use JS generation
-      const useCache = Math.random() > 0.5;
-      const cached = getFromCache(selectedCategory);
-      
-      if (useCache && cached) {
-        setPaths(cached.paths);
-        setViewBox(cached.viewBox);
-        setHistory([{ paths: cached.paths }]);
-        setHistoryIndex(0);
-      } else {
-        generateProceduralImage(selectedCategory);
-      }
-    };
-
-    // Rate limiting check
-    const now = Date.now();
-    const oneMinuteAgo = now - 60000;
-    aiGenerationTimestamps.current = aiGenerationTimestamps.current.filter(t => t > oneMinuteAgo);
-
-    if (aiGenerationTimestamps.current.length >= 15) {
-      setIsRateLimited(true);
-      setTimeout(() => setIsRateLimited(false), 4000);
-      
-      handleFallback();
-      return;
-    }
-
-    aiGenerationTimestamps.current.push(now);
     const generationId = ++currentGenerationId.current;
-    
-    let subject = '';
-    if (selectedCategory === 'random') {
-      subject = ALL_SUBJECTS[Math.floor(Math.random() * ALL_SUBJECTS.length)];
-    } else {
-      const subjects = SUBJECTS_BY_CATEGORY[selectedCategory] || ALL_SUBJECTS;
-      subject = subjects[Math.floor(Math.random() * subjects.length)];
-    }
-    
+
     try {
       setIsGenerating(true);
-      const result = await getImageUsingAPI(subject, selectedCategory);
-      // const result = await generateAiPaths(subject);
-      
-      // Check if this generation is still relevant
+      setShowTemplates(false);
+
+      const result = await generateDynamicAiColoringImage(selectedCategory, customPrompt);
+
       if (generationId !== currentGenerationId.current) return;
 
-      if (result) {
-        const newPaths = result.paths.map((p: any) => ({
-          ...p,
-          fill: '#FFFFFF',
-          stroke: p.stroke || '#000000',
-          strokeWidth: p.strokeWidth || 3
-        }));
-
-        setPaths(newPaths);
-        setViewBox(result.viewBox || "0 0 500 500");
-        setHistory([{ paths: newPaths }]);
-        setHistoryIndex(0);
-        
-        // Save to cache
-        saveToCache(selectedCategory, subject, newPaths, result.viewBox || "0 0 500 500");
+      if (result && result.imageUrl) {
+        setCurrentImageUrl(result.imageUrl);
+        setPaths([]);
+        setViewBox("0 0 1000 1000");
+        setHistory([]);
+        setHistoryIndex(-1);
+        setRestoredDataUrl(null);
 
         try {
           confetti({
@@ -425,26 +339,11 @@ export default function App() {
             origin: { y: 0.6 },
             colors: COLORS
           });
-        } catch (confettiError) {
-          console.warn("Confetti failed to launch:", confettiError);
-        }
-      } else {
-        handleFallback();
+        } catch (e) {}
       }
-    } catch (error: any) {
-      const isQuotaError = error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
-      
-      if (isQuotaError) {
-        console.warn("AI Quota reached, using cached image fallback.");
-        setIsRateLimited(true);
-        setTimeout(() => setIsRateLimited(false), 5000);
-      } else {
-        console.error("AI Generation failed:", error);
-      }
-
-      if (generationId !== currentGenerationId.current) return;
-      
-      handleFallback();
+    } catch (error) {
+      console.error("AI Generation failed:", error);
+      alert("Could not generate image. Please try another prompt.");
     } finally {
       if (generationId === currentGenerationId.current) {
         setIsGenerating(false);
@@ -452,117 +351,147 @@ export default function App() {
     }
   };
 
+  const handleGenerateProceduralRealistic = () => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    const result = generateProceduralPaths(selectedCategory);
+    setCurrentImageUrl(null);
+    setPaths(result.paths);
+    setViewBox(result.viewBox || "0 0 1000 1000");
+    setHistory([]);
+    setHistoryIndex(-1);
+    setRestoredDataUrl(null);
+    setShowTemplates(false);
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: COLORS
+      });
+    } catch (e) {}
+  };
+
+  const handleOpenMagicPrompt = () => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setShowMagicPromptModal(true);
+  };
+
   const downloadImage = () => {
     if (!isPro) {
       setShowUpgradeModal(true);
       return;
     }
-    if (!svgRef.current) return;
-    
-    const svgData = new XMLSerializer().serializeToString(svgRef.current);
+    const paintCanvas = paintCanvasRef.current;
+    const lineArtCanvas = lineArtCanvasRef.current;
+    if (!paintCanvas || !lineArtCanvas) return;
+
     const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = 1000;
+    tempCanvas.height = 1120; // Extra space for footer watermark
     const ctx = tempCanvas.getContext("2d");
     if (!ctx) return;
 
-    const mainImg = new Image();
+    // 1. Fill base white
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    // 2. Draw paint layer
+    ctx.drawImage(paintCanvas, 0, 0, 1000, 1000);
+
+    // 3. Composite line art layer with multiply
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.drawImage(lineArtCanvas, 0, 0, 1000, 1000);
+    ctx.restore();
+
+    // 4. Footer branding
+    ctx.fillStyle = "#FDFCF0";
+    ctx.fillRect(0, 1000, 1000, 120);
+
+    ctx.strokeStyle = "#E6E6E6";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 1000);
+    ctx.lineTo(1000, 1000);
+    ctx.stroke();
+
     const logoImg = new Image();
-    
-    const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-    const mainUrl = URL.createObjectURL(svgBlob);
-    
-    const loadMain = new Promise((resolve) => {
-      mainImg.onload = resolve;
-      mainImg.src = mainUrl;
-    });
-    
-    const loadLogo = new Promise((resolve) => {
-      logoImg.onload = resolve;
-      logoImg.onerror = resolve; // Fallback to text if logo fails
-      logoImg.src = "/logo.svg";
-    });
-
-    Promise.all([loadMain, loadLogo]).then(() => {
-      tempCanvas.width = 1000;
-      tempCanvas.height = 1120; // Extra space for footer
-      
-      if (ctx) {
-        // Background
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Main drawing
-        ctx.drawImage(mainImg, 0, 0, 1000, 1000);
-        
-        // Footer Area
-        ctx.fillStyle = "#FDFCF0";
-        ctx.fillRect(0, 1000, 1000, 120);
-        
-        ctx.strokeStyle = "#E6E6E6";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, 1000);
-        ctx.lineTo(1000, 1000);
-        ctx.stroke();
-
-        // Logo and Text
-        const footerY = 1060;
-        
-        try {
-          // Draw Logo
-          const logoSize = 60;
-          ctx.drawImage(logoImg, 320, footerY - 30, 100, 60);
-          
-          ctx.fillStyle = "#A0A0A0";
-          ctx.font = "bold 20px Arial";
-          ctx.textAlign = "left";
-          ctx.fillText("Created with Magic at KidColor - kidColor.storywalla.com", 430, footerY + 8);
-        } catch (e) {
-          // Fallback if logo fails
-          ctx.fillStyle = "#2D3436";
-          ctx.font = "black 40px Arial";
-          ctx.textAlign = "center";
-          ctx.fillText("Created by KidColor - kidColor.storywalla.com", 500, footerY + 10);
-        }
-
-        const pngUrl = tempCanvas.toDataURL("image/png");
-        
-        if (Capacitor.isNativePlatform()) {
-          const base64Data = pngUrl.split(',')[1];
-          Filesystem.writeFile({
-            path: `kidcolor-${Date.now()}.png`,
-            data: base64Data,
-            directory: Directory.Documents
-          }).then(() => {
-            alert("Masterpiece saved to your Documents folder!");
-          }).catch(err => {
-            console.error("Save failed:", err);
-            alert("Could not save image.");
-          });
-        } else {
-          const downloadLink = document.createElement("a");
-          downloadLink.href = pngUrl;
-          downloadLink.download = `kidcolor-${Date.now()}.png`;
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-          document.body.removeChild(downloadLink);
-        }
+    const finishExport = () => {
+      const pngUrl = tempCanvas.toDataURL("image/png");
+      if (Capacitor.isNativePlatform()) {
+        const base64Data = pngUrl.split(',')[1];
+        Filesystem.writeFile({
+          path: `kidcolor-${Date.now()}.png`,
+          data: base64Data,
+          directory: Directory.Documents
+        }).then(() => {
+          alert("Masterpiece saved to your Documents folder!");
+        }).catch(err => {
+          console.error("Save failed:", err);
+          alert("Could not save image.");
+        });
+      } else {
+        const downloadLink = document.createElement("a");
+        downloadLink.href = pngUrl;
+        downloadLink.download = `kidcolor-${Date.now()}.png`;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
       }
-      URL.revokeObjectURL(mainUrl);
-    });
+      try {
+        confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 }, colors: COLORS });
+      } catch (e) {}
+    };
+
+    logoImg.onload = () => {
+      try {
+        ctx.drawImage(logoImg, 260, 1030, 60, 60);
+        ctx.fillStyle = "#2D3436";
+        ctx.font = "bold 20px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText("Created with Magic at KidColor - kidcolor.storywalla.com", 335, 1066);
+      } catch (e) {}
+      finishExport();
+    };
+
+    logoImg.onerror = () => {
+      ctx.fillStyle = "#2D3436";
+      ctx.font = "bold 22px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("🎨 Created with Magic at KidColor - kidcolor.storywalla.com", 500, 1065);
+      finishExport();
+    };
+
+    logoImg.src = "/logo.svg";
   };
 
   const clearCanvas = () => {
-    const clearedPaths = paths.map(p => ({ ...p, fill: '#FFFFFF' }));
-    setPaths(clearedPaths);
-    saveToHistory(clearedPaths);
+    const paintCanvas = paintCanvasRef.current;
+    if (!paintCanvas) return;
+    const ctx = paintCanvas.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, paintCanvas.width, paintCanvas.height);
+    const blankDataUrl = paintCanvas.toDataURL();
+    handleHistoryPush(blankDataUrl);
+    setRestoredDataUrl(blankDataUrl);
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCF0] font-sans text-[#4A4A4A] overflow-hidden flex flex-col"> 
+    <div className="h-screen w-screen bg-[#FBF9F1] font-sans text-[#2D3436] overflow-hidden flex flex-col"> 
       <AppHeader
         user={user}
         isPro={isPro}
-        isSubscribed={isSubscribed} // Pass isSubscribed
+        isSubscribed={isSubscribed}
+        trialEndDate={trialEndDate}
+        showTemplates={showTemplates}
+        setShowTemplates={setShowTemplates}
         handleLogin={handleLogin}
         handleLogout={handleLogout}
         downloadImage={downloadImage}
@@ -570,26 +499,13 @@ export default function App() {
         redo={redo}
         historyIndex={historyIndex}
         historyLength={history.length}
-        setShowUpgradeModal={setShowUpgradeModal} // Pass setShowUpgradeModal
-        handleCancelSubscription={handleCancelSubscription} // Pass handleCancelSubscription
+        setShowUpgradeModal={setShowUpgradeModal}
+        handleCancelSubscription={handleCancelSubscription}
       />
 
-      <main className="flex-1 flex flex-col lg:flex-row p-4 lg:p-8 gap-6 overflow-hidden">
-        {/* Left Toolbar: Colors (Desktop) */}
-        <DesktopColorPalette
-          colors={COLORS_LEFT}
-          selectedColor={selectedColor}
-          setSelectedColor={setSelectedColor}
-          isPro={isPro}
-          setShowUpgradeModal={setShowUpgradeModal}
-          showProColors={showProColors}
-          setShowProColors={setShowProColors}
-          showEraser={true}
-        />
-
-        {/* Center: Canvas Area */}
-        <section className="flex-1 flex flex-col gap-4 overflow-hidden">
-          {/* Category Selection */}
+      <main className="flex-1 flex flex-col px-2 sm:px-5 pt-1.5 pb-1 gap-1.5 sm:gap-2 overflow-hidden min-h-0">
+        {/* Category Selection Bar (Shown when browsing Library) */}
+        {showTemplates && (
           <CategorySelector
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
@@ -597,25 +513,33 @@ export default function App() {
             setIsGenerating={setIsGenerating}
             currentGenerationId={currentGenerationId}
           />
+        )}
 
-          <CanvasArea
-            isPro={isPro}
-            isGenerating={isGenerating}
-            showTemplates={showTemplates}
-            selectedCategory={selectedCategory}
-            paths={paths}
-            viewBox={viewBox}
-            svgRef={svgRef}
-            generateRandomImage={generateRandomImage}
-            selectTemplate={selectTemplate}
-            downloadImage={downloadImage}
-            clearCanvas={clearCanvas}
-            handleFill={handleFill}
-            setShowUpgradeModal={setShowUpgradeModal}
-          />
+        {/* Center: Canvas Area / Template Library */}
+        <CanvasArea
+          isPro={isPro}
+          isGenerating={isGenerating}
+          showTemplates={showTemplates}
+          setShowTemplates={setShowTemplates}
+          selectedCategory={selectedCategory}
+          paths={paths}
+          viewBox={viewBox}
+          imageUrl={currentImageUrl}
+          selectedColor={selectedColor}
+          paintCanvasRef={paintCanvasRef}
+          lineArtCanvasRef={lineArtCanvasRef}
+          onHistoryPush={handleHistoryPush}
+          restoredDataUrl={restoredDataUrl}
+          generateRandomImage={handleOpenMagicPrompt}
+          selectTemplate={selectTemplate}
+          downloadImage={downloadImage}
+          clearCanvas={clearCanvas}
+          setShowUpgradeModal={setShowUpgradeModal}
+        />
 
-          {/* Bottom Palette (Mobile) */}
-          <MobileColorPalette
+        {/* Bottom Palette Dock (Crayons & Tools) */}
+        {!showTemplates && (
+          <ColorPaletteDock
             selectedColor={selectedColor}
             setSelectedColor={setSelectedColor}
             isPro={isPro}
@@ -623,22 +547,11 @@ export default function App() {
             showProColors={showProColors}
             setShowProColors={setShowProColors}
           />
-        </section>
-
-        {/* Right Toolbar: Colors (Desktop) */}
-        <DesktopColorPalette
-          colors={COLORS_RIGHT}
-          selectedColor={selectedColor}
-          setSelectedColor={setSelectedColor}
-          isPro={isPro}
-          setShowUpgradeModal={setShowUpgradeModal}
-          showProColors={showProColors}
-          setShowProColors={setShowProColors}
-        />
+        )}
       </main>
 
-      {/* Footer / Mobile Palette (Optional, already have sidebar) */}
-      <AppFooter />
+      {/* Footer (Library only) */}
+      {showTemplates && <AppFooter />}
 
       {/* Rate Limit Notification */}
       <RateLimitNotification isRateLimited={isRateLimited} />
@@ -651,16 +564,25 @@ export default function App() {
         setSelectedColor={setSelectedColor}
       />
 
+      {/* Magic Prompt Modal */}
+      <MagicPromptModal
+        isOpen={showMagicPromptModal}
+        onClose={() => setShowMagicPromptModal(false)}
+        onGeneratePrompt={(prompt) => handleGenerateAiImage(prompt)}
+        onInstantRealistic={handleGenerateProceduralRealistic}
+        isGenerating={isGenerating}
+      />
+
       {/* Upgrade Modal */}
       <UpgradeModal
         showUpgradeModal={showUpgradeModal}
         setShowUpgradeModal={setShowUpgradeModal}
-        user={user} // Pass user
-        isPro={isPro} // Pass isPro
-        trialEndDate={trialEndDate} // Pass trialEndDate
-        isSubscribed={isSubscribed} // Pass isSubscribed
-        handleLogin={handleLogin} // Pass handleLogin
-        handleSubscribe={handleSubscribe} // Pass handleSubscribe
+        user={user}
+        isPro={isPro}
+        trialEndDate={trialEndDate}
+        isSubscribed={isSubscribed}
+        handleLogin={handleLogin}
+        handleSubscribe={handleSubscribe}
       />
     </div>
   );
