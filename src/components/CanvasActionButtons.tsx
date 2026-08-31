@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Crown, Trash2, ZoomIn, ZoomOut, Maximize2, LayoutGrid } from 'lucide-react';
+import { Sparkles, Crown, Trash2, ZoomIn, ZoomOut, Maximize2, LayoutGrid, Printer } from 'lucide-react';
 import { playClick, playChime } from '../services/soundEffects';
 
 interface CanvasActionButtonsProps {
@@ -10,6 +10,7 @@ interface CanvasActionButtonsProps {
   clearCanvas: () => void;
   setShowUpgradeModal: (show: boolean) => void;
   onOpenGallery?: () => void;
+  onPrintSheet?: () => void;
   scale?: number;
   onZoomIn?: () => void;
   onZoomOut?: () => void;
@@ -23,6 +24,7 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
   clearCanvas,
   setShowUpgradeModal,
   onOpenGallery,
+  onPrintSheet,
   scale = 1,
   onZoomIn,
   onZoomOut,
@@ -31,7 +33,7 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
   const isZoomed = Math.abs(scale - 1) > 0.05;
 
   return (
-    <div className="absolute top-3 left-3 right-3 sm:top-5 sm:left-5 sm:right-5 flex items-center justify-between pointer-events-none z-20">
+    <div className="absolute top-2.5 left-2.5 right-2.5 sm:top-4 sm:left-4 sm:right-4 flex items-center justify-between pointer-events-none z-20">
       {/* Left side: Zoom & Navigation Controls */}
       <div className="flex items-center gap-1.5 sm:gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border-2 border-[#EBE8DC] pointer-events-auto">
         {onOpenGallery && (
@@ -88,8 +90,39 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
         )}
       </div>
 
-      {/* Right side: AI Magic Prompt & Clear Canvas */}
+      {/* Right side: AI Magic Prompt, Print Sheet, Clear Canvas */}
       <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+        {/* Printable PDF Button */}
+        {onPrintSheet && (
+          <button
+            onClick={() => {
+              if (!isPro) {
+                playChime();
+                setShowUpgradeModal(true);
+                return;
+              }
+              playClick();
+              onPrintSheet();
+            }}
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3.5 py-2 rounded-2xl shadow-lg border-2 font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer ${
+              isPro
+                ? 'bg-white text-[#2D3436] border-[#EBE8DC] hover:border-[#10B981] hover:bg-[#F0FDF4]'
+                : 'bg-white/90 text-[#555] border-[#EBE8DC] hover:bg-[#FAF9F5]'
+            }`}
+            title="Print A4 Coloring Sheet for home coloring"
+          >
+            <Printer className="w-4 h-4 text-[#10B981]" />
+            <span className="hidden sm:inline">Print Sheet</span>
+            {!isPro && (
+              <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[10px] px-1.5 py-0.5 rounded-full font-black ml-0.5">
+                <Crown className="w-2.5 h-2.5 fill-current" />
+                VIP
+              </span>
+            )}
+          </button>
+        )}
+
+        {/* Magic AI Button */}
         <button
           onClick={() => {
             if (!isPro) {
@@ -119,6 +152,7 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
           )}
         </button>
 
+        {/* Clear Button */}
         <button
           onClick={() => {
             playClick();

@@ -31,6 +31,7 @@ import {
 } from './constants'; 
 import { generateDynamicAiColoringImage } from './services/dynamicAiGenerator';
 import { generateProceduralPaths } from './services/imageGenerator';
+import { printColoringSheet } from './services/pdfExporter';
 import AppHeader from './components/AppHeader';
 import ColorPaletteDock from './components/ColorPaletteDock';
 import CategorySelector from './components/CategorySelector';
@@ -471,6 +472,16 @@ export default function App() {
     logoImg.src = "/logo.svg";
   };
 
+  const handlePrintSheet = () => {
+    if (!isPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    const lineArtCanvas = lineArtCanvasRef.current;
+    if (!lineArtCanvas) return;
+    printColoringSheet(lineArtCanvas, 'Coloring Masterpiece');
+  };
+
   const clearCanvas = () => {
     const paintCanvas = paintCanvasRef.current;
     if (!paintCanvas) return;
@@ -535,6 +546,7 @@ export default function App() {
           downloadImage={downloadImage}
           clearCanvas={clearCanvas}
           setShowUpgradeModal={setShowUpgradeModal}
+          onPrintSheet={handlePrintSheet}
         />
 
         {/* Bottom Palette Dock (Crayons & Tools) */}

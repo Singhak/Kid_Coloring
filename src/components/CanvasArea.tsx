@@ -25,6 +25,7 @@ interface CanvasAreaProps {
   downloadImage: () => void;
   clearCanvas: () => void;
   setShowUpgradeModal: (show: boolean) => void;
+  onPrintSheet?: () => void;
 }
 
 const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -46,6 +47,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   downloadImage,
   clearCanvas,
   setShowUpgradeModal,
+  onPrintSheet,
 }) => {
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -115,6 +117,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
           clearCanvas={clearCanvas}
           setShowUpgradeModal={setShowUpgradeModal}
           onOpenGallery={() => setShowTemplates(true)}
+          onPrintSheet={onPrintSheet}
           scale={scale}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
