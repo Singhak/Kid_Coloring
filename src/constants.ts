@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Category, Template } from './types';
 import { REALISTIC_TEMPLATES } from './constants/realisticTemplates';
+import { EDUCATIONAL_TEMPLATES } from './constants/educationalTemplates';
 
 export const COLORS = [
   '#FF6B6B', '#FF9248', '#FFD93D', '#6BCB77', '#4D96FF', '#9B72AA', 
@@ -34,17 +35,25 @@ export const PRO_COLORS = [
 ];
 
 export const CATEGORIES: Category[] = [
-  { id: 'random', label: 'Random', icon: Sparkles, color: '#FFD93D', emoji: '🎲' },
-  { id: 'animal', label: 'Animals', icon: ImageIcon, color: '#FF6B6B', emoji: '🦁' },
+  { id: 'random', label: 'All Magic', icon: Sparkles, color: '#FFD93D', emoji: '✨' },
+  { id: 'alphabet', label: 'Alphabets', icon: ImageIcon, color: '#FF6B6B', emoji: '🔤' },
+  { id: 'numbers', label: 'Numbers', icon: ImageIcon, color: '#4D96FF', emoji: '🔢' },
+  { id: 'fruits', label: 'Fruits', icon: ImageIcon, color: '#FF9F43', emoji: '🍎' },
+  { id: 'vegetables', label: 'Vegetables', icon: ImageIcon, color: '#10B981', emoji: '🥕' },
+  { id: 'animal', label: 'Animals', icon: ImageIcon, color: '#9B72AA', emoji: '🦁' },
+  { id: 'object', label: 'Objects', icon: MousePointer2, color: '#F59E0B', emoji: '🧸' },
   { id: 'nature', label: 'Nature', icon: ImageIcon, color: '#6BCB77', emoji: '🌲' },
-  { id: 'plant', label: 'Plants', icon: ImageIcon, color: '#20BF6B', emoji: '🌻' },
-  { id: 'human', label: 'People', icon: MousePointer2, color: '#4D96FF', emoji: '👑' },
-  { id: 'space', label: 'Space', icon: Sparkles, color: '#9B72AA', emoji: '🚀' },
+  { id: 'space', label: 'Space', icon: Sparkles, color: '#8B5CF6', emoji: '🚀' },
   { id: 'vehicles', label: 'Vehicles', icon: ImageIcon, color: '#FA8231', emoji: '🚗' },
 ];
 
 export const SUBJECTS_BY_CATEGORY: Record<string, string[]> = {
+  alphabet: ['letter A with apple', 'letter B with butterfly', 'letter C with cute cat', 'letter D with friendly dinosaur', 'letter E with baby elephant', 'letter S with shining star', 'letter Z with zebra'],
+  numbers: ['number 1 with radiant smiling sun', 'number 2 with swimming baby ducks', 'number 3 with floating party balloons', 'number 4 with shining stars', 'number 5 with red apples on tree'],
+  fruits: ['juicy watermelon slice with seeds', 'sweet strawberry with leafy top', 'ripe bananas bunch', 'crisp apple on branch', 'bunch of purple grapes', 'tropical pineapple', 'sweet golden mango', 'twin red cherries on stem'],
+  vegetables: ['crunchy carrot with leafy top', 'magic round pumpkin', 'juicy red tomato with star leaf', 'happy broccoli floret', 'sweet corn on the cob', 'glossy purple eggplant', 'green peas in open pod'],
   animal: ['cat', 'dog', 'dinosaur', 'butterfly', 'fish', 'lion', 'elephant', 'bird', 'turtle', 'rabbit', 'monkey', 'giraffe', 'zebra', 'panda', 'koala', 'owl', 'penguin', 'shark', 'whale', 'octopus'],
+  object: ['cuddly teddy bear with bow', 'flying diamond kite in breeze', 'wrapped surprise gift box with big bow', 'toy steam train chugging smoke', 'retro twin bell alarm clock', 'magic musical marching drum'],
   nature: ['mountain', 'river', 'forest', 'beach', 'volcano', 'rainbow', 'cloud', 'sun', 'moon', 'stars', 'desert', 'waterfall', 'island', 'cave', 'glacier', 'lightning', 'tornado'],
   plant: ['flower', 'tree', 'cactus', 'mushroom', 'leaf', 'sunflower', 'palm tree', 'rose', 'tulip', 'daisy', 'pine tree', 'bamboo', 'fern', 'clover'],
   human: ['astronaut', 'superhero', 'chef', 'doctor', 'teacher', 'pilot', 'artist', 'dancer', 'firefighter', 'police officer', 'farmer', 'scientist', 'athlete', 'musician'],
@@ -53,6 +62,7 @@ export const SUBJECTS_BY_CATEGORY: Record<string, string[]> = {
 };
 
 export const STATIC_TEMPLATES: Template[] = [
+  ...EDUCATIONAL_TEMPLATES,
   ...REALISTIC_TEMPLATES,
   {
     name: 'Happy House',

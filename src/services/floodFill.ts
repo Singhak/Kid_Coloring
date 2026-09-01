@@ -36,6 +36,98 @@ export function hexToUint32(hex: string): number {
 }
 
 /**
+ * Generates HSL to RGBA 32-bit for rainbow patterns
+ */
+function hslToUint32(h: number, s: number, l: number): number {
+  h = (h % 360) / 360;
+  let r: number, g: number, b: number;
+
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+
+  const rInt = Math.round(r * 255);
+  const gInt = Math.round(g * 255);
+  const bInt = Math.round(b * 255);
+  return (255 << 24) | (bInt << 16) | (gInt << 8) | rInt;
+}
+
+/**
+ * Fast pixel generator for Special Patterns (Glitter, Rainbow, Polka dots, Hearts, Stars)
+ */
+function getPatternPixel32(patternType: string, x: number, y: number): number {
+  switch (patternType) {
+    case 'pattern:glitter': {
+      // Golden shimmering base with multi-tone glitter sparks
+      const noise = ((x * 1299721 + y * 179426549 + (x ^ y) * 982451653) >>> 0) % 100;
+      if (noise < 8) return 0xFFFFFFFF; // Pure white sparkle
+      if (noise < 20) return 0xFF5CE1E6; // Cyan shimmer
+      if (noise < 35) return 0xFF45B6FE; // Golden-orange sparkle
+      if (noise < 50) return 0xFFFF70A6; // Purple-pink gleam
+      return 0xFF28A745; // Emerald base or Gold base
+    }
+
+    case 'pattern:rainbow': {
+      // Diagonal smooth rainbow ribbon
+      const hue = Math.floor(((x + y) * 0.8) % 360);
+      return hslToUint32(hue, 0.9, 0.6);
+    }
+
+    case 'pattern:polka_dots': {
+      // Yellow base with Coral polka dots
+      const cellX = (x % 28) - 14;
+      const cellY = (y % 28) - 14;
+      const distSq = cellX * cellX + cellY * cellY;
+      if (distSq <= 36) {
+        return 0xFF6B6BFF; // Coral dots (#FF6B6B)
+      }
+      return 0xFF3DD9FF; // Butter yellow base (#FFD93D)
+    }
+
+    case 'pattern:hearts': {
+      // Soft baby pink with deep pink mini hearts
+      const cellX = (x % 30) - 15;
+      const cellY = (y % 30) - 15;
+      // Approximate heart equation: (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
+      const nx = cellX / 8;
+      const ny = -cellY / 8;
+      const heart = (nx * nx + ny * ny - 1) ** 3 - nx * nx * ny * ny * ny;
+      if (heart <= 0) {
+        return 0xFF6D4DFF; // Deep pink heart (#FF4D6D)
+      }
+      return 0xFFECE5FF; // Pastel pink base (#FFE5EC)
+    }
+
+    case 'pattern:stars': {
+      // Midnight violet with golden star sparkle
+      const cellX = Math.abs((x % 32) - 16);
+      const cellY = Math.abs((y % 32) - 16);
+      if (cellX + cellY <= 5 || (cellX === 0 && cellY <= 7) || (cellY === 0 && cellX <= 7)) {
+        return 0xFF66D1FF; // Golden star (#FFD166)
+      }
+      return 0xFF422D2B; // Midnight navy/violet base (#2B2D42)
+    }
+
+    default:
+      return 0xFF000000;
+  }
+}
+
+/**
  * Determines if a pixel in line art canvas is a boundary (dark outline)
  */
 function isLineArtBoundary(
@@ -81,8 +173,7 @@ function colorMatch(
 }
 
 /**
- * High-performance Scanline Flood Fill Algorithm
- * Colors only the enclosed region clicked by the user bounded by the line art layer.
+ * High-performance Scanline Flood Fill Algorithm with Pattern & Glitter support
  */
 export function performFloodFill(
   paintCtx: CanvasRenderingContext2D,
@@ -111,8 +202,9 @@ export function performFloodFill(
   // 32-bit views for speed
   const paintData32 = new Uint32Array(paintData.buffer);
 
-  const targetFillRgba = hexToRgba(fillColorHex);
-  const targetFill32 = (targetFillRgba.a << 24) | (targetFillRgba.b << 16) | (targetFillRgba.g << 8) | targetFillRgba.r;
+  const isPattern = fillColorHex.startsWith('pattern:');
+  const targetFillRgba = isPattern ? { r: 0, g: 0, b: 0, a: 255 } : hexToRgba(fillColorHex);
+  const targetFill32 = isPattern ? 0 : ((targetFillRgba.a << 24) | (targetFillRgba.b << 16) | (targetFillRgba.g << 8) | targetFillRgba.r);
 
   let startIndex = (startY * width + startX) * 4;
 
@@ -147,8 +239,9 @@ export function performFloodFill(
   const targetB = paintData[startIndex + 2];
   const targetA = paintData[startIndex + 3];
 
-  // Already the same color?
+  // If not a pattern, avoid filling if already exact same color
   if (
+    !isPattern &&
     Math.abs(targetR - targetFillRgba.r) < 5 &&
     Math.abs(targetG - targetFillRgba.g) < 5 &&
     Math.abs(targetB - targetFillRgba.b) < 5 &&
@@ -157,7 +250,7 @@ export function performFloodFill(
     return false;
   }
 
-  // Visited map (1 bit per pixel) to prevent infinite loops & re-checks
+  // Visited map to prevent infinite loops
   const visited = new Uint8Array(width * height);
 
   // Queue-based Scanline Flood Fill
@@ -200,7 +293,7 @@ export function performFloodFill(
     // Fill span from lx to rx
     for (let x = lx; x <= rx; x++) {
       const pos = currY * width + x;
-      paintData32[pos] = targetFill32;
+      paintData32[pos] = isPattern ? getPatternPixel32(fillColorHex, x, currY) : targetFill32;
       modifiedPixels++;
     }
 
@@ -233,20 +326,19 @@ export function performFloodFill(
 
   if (modifiedPixels === 0) return false;
 
-  // Dilation pass (1-2px edge bleed under black outlines to eliminate white halos)
-  const dilatedData32 = new Uint32Array(paintData.buffer);
+  // Dilation pass to eliminate white halos under line art outlines
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
       const pos = y * width + x;
       if (visited[pos]) {
-        // If current pixel was filled, check surrounding 4 neighbors
         const neighbors = [pos - 1, pos + 1, pos - width, pos + width];
         for (const nPos of neighbors) {
           if (!visited[nPos]) {
             const nIdx = nPos * 4;
-            // If neighbor is semi-dark edge border in line art, color it to blend smoothly under multiply
             if (isLineArtBoundary(lineArtData, nIdx, 140)) {
-              dilatedData32[nPos] = targetFill32;
+              const nx = nPos % width;
+              const ny = Math.floor(nPos / width);
+              paintData32[nPos] = isPattern ? getPatternPixel32(fillColorHex, nx, ny) : targetFill32;
             }
           }
         }

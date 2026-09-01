@@ -7,11 +7,55 @@
 const ADJECTIVES = ['cute', 'playful', 'majestic', 'happy', 'friendly', 'magical', 'adventurous', 'brave', 'futuristic', 'royal'];
 
 const SUBJECTS: Record<string, string[]> = {
+  alphabet: [
+    'big letter A with a shiny sweet apple and smiling worm',
+    'big letter B with a colorful fluttering butterfly and flowers',
+    'big letter C with a cute fluffy kitten playing with ball of yarn',
+    'big letter D with a friendly smiling baby dinosaur in jungle',
+    'big letter E with a happy baby elephant spraying water',
+    'big letter S with a sparkling smiling night sky star',
+    'big letter Z with a playful striped baby zebra'
+  ],
+  numbers: [
+    'big number 1 with a radiant smiling morning sun',
+    'big number 2 with two yellow ducklings swimming in a pond',
+    'big number 3 with three colorful floating party balloons',
+    'big number 4 with four glowing stars in the clouds',
+    'big number 5 with five red apples on an apple tree',
+    'big number 10 with ten cute floating rainbow hearts'
+  ],
+  fruits: [
+    'juicy watermelon slice with cute black seeds and green rind',
+    'sweet red strawberry with fresh green leafy top and seeds',
+    'bunch of ripe yellow bananas on a tropical palm branch',
+    'crisp red apple with green leaf and cute morning dew',
+    'bunch of plump purple grapes on vine with green leaf',
+    'tropical pineapple with spiky crown wearing cute sunglasses',
+    'sweet golden mango on tree branch with leaves',
+    'pair of sweet red cherries connected by green stems'
+  ],
+  vegetables: [
+    'crunchy orange carrot with fresh bushy green top',
+    'round magic autumn pumpkin with curly vine stem',
+    'plump ripe red tomato with star shaped green leaf cap',
+    'happy tree-shaped green broccoli floret',
+    'golden sweet corn on the cob with peeled green husks',
+    'glossy purple eggplant with green stem',
+    'open pea pod with four smiling round green peas'
+  ],
   animal: [
-    'baby panda with bamboo', 'fluffy golden retriever puppy', 'curious kitten with yarn', 
+    'baby panda with bamboo shoot', 'fluffy golden retriever puppy', 'curious kitten with yarn', 
     'safari lion cub with crown', 'dolphin jumping over ocean waves', 'koala on eucalyptus tree',
     'sea turtle swimming near coral reef', 'baby elephant spraying water', 'majestic bald eagle in flight',
     'chameleon on jungle branch', 'penguin sliding on iceberg', 'friendly t-rex dinosaur'
+  ],
+  object: [
+    'cuddly plush teddy bear with a big bow tie',
+    'flying diamond shaped kite with ribbon bows soaring in sky',
+    'wrapped surprise birthday gift box with a giant decorative ribbon bow',
+    'vintage toy steam locomotive train chugging puffy smoke clouds',
+    'retro round alarm clock with bells and clock hands',
+    'magic marching snare drum with wooden drumsticks and musical notes'
   ],
   vehicles: [
     'high speed formula racecar', 'supersonic fighter jet in sky', 'monster truck leaping over hills',
@@ -23,20 +67,10 @@ const SUBJECTS: Record<string, string[]> = {
     'rainbow over peaceful meadow with trees', 'cozy cottage by a lake with sun',
     'volcano with smoke and prehistoric palm trees', 'snowy alpine mountain peaks with pine trees'
   ],
-  plant: [
-    'monarch butterfly on blooming sunflower', 'magic mushroom village with flowers',
-    'bouquet of spring roses and daisies', 'ancient oak tree with swing',
-    'desert cactus garden with blooming flowers'
-  ],
   space: [
     'astronaut exploring alien planet with flags', 'space station orbiting ringed planet Saturn',
     'friendly alien in flying saucer UFO', 'rover exploring rocky Martian craters',
     'cosmic rocket soaring through stars and comets'
-  ],
-  human: [
-    'superhero soaring above city skyscrapers', 'young astronaut waving from spaceship',
-    'master chef baking a giant birthday cake', 'brave knight with shield in front of castle',
-    'skater kid doing trick on skateboard ramp'
   ]
 };
 

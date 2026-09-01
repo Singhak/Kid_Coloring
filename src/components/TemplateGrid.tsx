@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Crown, Award, Wand2 } from 'lucide-react';
+import { Sparkles, Crown, Award, Wand2, Camera } from 'lucide-react';
 import { STATIC_TEMPLATES, CATEGORIES } from '../constants';
 import { Template } from '../types';
 import { playPop, playChime } from '../services/soundEffects';
@@ -12,6 +12,7 @@ interface TemplateGridProps {
   generateRandomImage: () => void;
   selectTemplate: (template: Template) => void;
   setShowUpgradeModal: (show: boolean) => void;
+  onOpenPhotoArt?: () => void;
 }
 
 const TemplateGrid: React.FC<TemplateGridProps> = ({
@@ -21,6 +22,7 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
   generateRandomImage,
   selectTemplate,
   setShowUpgradeModal,
+  onOpenPhotoArt
 }) => {
   const currentCategory = CATEGORIES.find(c => c.id === selectedCategory);
   const filteredTemplates = STATIC_TEMPLATES.filter(
@@ -46,7 +48,7 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
             </span>
           </h2>
           <p className="text-xs sm:text-sm text-[#888] font-medium">
-            Pick any magical picture or ask AI to draw something new!
+            Pick any magical picture, upload real photos, or ask AI to draw something new!
           </p>
         </div>
       </div>
@@ -65,7 +67,7 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
             generateRandomImage();
           }}
           disabled={isGenerating}
-          className={`col-span-2 sm:col-span-1 md:col-span-1 flex flex-col items-center justify-center gap-3 p-4 sm:p-5 rounded-3xl border-3 transition-all group/gen relative overflow-hidden cursor-pointer active:scale-95 min-h-[220px] ${
+          className={`flex flex-col items-center justify-center gap-3 p-4 sm:p-5 rounded-3xl border-3 transition-all group/gen relative overflow-hidden cursor-pointer active:scale-95 min-h-[220px] ${
             isGenerating 
               ? 'opacity-50 cursor-not-allowed border-amber-300 bg-amber-50' 
               : isPro 
@@ -88,7 +90,7 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
               ✨ Magic AI Artist
             </span>
             <span className="text-xs font-bold text-[#9C7A14] mt-0.5 block">
-              {isPro ? 'Generate any custom drawing' : 'Unlock Unlimited AI Art'}
+              {isPro ? 'Generate custom drawing' : 'Unlimited AI Art'}
             </span>
           </div>
 
@@ -99,6 +101,37 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
             </div>
           )}
         </button>
+
+        {/* Photo to Line Art Card */}
+        {onOpenPhotoArt && (
+          <button
+            onClick={() => {
+              playPop();
+              onOpenPhotoArt();
+            }}
+            className="flex flex-col items-center justify-center gap-3 p-4 sm:p-5 rounded-3xl border-3 border-[#86EFAC] bg-gradient-to-b from-[#F0FDF4] to-[#DCFCE7] hover:shadow-xl hover:-translate-y-1 transition-all group/photo relative overflow-hidden cursor-pointer active:scale-95 min-h-[220px]"
+          >
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#16A34A] to-[#4ADE80] text-white flex items-center justify-center shadow-lg group-hover/photo:scale-110 group-hover/photo:rotate-6 transition-transform relative z-10">
+              <Camera className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" />
+            </div>
+
+            <div className="text-center relative z-10">
+              <span className="block font-black text-[#2D3436] text-base sm:text-lg font-display">
+                📸 Photo to Coloring
+              </span>
+              <span className="text-xs font-bold text-[#15803D] mt-0.5 block">
+                Turn pets & photos into art
+              </span>
+            </div>
+
+            {!isPro && (
+              <div className="flex items-center gap-1 bg-[#FFD93D] text-[#7A4B00] px-2.5 py-1 rounded-full text-[11px] font-black shadow-sm mt-1">
+                <Crown className="w-3 h-3 fill-current" />
+                VIP
+              </div>
+            )}
+          </button>
+        )}
 
         {/* Static Coloring Page Cards */}
         {filteredTemplates.map((template) => (

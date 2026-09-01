@@ -11,7 +11,13 @@ import {
   HeartHandshake, 
   Lock, 
   ArrowRight,
-  Star
+  Star,
+  Camera,
+  Hash,
+  Smile,
+  Zap,
+  Check,
+  Minus
 } from 'lucide-react';
 import { playChime, playClick, playPop } from '../services/soundEffects';
 
@@ -24,7 +30,19 @@ interface UpgradeModalProps {
   isSubscribed: boolean;
   handleLogin: () => void;
   handleSubscribe: () => void;
+  onOpenPricingPage?: () => void;
 }
+
+const COMPARISON_FEATURES = [
+  { name: '📸 Turn Real Photos into Coloring Pages', free: false, vip: true },
+  { name: '🪄 Unlimited Magic AI Prompt Generator', free: '1 preview', vip: 'Unlimited' },
+  { name: '🔢 Color by Number & Phonics Mode', free: false, vip: true },
+  { name: '✨ Special Glitter, Neon & Pattern Fills', free: false, vip: true },
+  { name: '🌟 Cute Sticker Stamps (Crowns, Dino...)', free: '3 basic', vip: 'All 20+' },
+  { name: '🖨️ Printable A4 Sheets (Real Crayons)', free: 'Watermarked', vip: 'Ultra HD Crisp' },
+  { name: '🎨 50+ Magic Pro Color Palettes', free: '12 Colors', vip: '50+ Shades' },
+  { name: '🛡️ 100% Ad-Free & Child-Safe', free: 'Limited', vip: 'Guaranteed' },
+];
 
 const UpgradeModal: React.FC<UpgradeModalProps> = ({
   showUpgradeModal,
@@ -34,13 +52,15 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   isSubscribed,
   handleLogin,
   handleSubscribe,
+  onOpenPricingPage,
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [showParentGate, setShowParentGate] = useState(false);
-  const [gateNum1, setGateNum1] = useState(3);
-  const [gateNum2, setGateNum2] = useState(5);
+  const [gateNum1, setGateNum1] = useState(4);
+  const [gateNum2, setGateNum2] = useState(6);
   const [gateAnswer, setGateAnswer] = useState('');
   const [gateError, setGateError] = useState(false);
+  const [activeTab, setActiveTab] = useState<'highlights' | 'comparison'>('highlights');
 
   const now = new Date();
   const isTrialActive = trialEndDate && trialEndDate.getTime() > now.getTime();
@@ -103,7 +123,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-[#FFF2B2] my-auto z-10 max-h-[95vh] flex flex-col"
+            className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-[#FFF2B2] my-auto z-10 max-h-[95vh] flex flex-col"
           >
             {/* Close Button */}
             <button
@@ -116,28 +136,60 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
               <X className="w-6 h-6" />
             </button>
 
-            {/* Top Header Background */}
-            <div className="bg-gradient-to-b from-[#FFF8D6] via-[#FFFDF5] to-white p-6 pb-3 pt-7 text-center relative shrink-0">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFD93D]/30 border border-[#FFD93D] rounded-full text-[#8C5B00] text-xs font-black mb-3">
+            {/* Header */}
+            <div className="bg-gradient-to-b from-[#FFF8D6] via-[#FFFDF5] to-white p-6 pb-2 pt-6 text-center relative shrink-0">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFD93D]/30 border border-[#FFD93D] rounded-full text-[#8C5B00] text-xs font-black mb-2">
                 <Sparkles className="w-3.5 h-3.5 fill-current" />
                 <span>KIDCOLOR MAGIC VIP PASS</span>
               </div>
 
               <h2 className="text-2xl sm:text-3xl font-black text-[#2D3436] font-display">
-                {isSubscribed ? "You're a VIP Explorer! 🌟" : "Unlock Unlimited Creative Magic"}
+                {isSubscribed ? "You're a VIP Explorer! 🌟" : "Unlock Ultimate Creative Superpowers"}
               </h2>
               <p className="text-xs sm:text-sm text-[#636E72] font-semibold mt-1">
                 {isTrialActive 
-                  ? `✨ Trial Active (${daysRemaining} days left). Subscribe to keep the magic!` 
-                  : "Empower your child's imagination with AI line art & home printing"}
+                  ? `✨ Trial Active (${daysRemaining} days left). Subscribe to keep all superpowers!` 
+                  : "Turn photos into coloring sheets, AI drawings, glitter fills & home printing"}
               </p>
+
+              {/* View Tab Switcher */}
+              <div className="flex items-center justify-center gap-1 mt-3 p-1 bg-[#F4F1DE]/60 rounded-2xl max-w-xs mx-auto border border-[#E6E2D3]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setActiveTab('highlights');
+                  }}
+                  className={`flex-1 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    activeTab === 'highlights'
+                      ? 'bg-white text-[#2D3436] shadow-xs'
+                      : 'text-[#777] hover:text-[#2D3436]'
+                  }`}
+                >
+                  Top Superpowers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setActiveTab('comparison');
+                  }}
+                  className={`flex-1 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    activeTab === 'comparison'
+                      ? 'bg-white text-[#2D3436] shadow-xs'
+                      : 'text-[#777] hover:text-[#2D3436]'
+                  }`}
+                >
+                  Free vs VIP Matrix
+                </button>
+              </div>
             </div>
 
-            {/* Scrollable Content Body */}
-            <div className="px-6 py-2 overflow-y-auto space-y-4">
+            {/* Scrollable Body */}
+            <div className="px-6 py-2 overflow-y-auto space-y-4 flex-1">
               {/* Pricing Plan Selector */}
               {!isSubscribed && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 pt-1">
                   {/* Annual Plan (Best Value) */}
                   <button
                     type="button"
@@ -189,41 +241,86 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                 </div>
               )}
 
-              {/* Core VIP Value Highlights */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 p-2.5 bg-[#FFFDF0] rounded-2xl border border-[#FFD93D]/40">
-                  <div className="w-8 h-8 rounded-xl bg-[#FFD93D] flex items-center justify-center text-white shrink-0 shadow-xs">
-                    <Printer className="w-4 h-4" />
+              {/* Tab 1: Highlights */}
+              {activeTab === 'highlights' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-2.5 bg-[#F0FDF4] rounded-2xl border border-[#86EFAC]/40">
+                    <div className="w-8 h-8 rounded-xl bg-[#16A34A] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Camera className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">Turn Real Photos to Coloring Outlines</span>
+                      <span className="text-[10px] text-[#555]">Convert child, pet, or toy photos into coloring sheets instantly</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
                   </div>
-                  <div className="flex-1">
-                    <span className="block font-black text-xs text-[#2D3436]">1-Click Printable PDF Coloring Sheets</span>
-                    <span className="text-[10px] text-[#7F8C8D]">Print unlimited A4 coloring sheets for real crayons at home</span>
-                  </div>
-                  <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                </div>
 
-                <div className="flex items-center gap-3 p-2.5 bg-[#F0F8FF] rounded-2xl border border-[#4D96FF]/30">
-                  <div className="w-8 h-8 rounded-xl bg-[#4D96FF] flex items-center justify-center text-white shrink-0 shadow-xs">
-                    <Sparkles className="w-4 h-4" />
+                  <div className="flex items-center gap-3 p-2.5 bg-[#F0F8FF] rounded-2xl border border-[#4D96FF]/30">
+                    <div className="w-8 h-8 rounded-xl bg-[#4D96FF] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">Unlimited AI Magic Line Art Generator</span>
+                      <span className="text-[10px] text-[#555]">Type any prompt (e.g. "Dinosaur eating pizza") & AI draws it</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
                   </div>
-                  <div className="flex-1">
-                    <span className="block font-black text-xs text-[#2D3436]">Unlimited AI Magic Line Art Generator</span>
-                    <span className="text-[10px] text-[#7F8C8D]">Type any prompt (e.g. "Dinosaur eating pizza") & AI draws it</span>
-                  </div>
-                  <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-                </div>
 
-                <div className="flex items-center gap-3 p-2.5 bg-[#FAF5FF] rounded-2xl border border-[#9B72AA]/30">
-                  <div className="w-8 h-8 rounded-xl bg-[#9B72AA] flex items-center justify-center text-white shrink-0 shadow-xs">
-                    <Palette className="w-4 h-4" />
+                  <div className="flex items-center gap-3 p-2.5 bg-[#FFFDF0] rounded-2xl border border-[#FFD93D]/40">
+                    <div className="w-8 h-8 rounded-xl bg-[#FFD93D] flex items-center justify-center text-[#7A4B00] shrink-0 shadow-xs">
+                      <Printer className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">1-Click Printable PDF Coloring Sheets</span>
+                      <span className="text-[10px] text-[#555]">Print unlimited A4 sheets for real crayons at home</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
                   </div>
-                  <div className="flex-1">
-                    <span className="block font-black text-xs text-[#2D3436]">50+ Magic Pro Color Palettes</span>
-                    <span className="text-[10px] text-[#7F8C8D]">Pastels, skin tones, vibrant neons, and earth shades</span>
+
+                  <div className="flex items-center gap-3 p-2.5 bg-[#FAF5FF] rounded-2xl border border-[#9B72AA]/30">
+                    <div className="w-8 h-8 rounded-xl bg-[#9B72AA] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Zap className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">Glitter, Rainbow, Patterns & Stamps</span>
+                      <span className="text-[10px] text-[#555]">Polka dots, stars, hearts & 20+ adorable sticker stamps</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
                   </div>
-                  <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
                 </div>
-              </div>
+              ) : (
+                /* Tab 2: Side-by-Side Comparison Table */
+                <div className="border border-[#EBE8DC] rounded-2xl overflow-hidden bg-white shadow-xs">
+                  <div className="grid grid-cols-12 bg-[#FBF9F1] p-2.5 border-b border-[#EBE8DC] text-[11px] font-black text-[#555]">
+                    <span className="col-span-7">Feature</span>
+                    <span className="col-span-2 text-center text-[#888]">Free</span>
+                    <span className="col-span-3 text-center text-[#FF9F43]">VIP Pass</span>
+                  </div>
+                  <div className="divide-y divide-[#F0ECE1]">
+                    {COMPARISON_FEATURES.map((item, idx) => (
+                      <div key={idx} className="grid grid-cols-12 p-2 items-center text-xs">
+                        <span className="col-span-7 font-bold text-[#2D3436] text-[11px]">
+                          {item.name}
+                        </span>
+                        <span className="col-span-2 text-center text-[10px] text-[#888] font-bold">
+                          {typeof item.free === 'boolean' ? (
+                            item.free ? <Check className="w-3.5 h-3.5 mx-auto text-[#10B981]" /> : <Minus className="w-3.5 h-3.5 mx-auto text-[#CCC]" />
+                          ) : (
+                            item.free
+                          )}
+                        </span>
+                        <span className="col-span-3 text-center text-[10px] font-black text-[#10B981]">
+                          {typeof item.vip === 'boolean' ? (
+                            item.vip ? <CheckCircle2 className="w-4 h-4 mx-auto text-[#10B981]" /> : <Minus className="w-3.5 h-3.5 mx-auto text-[#CCC]" />
+                          ) : (
+                            item.vip
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Parent Testimonial Quote */}
               <div className="p-3 bg-[#FBF9F1] rounded-2xl border border-[#EBE8DC] text-center">
@@ -233,7 +330,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   ))}
                 </div>
                 <p className="text-[11px] font-bold text-[#555] italic">
-                  "My 5-year-old creates custom coloring books every weekend. Huge money saver on physical books!"
+                  "Turning our puppy's photos into coloring sheets is unbelievable. Saves ₹3,000 a year on paper coloring books!"
                 </p>
                 <span className="block text-[10px] font-black text-[#888] mt-0.5">— Priya S., Parent</span>
               </div>
@@ -287,7 +384,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   >
                     <span>
                       {user 
-                        ? (selectedPlan === 'annual' ? 'Start 7-Day Free Trial' : 'Subscribe to Monthly Pass')
+                        ? (selectedPlan === 'annual' ? 'Start 7-Day Free Trial (₹499/yr)' : 'Subscribe to Monthly Pass (₹99/mo)')
                         : 'Sign In & Start Free Trial'}
                     </span>
                     <ArrowRight className="w-5 h-5" />
@@ -302,6 +399,19 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                       <HeartHandshake className="w-3.5 h-3.5 text-[#4D96FF]" /> Cancel Anytime
                     </span>
                   </div>
+
+                  {onOpenPricingPage && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUpgradeModal(false);
+                        onOpenPricingPage();
+                      }}
+                      className="text-[11px] font-bold text-[#4D96FF] hover:underline block mx-auto mt-2 cursor-pointer text-center"
+                    >
+                      Compare full Free vs. VIP Features Breakdown →
+                    </button>
+                  )}
                 </>
               )}
             </div>

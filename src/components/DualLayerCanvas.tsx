@@ -8,6 +8,10 @@ import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { SvgPath } from '../types';
 import { performFloodFill } from '../services/floodFill';
+import { StickerItem } from './StickerStampsModal';
+import ColorByNumberOverlay, { NumberTarget } from './ColorByNumberOverlay';
+import { playPop, playFanfare, playChime } from '../services/soundEffects';
+import { COLORS } from '../constants';
 
 interface DualLayerCanvasProps {
   paths: SvgPath[];
@@ -22,6 +26,10 @@ interface DualLayerCanvasProps {
   setScale: React.Dispatch<React.SetStateAction<number>>;
   pan: { x: number; y: number };
   setPan: React.Dispatch<React.SetStateAction<{ x: number; y: number }>>;
+  selectedSticker?: StickerItem | null;
+  onClearSticker?: () => void;
+  isColorByNumber?: boolean;
+  onToggleColorByNumber?: (active: boolean) => void;
 }
 
 const INTERNAL_WIDTH = 1000;
@@ -39,7 +47,11 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
   scale,
   setScale,
   pan,
-  setPan
+  setPan,
+  selectedSticker,
+  onClearSticker,
+  isColorByNumber = false,
+  onToggleColorByNumber
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -48,6 +60,24 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
   const touchDistanceStartRef = useRef<number | null>(null);
   const touchScaleStartRef = useRef<number>(1);
   const [fillCount, setFillCount] = useState(0);
+
+  // Number targets for Color by Number mode
+  const [numberTargets, setNumberTargets] = useState<NumberTarget[]>([]);
+
+  // Generate targets when template changes or mode toggles
+  useEffect(() => {
+    if (isColorByNumber) {
+      const generatedTargets: NumberTarget[] = [
+        { id: 't1', number: 1, xPercent: 28, yPercent: 28, isCompleted: false, expectedColor: COLORS[0] },
+        { id: 't2', number: 2, xPercent: 72, yPercent: 28, isCompleted: false, expectedColor: COLORS[1] },
+        { id: 't3', number: 3, xPercent: 50, yPercent: 48, isCompleted: false, expectedColor: COLORS[2] },
+        { id: 't4', number: 4, xPercent: 30, yPercent: 72, isCompleted: false, expectedColor: COLORS[3] },
+        { id: 't5', number: 5, xPercent: 70, yPercent: 72, isCompleted: false, expectedColor: COLORS[4] },
+        { id: 't6', number: 6, xPercent: 50, yPercent: 88, isCompleted: false, expectedColor: COLORS[5] },
+      ];
+      setNumberTargets(generatedTargets);
+    }
+  }, [paths, imageUrl, isColorByNumber]);
 
   // Render Line Art from Image URL or SVG paths onto Line Art Canvas
   const renderLineArt = useCallback(() => {
@@ -59,7 +89,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
 
     ctx.clearRect(0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT);
 
-    // If an AI image URL is provided, draw and clean the line art
+    // If an AI / Photo image URL is provided, draw and clean the line art
     if (imageUrl) {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -185,11 +215,11 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     const canvasX = (normalizedX / rect.width) * INTERNAL_WIDTH;
     const canvasY = (normalizedY / rect.height) * INTERNAL_HEIGHT;
 
-    return { x: canvasX, y: canvasY };
+    return { x: canvasX, y: canvasY, normX: normalizedX / rect.width, normY: normalizedY / rect.height };
   }, [pan, scale]);
 
-  // Handle Tap to Fill
-  const handleTapToFill = useCallback((clientX: number, clientY: number) => {
+  // Handle Tap to Stamp or Fill
+  const handleCanvasInteraction = useCallback((clientX: number, clientY: number) => {
     const coords = getCanvasCoordinates(clientX, clientY);
     if (!coords) return;
 
@@ -201,6 +231,30 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     const lineArtCtx = lineArtCanvas.getContext('2d', { willReadFrequently: true });
     if (!paintCtx || !lineArtCtx) return;
 
+    // 1. If a sticker stamp is selected: Place sticker stamp!
+    if (selectedSticker) {
+      paintCtx.save();
+      paintCtx.font = '72px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+      paintCtx.textAlign = 'center';
+      paintCtx.textBaseline = 'middle';
+      paintCtx.fillText(selectedSticker.emoji, coords.x, coords.y);
+      paintCtx.restore();
+
+      playPop(500);
+      try {
+        confetti({
+          particleCount: 25,
+          spread: 45,
+          origin: { x: clientX / window.innerWidth, y: clientY / window.innerHeight }
+        });
+      } catch (e) {}
+
+      const dataUrl = paintCanvas.toDataURL();
+      onHistoryPush(dataUrl);
+      return;
+    }
+
+    // 2. Otherwise: Perform Flood Fill
     const success = performFloodFill(
       paintCtx,
       lineArtCtx,
@@ -213,6 +267,28 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     if (success) {
       const dataUrl = paintCanvas.toDataURL();
       onHistoryPush(dataUrl);
+
+      // Check if this matched any Color-by-Number target
+      if (isColorByNumber) {
+        setNumberTargets((prev) =>
+          prev.map((t) => {
+            const dist = Math.hypot(t.xPercent - coords.normX * 100, t.yPercent - coords.normY * 100);
+            if (dist < 22 && !t.isCompleted && selectedColor === t.expectedColor) {
+              playFanfare();
+              try {
+                confetti({
+                  particleCount: 50,
+                  spread: 60,
+                  origin: { x: clientX / window.innerWidth, y: clientY / window.innerHeight }
+                });
+              } catch (e) {}
+              return { ...t, isCompleted: true };
+            }
+            return t;
+          })
+        );
+      }
+
       setFillCount((prev) => {
         const next = prev + 1;
         if (next % 8 === 0) {
@@ -228,7 +304,48 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
         return next;
       });
     }
-  }, [getCanvasCoordinates, paintCanvasRef, lineArtCanvasRef, selectedColor, onHistoryPush]);
+  }, [getCanvasCoordinates, paintCanvasRef, lineArtCanvasRef, selectedColor, selectedSticker, isColorByNumber, onHistoryPush]);
+
+  // Click on a specific Color by Number badge directly
+  const handleTargetBadgeClick = (target: NumberTarget) => {
+    if (target.isCompleted) return;
+    const paintCanvas = paintCanvasRef.current;
+    const lineArtCanvas = lineArtCanvasRef.current;
+    if (!paintCanvas || !lineArtCanvas) return;
+
+    const paintCtx = paintCanvas.getContext('2d', { willReadFrequently: true });
+    const lineArtCtx = lineArtCanvas.getContext('2d', { willReadFrequently: true });
+    if (!paintCtx || !lineArtCtx) return;
+
+    const targetX = (target.xPercent / 100) * INTERNAL_WIDTH;
+    const targetY = (target.yPercent / 100) * INTERNAL_HEIGHT;
+
+    // Fill region with target's expected color
+    const success = performFloodFill(
+      paintCtx,
+      lineArtCtx,
+      targetX,
+      targetY,
+      target.expectedColor,
+      35
+    );
+
+    if (success) {
+      playFanfare();
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { x: 0.5, y: 0.5 }
+        });
+      } catch (e) {}
+      const dataUrl = paintCanvas.toDataURL();
+      onHistoryPush(dataUrl);
+      setNumberTargets((prev) =>
+        prev.map((t) => (t.id === target.id ? { ...t, isCompleted: true } : t))
+      );
+    }
+  };
 
   // Mouse Handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -256,7 +373,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
 
   const handleMouseUp = (e: React.MouseEvent) => {
     if (!isDraggingRef.current && e.button === 0) {
-      handleTapToFill(e.clientX, e.clientY);
+      handleCanvasInteraction(e.clientX, e.clientY);
     }
     isDraggingRef.current = false;
   };
@@ -302,7 +419,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     if (e.touches.length === 0) {
       if (!isDraggingRef.current && e.changedTouches.length === 1) {
         const touch = e.changedTouches[0];
-        handleTapToFill(touch.clientX, touch.clientY);
+        handleCanvasInteraction(touch.clientX, touch.clientY);
       }
       isDraggingRef.current = false;
       touchDistanceStartRef.current = null;
@@ -345,7 +462,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`
         }}
       >
-        {/* Layer 1: Paint Canvas (User colors & fills) */}
+        {/* Layer 1: Paint Canvas (User colors, patterns, and sticker stamps) */}
         <canvas
           ref={paintCanvasRef}
           width={INTERNAL_WIDTH}
@@ -353,7 +470,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
           className="absolute inset-0 w-full h-full block"
         />
 
-        {/* Layer 2: Line Art Canvas (Crisp black outlines rendered on top with multiply blend) */}
+        {/* Layer 2: Line Art Canvas (Crisp outlines rendered on top with multiply blend) */}
         <canvas
           ref={lineArtCanvasRef}
           width={INTERNAL_WIDTH}
@@ -362,6 +479,17 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
           style={{ mixBlendMode: 'multiply' }}
         />
       </div>
+
+      {/* Color By Number Interactive Overlay */}
+      {isColorByNumber && onToggleColorByNumber && (
+        <ColorByNumberOverlay
+          isActive={isColorByNumber}
+          onToggle={onToggleColorByNumber}
+          targets={numberTargets}
+          onTargetClick={handleTargetBadgeClick}
+          selectedColor={selectedColor}
+        />
+      )}
     </motion.div>
   );
 };

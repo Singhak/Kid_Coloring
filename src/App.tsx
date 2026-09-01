@@ -7,16 +7,16 @@ import confetti from 'canvas-confetti';
 import { auth, db } from './firebase';
 import { 
   signInWithPopup, 
-  signInWithRedirect,
+  signInWithRedirect, 
   GoogleAuthProvider, 
   signOut 
 } from 'firebase/auth';
 import {
   doc, 
   setDoc, 
-  onSnapshot,
-  serverTimestamp,
-  Timestamp
+  onSnapshot, 
+  serverTimestamp, 
+  Timestamp 
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Capacitor } from '@capacitor/core';
@@ -27,7 +27,7 @@ import {
   COLORS, 
   COLORS_LEFT, 
   COLORS_RIGHT, 
-  STATIC_TEMPLATES
+  STATIC_TEMPLATES 
 } from './constants'; 
 import { generateDynamicAiColoringImage } from './services/dynamicAiGenerator';
 import { generateProceduralPaths } from './services/imageGenerator';
@@ -41,6 +41,9 @@ import RateLimitNotification from './components/RateLimitNotification';
 import MagicPaletteModal from './components/MagicPaletteModal';
 import MagicPromptModal from './components/MagicPromptModal';
 import UpgradeModal from './components/UpgradeModal';
+import PhotoToLineArtModal from './components/PhotoToLineArtModal';
+import StickerStampsModal, { StickerItem } from './components/StickerStampsModal';
+import FreeVsPaidPage from './components/FreeVsPaidPage';
 
 // Declare Razorpay global object
 declare global {
@@ -57,8 +60,14 @@ export default function App() {
   const [trialEndDate, setTrialEndDate] = useState<Date | null>(null); // User's trial end date
   const [isSubscribed, setIsSubscribed] = useState(false); // User's subscription status
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showPricingPage, setShowPricingPage] = useState(false);
   const [showProColors, setShowProColors] = useState(false);
   const [showMagicPromptModal, setShowMagicPromptModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showStickerModal, setShowStickerModal] = useState(false);
+  const [selectedSticker, setSelectedSticker] = useState<StickerItem | null>(null);
+  const [isColorByNumber, setIsColorByNumber] = useState(false);
+
   const [paths, setPaths] = useState<SvgPath[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([]);
@@ -189,7 +198,7 @@ export default function App() {
         },
         body: JSON.stringify({
           userId: user.uid,
-          amount: 999,
+          amount: 49900,
           currency: 'INR',
           receipt: `receipt_${user.uid}_${Date.now()}`,
         }),
@@ -205,8 +214,8 @@ export default function App() {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: orderData.currency,
-        name: 'KidColor Subscription',
-        description: 'Monthly Subscription for Pro Features',
+        name: 'KidColor VIP Subscription',
+        description: 'Magic Pass for All Superpowers',
         image: '/logo.svg',
         order_id: orderData.id,
         handler: async function (response: any) {
@@ -231,7 +240,7 @@ export default function App() {
             }
 
             setShowUpgradeModal(false);
-            alert("Subscription successful! Welcome to KidColor Pro!");
+            alert("Subscription successful! Welcome to KidColor VIP!");
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#FFD93D', '#4D96FF', '#6BCB77'] });
 
           } catch (error: any) {
@@ -383,6 +392,16 @@ export default function App() {
     setShowMagicPromptModal(true);
   };
 
+  const handleSelectPhotoLineArt = (dataUrl: string) => {
+    setCurrentImageUrl(dataUrl);
+    setPaths([]);
+    setViewBox("0 0 1000 1000");
+    setHistory([]);
+    setHistoryIndex(-1);
+    setRestoredDataUrl(null);
+    setShowTemplates(false);
+  };
+
   const downloadImage = () => {
     if (!isPro) {
       setShowUpgradeModal(true);
@@ -402,7 +421,7 @@ export default function App() {
     ctx.fillStyle = "#FFFFFF";
     ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
-    // 2. Draw paint layer
+    // 2. Draw paint layer (including colors, patterns, and stickers)
     ctx.drawImage(paintCanvas, 0, 0, 1000, 1000);
 
     // 3. Composite line art layer with multiply
@@ -494,6 +513,18 @@ export default function App() {
     setRestoredDataUrl(blankDataUrl);
   };
 
+  if (showPricingPage) {
+    return (
+      <FreeVsPaidPage
+        onBack={() => setShowPricingPage(false)}
+        isPro={isPro}
+        user={user}
+        handleLogin={handleLogin}
+        onOpenUpgradeModal={() => setShowUpgradeModal(true)}
+      />
+    );
+  }
+
   return (
     <div className="h-screen w-screen bg-[#FBF9F1] font-sans text-[#2D3436] overflow-hidden flex flex-col"> 
       <AppHeader
@@ -512,6 +543,10 @@ export default function App() {
         historyLength={history.length}
         setShowUpgradeModal={setShowUpgradeModal}
         handleCancelSubscription={handleCancelSubscription}
+        onOpenPhotoArt={() => setShowPhotoModal(true)}
+        isColorByNumber={isColorByNumber}
+        onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
+        onOpenPricingPage={() => setShowPricingPage(true)}
       />
 
       <main className="flex-1 flex flex-col px-2 sm:px-5 pt-1.5 pb-1 gap-1.5 sm:gap-2 overflow-hidden min-h-0">
@@ -547,23 +582,35 @@ export default function App() {
           clearCanvas={clearCanvas}
           setShowUpgradeModal={setShowUpgradeModal}
           onPrintSheet={handlePrintSheet}
+          onOpenPhotoArt={() => setShowPhotoModal(true)}
+          selectedSticker={selectedSticker}
+          onClearSticker={() => setSelectedSticker(null)}
+          isColorByNumber={isColorByNumber}
+          onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
+          onOpenStickers={() => setShowStickerModal(true)}
         />
 
         {/* Bottom Palette Dock (Crayons & Tools) */}
         {!showTemplates && (
           <ColorPaletteDock
             selectedColor={selectedColor}
-            setSelectedColor={setSelectedColor}
+            setSelectedColor={(c) => {
+              setSelectedSticker(null);
+              setSelectedColor(c);
+            }}
             isPro={isPro}
             setShowUpgradeModal={setShowUpgradeModal}
             showProColors={showProColors}
             setShowProColors={setShowProColors}
+            selectedSticker={selectedSticker}
+            onOpenStickers={() => setShowStickerModal(true)}
+            isColorByNumber={isColorByNumber}
           />
         )}
       </main>
 
       {/* Footer (Library only) */}
-      {showTemplates && <AppFooter />}
+      {showTemplates && <AppFooter onOpenPricingPage={() => setShowPricingPage(true)} />}
 
       {/* Rate Limit Notification */}
       <RateLimitNotification isRateLimited={isRateLimited} />
@@ -573,7 +620,10 @@ export default function App() {
         showProColors={showProColors}
         setShowProColors={setShowProColors}
         selectedColor={selectedColor}
-        setSelectedColor={setSelectedColor}
+        setSelectedColor={(c) => {
+          setSelectedSticker(null);
+          setSelectedColor(c);
+        }}
       />
 
       {/* Magic Prompt Modal */}
@@ -583,6 +633,25 @@ export default function App() {
         onGeneratePrompt={(prompt) => handleGenerateAiImage(prompt)}
         onInstantRealistic={handleGenerateProceduralRealistic}
         isGenerating={isGenerating}
+      />
+
+      {/* Photo to Line Art Modal */}
+      <PhotoToLineArtModal
+        isOpen={showPhotoModal}
+        onClose={() => setShowPhotoModal(false)}
+        isPro={isPro}
+        setShowUpgradeModal={setShowUpgradeModal}
+        onSelectPhotoLineArt={handleSelectPhotoLineArt}
+      />
+
+      {/* Sticker Stamps Modal */}
+      <StickerStampsModal
+        isOpen={showStickerModal}
+        onClose={() => setShowStickerModal(false)}
+        isPro={isPro}
+        selectedSticker={selectedSticker}
+        onSelectSticker={(stk) => setSelectedSticker(stk)}
+        setShowUpgradeModal={setShowUpgradeModal}
       />
 
       {/* Upgrade Modal */}
@@ -595,6 +664,7 @@ export default function App() {
         isSubscribed={isSubscribed}
         handleLogin={handleLogin}
         handleSubscribe={handleSubscribe}
+        onOpenPricingPage={() => setShowPricingPage(true)}
       />
     </div>
   );

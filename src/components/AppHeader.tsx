@@ -12,7 +12,9 @@ import {
   Volume2, 
   VolumeX, 
   LayoutGrid, 
-  Paintbrush
+  Paintbrush,
+  Camera,
+  Hash
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -35,6 +37,10 @@ interface AppHeaderProps {
   historyLength: number;
   setShowUpgradeModal: (show: boolean) => void;
   handleCancelSubscription: () => void;
+  onOpenPhotoArt?: () => void;
+  isColorByNumber?: boolean;
+  onToggleColorByNumber?: () => void;
+  onOpenPricingPage?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -53,6 +59,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   historyLength,
   setShowUpgradeModal,
   handleCancelSubscription,
+  onOpenPhotoArt,
+  isColorByNumber = false,
+  onToggleColorByNumber,
+  onOpenPricingPage
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -144,7 +154,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               playClick();
               setShowTemplates(true);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               showTemplates 
                 ? 'bg-white text-[#2D3436] shadow-sm' 
                 : 'text-[#888] hover:text-[#2D3436]'
@@ -158,7 +168,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               playClick();
               setShowTemplates(false);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
               !showTemplates 
                 ? 'bg-white text-[#2D3436] shadow-sm' 
                 : 'text-[#888] hover:text-[#2D3436]'
@@ -168,6 +178,37 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <span>Coloring Canvas</span>
           </button>
         </div>
+
+        {/* Why VIP / Compare Plans Quick Button */}
+        {onOpenPricingPage && (
+          <button
+            onClick={() => {
+              playClick();
+              onOpenPricingPage();
+            }}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95"
+            title="See all Free vs VIP Superpower features"
+          >
+            <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current" />
+            <span>Why VIP?</span>
+          </button>
+        )}
+
+        {/* Top Quick Actions: Photo to Art & Numbers */}
+        {onOpenPhotoArt && (
+          <button
+            onClick={() => {
+              playClick();
+              onOpenPhotoArt();
+            }}
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title="Convert your real photos into coloring pages"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>Photo Art</span>
+            {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current" />}
+          </button>
+        )}
       </div>
 
       {/* Action Controls Cluster */}
@@ -178,7 +219,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <button
               onClick={handleUndo}
               disabled={historyIndex <= 0}
-              className="p-1.5 sm:p-2 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90"
+              className="p-1.5 sm:p-2 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
               title="Undo (Ctrl+Z)"
             >
               <Undo2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -187,7 +228,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <button
               onClick={handleRedo}
               disabled={historyIndex >= historyLength - 1}
-              className="p-1.5 sm:p-2 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90"
+              className="p-1.5 sm:p-2 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
               title="Redo (Ctrl+Y)"
             >
               <Redo2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -198,7 +239,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Sound FX Toggle */}
         <button
           onClick={handleToggleSound}
-          className={`p-2 rounded-2xl border transition-all text-xs font-bold active:scale-90 ${
+          className={`p-2 rounded-2xl border transition-all text-xs font-bold active:scale-90 cursor-pointer ${
             soundOn 
               ? 'bg-[#EBF7FF] border-[#B9E0FF] text-[#0984E3] hover:bg-[#DDF0FF]' 
               : 'bg-[#F5F5F5] border-[#E0E0E0] text-[#A0A0A0] hover:bg-[#EBEBEB]'
@@ -211,7 +252,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Save Masterpiece Button */}
         <button
           onClick={handleSave}
-          className={`btn-bubbly flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 ${
+          className={`btn-bubbly flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer ${
             isPro 
               ? 'bg-gradient-to-r from-[#6BCB77] to-[#4EBA5C] hover:brightness-105' 
               : 'bg-gradient-to-r from-[#FF9F43] to-[#EE5253] animate-shimmer'
@@ -236,7 +277,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 playClick();
                 setShowProfileMenu(!showProfileMenu);
               }}
-              className="flex items-center gap-1.5 p-1 rounded-2xl hover:bg-[#F5F3E9] border border-transparent hover:border-[#E5E1D0] transition-all"
+              className="flex items-center gap-1.5 p-1 rounded-2xl hover:bg-[#F5F3E9] border border-transparent hover:border-[#E5E1D0] transition-all cursor-pointer"
               title={user.displayName || 'User Profile'}
             >
               <div className="relative">
@@ -283,10 +324,23 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         setShowUpgradeModal(true);
                         setShowProfileMenu(false);
                       }}
-                      className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-bold text-[#D97706] hover:bg-[#FFFBEB] rounded-xl transition-colors mb-1"
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-bold text-[#D97706] hover:bg-[#FFFBEB] rounded-xl transition-colors mb-1 cursor-pointer"
                     >
                       <Sparkles className="w-4 h-4 text-[#F59E0B]" /> 
                       Upgrade to Magic VIP
+                    </button>
+                  )}
+
+                  {onOpenPricingPage && (
+                    <button
+                      onClick={() => {
+                        onOpenPricingPage();
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current" />
+                      <span>Compare Free vs VIP</span>
                     </button>
                   )}
 
@@ -296,7 +350,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         handleCancelSubscription();
                         setShowProfileMenu(false);
                       }}
-                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-semibold text-[#666] hover:bg-[#F5F5F5] rounded-xl transition-colors mb-1"
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-semibold text-[#666] hover:bg-[#F5F5F5] rounded-xl transition-colors mb-1 cursor-pointer"
                     >
                       <Settings className="w-4 h-4 text-[#888]" /> Manage Subscription
                     </button>
@@ -307,7 +361,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       handleLogout();
                       setShowProfileMenu(false);
                     }}
-                    className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-bold text-[#FF6B6B] hover:bg-[#FFF5F5] rounded-xl transition-colors"
+                    className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-bold text-[#FF6B6B] hover:bg-[#FFF5F5] rounded-xl transition-colors cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" /> Sign Out
                   </button>
@@ -318,7 +372,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         ) : (
           <button
             onClick={handleLogin}
-            className="btn-bubbly flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#4D96FF] text-white font-bold rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-1"
+            className="btn-bubbly flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#4D96FF] text-white font-bold rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-1 cursor-pointer"
           >
             <LogIn className="w-4 h-4" />
             <span>Login</span>

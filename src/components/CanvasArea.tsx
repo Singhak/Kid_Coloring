@@ -5,6 +5,7 @@ import TemplateGrid from './TemplateGrid';
 import LoadingSpinner from './LoadingSpinner';
 import DualLayerCanvas from './DualLayerCanvas';
 import CanvasActionButtons from './CanvasActionButtons';
+import { StickerItem } from './StickerStampsModal';
 
 interface CanvasAreaProps {
   isPro: boolean;
@@ -26,6 +27,12 @@ interface CanvasAreaProps {
   clearCanvas: () => void;
   setShowUpgradeModal: (show: boolean) => void;
   onPrintSheet?: () => void;
+  onOpenPhotoArt?: () => void;
+  selectedSticker?: StickerItem | null;
+  onClearSticker?: () => void;
+  isColorByNumber?: boolean;
+  onToggleColorByNumber?: () => void;
+  onOpenStickers?: () => void;
 }
 
 const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -48,6 +55,12 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   clearCanvas,
   setShowUpgradeModal,
   onPrintSheet,
+  onOpenPhotoArt,
+  selectedSticker,
+  onClearSticker,
+  isColorByNumber = false,
+  onToggleColorByNumber,
+  onOpenStickers
 }) => {
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -75,39 +88,8 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   };
 
   return (
-    <div className="flex-1 relative bg-[#F7F5EC] rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#EBE8DC] shadow-inner flex items-center justify-center overflow-hidden group min-h-0 min-w-0 p-1 sm:p-2">
-      <AnimatePresence mode="wait">
-        {showTemplates ? (
-          <TemplateGrid
-            isPro={isPro}
-            isGenerating={isGenerating}
-            selectedCategory={selectedCategory}
-            generateRandomImage={generateRandomImage}
-            selectTemplate={handleSelectTemplate}
-            setShowUpgradeModal={setShowUpgradeModal}
-          />
-        ) : isGenerating ? (
-          <LoadingSpinner />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center min-h-0 min-w-0">
-            <DualLayerCanvas
-              paths={paths}
-              viewBox={viewBox}
-              imageUrl={imageUrl}
-              selectedColor={selectedColor}
-              paintCanvasRef={paintCanvasRef}
-              lineArtCanvasRef={lineArtCanvasRef}
-              onHistoryPush={onHistoryPush}
-              restoredDataUrl={restoredDataUrl}
-              scale={scale}
-              setScale={setScale}
-              pan={pan}
-              setPan={setPan}
-            />
-          </div>
-        )}
-      </AnimatePresence>
-
+    <div className="flex-1 w-full h-full flex flex-col gap-1 sm:gap-1.5 overflow-hidden min-h-0">
+      {/* Top Action Toolbar (Never covers the drawing canvas) */}
       {!showTemplates && !isGenerating && (
         <CanvasActionButtons
           isPro={isPro}
@@ -118,12 +100,57 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
           setShowUpgradeModal={setShowUpgradeModal}
           onOpenGallery={() => setShowTemplates(true)}
           onPrintSheet={onPrintSheet}
+          onOpenPhotoArt={onOpenPhotoArt}
+          isColorByNumber={isColorByNumber}
+          onToggleColorByNumber={onToggleColorByNumber}
+          onOpenStickers={onOpenStickers}
           scale={scale}
           onZoomIn={handleZoomIn}
           onZoomOut={handleZoomOut}
           onResetZoom={handleResetZoom}
         />
       )}
+
+      {/* Main Drawing Canvas / Library Container */}
+      <div className="flex-1 relative bg-[#F7F5EC] rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#EBE8DC] shadow-inner flex items-center justify-center overflow-hidden group min-h-0 min-w-0 p-1 sm:p-2">
+        <AnimatePresence mode="wait">
+          {showTemplates ? (
+            <TemplateGrid
+              key="template-grid-view"
+              isPro={isPro}
+              isGenerating={isGenerating}
+              selectedCategory={selectedCategory}
+              generateRandomImage={generateRandomImage}
+              selectTemplate={handleSelectTemplate}
+              setShowUpgradeModal={setShowUpgradeModal}
+              onOpenPhotoArt={onOpenPhotoArt}
+            />
+          ) : isGenerating ? (
+            <LoadingSpinner key="loading-view" />
+          ) : (
+            <div key="canvas-drawing-view" className="w-full h-full flex items-center justify-center min-h-0 min-w-0">
+              <DualLayerCanvas
+                paths={paths}
+                viewBox={viewBox}
+                imageUrl={imageUrl}
+                selectedColor={selectedColor}
+                paintCanvasRef={paintCanvasRef}
+                lineArtCanvasRef={lineArtCanvasRef}
+                onHistoryPush={onHistoryPush}
+                restoredDataUrl={restoredDataUrl}
+                scale={scale}
+                setScale={setScale}
+                pan={pan}
+                setPan={setPan}
+                selectedSticker={selectedSticker}
+                onClearSticker={onClearSticker}
+                isColorByNumber={isColorByNumber}
+                onToggleColorByNumber={onToggleColorByNumber}
+              />
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
