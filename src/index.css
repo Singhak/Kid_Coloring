@@ -66,3 +66,53 @@ body {
   animation: float-gentle 3s ease-in-out infinite;
 }
 
+/* Playful Studio Background Ambiance */
+.art-studio-bg {
+  background-color: #F8F5EC;
+  background-image: 
+    radial-gradient(#E8E2CF 1px, transparent 1px),
+    radial-gradient(#E8E2CF 1px, #F8F5EC 1px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+}
+
+/* Realistic Sketchbook & Easel Paper Styling */
+.sketchbook-paper {
+  background-color: #FFFFFF;
+  box-shadow: 
+    0 20px 45px -10px rgba(58, 48, 28, 0.14),
+    0 4px 16px -2px rgba(58, 48, 28, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+/* Crayon Box & Dock Tray */
+.crayon-tray {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAF8F2 100%);
+  box-shadow: 
+    0 12px 32px -6px rgba(45, 52, 54, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* 3D Crayon Wrapper Pattern */
+.crayon-wrapper-band {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.06),
+    rgba(0, 0, 0, 0.06) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+/* Tactile 3D Crayon Highlights */
+.crayon-highlight {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(255, 255, 255, 0.45) 28%,
+    rgba(255, 255, 255, 0.1) 60%,
+    rgba(0, 0, 0, 0.22) 100%
+  );
+}
+

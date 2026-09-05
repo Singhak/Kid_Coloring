@@ -33,6 +33,7 @@ interface CanvasAreaProps {
   isColorByNumber?: boolean;
   onToggleColorByNumber?: () => void;
   onOpenStickers?: () => void;
+  onQuickNext?: () => void;
 }
 
 const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -60,7 +61,8 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   onClearSticker,
   isColorByNumber = false,
   onToggleColorByNumber,
-  onOpenStickers
+  onOpenStickers,
+  onQuickNext
 }) => {
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -88,31 +90,34 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   };
 
   return (
-    <div className="flex-1 w-full h-full flex flex-col gap-1 sm:gap-1.5 overflow-hidden min-h-0">
-      {/* Top Action Toolbar (Never covers the drawing canvas) */}
-      {!showTemplates && !isGenerating && (
-        <CanvasActionButtons
-          isPro={isPro}
-          isGenerating={isGenerating}
-          downloadImage={downloadImage}
-          generateRandomImage={generateRandomImage}
-          clearCanvas={clearCanvas}
-          setShowUpgradeModal={setShowUpgradeModal}
-          onOpenGallery={() => setShowTemplates(true)}
-          onPrintSheet={onPrintSheet}
-          onOpenPhotoArt={onOpenPhotoArt}
-          isColorByNumber={isColorByNumber}
-          onToggleColorByNumber={onToggleColorByNumber}
-          onOpenStickers={onOpenStickers}
-          scale={scale}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onResetZoom={handleResetZoom}
-        />
-      )}
-
+    <div className="flex-1 w-full h-full flex flex-col overflow-hidden min-h-0 relative">
       {/* Main Drawing Canvas / Library Container */}
-      <div className="flex-1 relative bg-[#F7F5EC] rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#EBE8DC] shadow-inner flex items-center justify-center overflow-hidden group min-h-0 min-w-0 p-1 sm:p-2">
+      <div className={`flex-1 relative rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#EBE8DC] shadow-inner flex items-center justify-center overflow-hidden group min-h-0 min-w-0 p-1 sm:p-2.5 ${showTemplates ? 'bg-[#F7F5EC]' : 'art-studio-bg'}`}>
+        {/* Floating Utility Controls (Print, Reset, Zoom, Next) - Non-intrusive corner dock */}
+        {!showTemplates && !isGenerating && (
+          <div className="absolute top-2 sm:top-2.5 right-2 sm:right-2.5 z-30">
+            <CanvasActionButtons
+              isPro={isPro}
+              isGenerating={isGenerating}
+              downloadImage={downloadImage}
+              generateRandomImage={generateRandomImage}
+              clearCanvas={clearCanvas}
+              setShowUpgradeModal={setShowUpgradeModal}
+              onOpenGallery={() => setShowTemplates(true)}
+              onPrintSheet={onPrintSheet}
+              onOpenPhotoArt={onOpenPhotoArt}
+              isColorByNumber={isColorByNumber}
+              onToggleColorByNumber={onToggleColorByNumber}
+              onOpenStickers={onOpenStickers}
+              scale={scale}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onResetZoom={handleResetZoom}
+              onQuickNext={onQuickNext}
+            />
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {showTemplates ? (
             <TemplateGrid
@@ -128,7 +133,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
           ) : isGenerating ? (
             <LoadingSpinner key="loading-view" />
           ) : (
-            <div key="canvas-drawing-view" className="w-full h-full flex items-center justify-center min-h-0 min-w-0">
+            <div key="canvas-drawing-view" className="w-full h-full flex items-center justify-center min-h-0 min-w-0 py-0.5 sm:py-1">
               <DualLayerCanvas
                 paths={paths}
                 viewBox={viewBox}

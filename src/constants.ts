@@ -19,6 +19,34 @@ export const COLORS = [
   '#800080', '#008080'
 ];
 
+export interface ColorInfo {
+  name: string;
+  emoji: string;
+}
+
+export const COLOR_METADATA: Record<string, ColorInfo> = {
+  '#FF6B6B': { name: 'Cherry Red', emoji: '🍒' },
+  '#FF9248': { name: 'Tangerine', emoji: '🍊' },
+  '#FFD93D': { name: 'Sunshine Yellow', emoji: '☀️' },
+  '#6BCB77': { name: 'Grass Green', emoji: '🍏' },
+  '#4D96FF': { name: 'Sky Blue', emoji: '🌊' },
+  '#9B72AA': { name: 'Grape Purple', emoji: '🍇' },
+  '#F76E11': { name: 'Tiger Orange', emoji: '🐯' },
+  '#FF9F29': { name: 'Honey Gold', emoji: '🍯' },
+  '#FAF4B7': { name: 'Butter Cream', emoji: '🧈' },
+  '#829460': { name: 'Forest Olive', emoji: '🌿' },
+  '#3E54AC': { name: 'Ocean Navy', emoji: '🐳' },
+  '#635985': { name: 'Twilight Purple', emoji: '🔮' },
+  '#000000': { name: 'Midnight Black', emoji: '🖤' },
+  '#FFFFFF': { name: 'Snow White', emoji: '🤍' },
+  '#808080': { name: 'Pebble Gray', emoji: '🪨' },
+  '#D3D3D3': { name: 'Cloud Silver', emoji: '☁️' },
+  '#A52A2A': { name: 'Teddy Brown', emoji: '🧸' },
+  '#FFC0CB': { name: 'Bubblegum Pink', emoji: '🌸' },
+  '#800080': { name: 'Royal Plum', emoji: '👑' },
+  '#008080': { name: 'Sea Teal', emoji: '🐬' },
+};
+
 export const COLORS_LEFT = COLORS.slice(0, 9);
 export const COLORS_RIGHT = COLORS.slice(9);
 

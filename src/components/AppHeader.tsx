@@ -14,12 +14,13 @@ import {
   LayoutGrid, 
   Paintbrush,
   Camera,
-  Hash
+  Hash,
+  Shuffle
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
 import { motion, AnimatePresence } from 'motion/react';
-import { isSoundEnabled, toggleSound, playClick, playSwish, playFanfare } from '../services/soundEffects';
+import { isSoundEnabled, toggleSound, playClick, playSwish, playFanfare, playChime } from '../services/soundEffects';
 
 interface AppHeaderProps {
   user: any;
@@ -41,6 +42,9 @@ interface AppHeaderProps {
   isColorByNumber?: boolean;
   onToggleColorByNumber?: () => void;
   onOpenPricingPage?: () => void;
+  onOpenMagicAI?: () => void;
+  isGenerating?: boolean;
+  onQuickNext?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -62,7 +66,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenPhotoArt,
   isColorByNumber = false,
   onToggleColorByNumber,
-  onOpenPricingPage
+  onOpenPricingPage,
+  onOpenMagicAI,
+  isGenerating = false,
+  onQuickNext
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -140,98 +147,193 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="text-left">
             <span className="text-xl sm:text-2xl font-black tracking-tight text-[#2D3436] font-display flex items-center">
               Kid<span className="text-[#FF6B6B]">Color</span>
-              <span className="text-xs font-bold px-1.5 py-0.5 ml-1.5 bg-[#FFD93D]/30 text-[#E67E22] rounded-full hidden sm:inline-block">
+              <span className="text-xs font-bold px-2 py-0.5 ml-1.5 bg-[#FFD93D]/30 text-[#E67E22] rounded-full hidden sm:inline-flex items-center whitespace-nowrap">
                 ✨ Magic Studio
               </span>
             </span>
           </div>
         </button>
 
-        {/* Gallery vs Canvas Toggle */}
-        <div className="hidden md:flex items-center p-1 bg-[#F4F1DE]/60 rounded-2xl border border-[#E6E2D3] ml-2">
-          <button
-            onClick={() => {
-              playClick();
-              setShowTemplates(true);
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-              showTemplates 
-                ? 'bg-white text-[#2D3436] shadow-sm' 
-                : 'text-[#888] hover:text-[#2D3436]'
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF]" />
-            <span>Library</span>
-          </button>
-          <button
-            onClick={() => {
-              playClick();
-              setShowTemplates(false);
-            }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-              !showTemplates 
-                ? 'bg-white text-[#2D3436] shadow-sm' 
-                : 'text-[#888] hover:text-[#2D3436]'
-            }`}
-          >
-            <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B]" />
-            <span>Coloring Canvas</span>
-          </button>
-        </div>
+        {/* Mode Navigation & Creative Superpowers */}
+        {showTemplates ? (
+          /* Library Mode: View Mode Toggle & Quick Actions */
+          <>
+            <div className="hidden md:flex items-center p-0.5 bg-[#F4F1DE]/60 rounded-2xl border border-[#E6E2D3] ml-1 sm:ml-2 h-9 sm:h-9.5">
+              <button
+                onClick={() => {
+                  playClick();
+                  setShowTemplates(true);
+                }}
+                className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm bg-white text-[#2D3436] shadow-sm cursor-pointer whitespace-nowrap"
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
+                <span>Library</span>
+              </button>
+              <button
+                onClick={() => {
+                  playClick();
+                  setShowTemplates(false);
+                }}
+                className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm text-[#888] hover:text-[#2D3436] cursor-pointer transition-all whitespace-nowrap"
+              >
+                <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B] shrink-0" />
+                <span>Coloring Canvas</span>
+              </button>
+            </div>
 
-        {/* Why VIP / Compare Plans Quick Button */}
-        {onOpenPricingPage && (
-          <button
-            onClick={() => {
-              playClick();
-              onOpenPricingPage();
-            }}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95"
-            title="See all Free vs VIP Superpower features"
-          >
-            <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current" />
-            <span>Why VIP?</span>
-          </button>
-        )}
+            {/* Why VIP Button */}
+            {onOpenPricingPage && (
+              <button
+                onClick={() => {
+                  playClick();
+                  onOpenPricingPage();
+                }}
+                className="hidden lg:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0"
+                title="See all Free vs VIP Superpower features"
+              >
+                <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+                <span>Why VIP?</span>
+              </button>
+            )}
 
-        {/* Top Quick Actions: Photo to Art & Numbers */}
-        {onOpenPhotoArt && (
-          <button
-            onClick={() => {
-              playClick();
-              onOpenPhotoArt();
-            }}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
-            title="Convert your real photos into coloring pages"
-          >
-            <Camera className="w-3.5 h-3.5" />
-            <span>Photo Art</span>
-            {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current" />}
-          </button>
+            {/* Photo to Art Button */}
+            {onOpenPhotoArt && (
+              <button
+                onClick={() => {
+                  playClick();
+                  onOpenPhotoArt();
+                }}
+                className="hidden sm:flex items-center gap-1.5 px-2.5 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                title="Convert your real photos into coloring pages"
+              >
+                <Camera className="w-3.5 h-3.5 shrink-0" />
+                <span>Photo Art</span>
+                {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+              </button>
+            )}
+          </>
+        ) : (
+          /* Coloring Canvas Mode: Sleek unified creative toolbar with uniform heights */
+          <div className="flex items-center gap-1.5 sm:gap-2 ml-1">
+            {/* Back to Library */}
+            <button
+              onClick={() => {
+                playClick();
+                setShowTemplates(true);
+              }}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs sm:text-sm transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Return to Coloring Library"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
+              <span>Library</span>
+            </button>
+
+            {/* Magic AI Generation */}
+            {onOpenMagicAI && (
+              <button
+                onClick={() => {
+                  if (!isPro) {
+                    playChime();
+                    setShowUpgradeModal(true);
+                    return;
+                  }
+                  if (isGenerating) return;
+                  playChime();
+                  onOpenMagicAI();
+                }}
+                disabled={isGenerating}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                  isPro
+                    ? 'bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D]'
+                    : 'bg-white hover:bg-[#FFFDF0] text-[#2D3436] border border-[#EBE8DC]'
+                }`}
+                title="Create with AI Magic"
+              >
+                <Sparkles className={`w-3.5 h-3.5 text-[#FF9F43] shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
+                <span>Magic AI</span>
+                {!isPro && (
+                  <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
+                    <Crown className="w-2.5 h-2.5 fill-current" /> VIP
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Photo Art */}
+            {onOpenPhotoArt && (
+              <button
+                onClick={() => {
+                  playClick();
+                  onOpenPhotoArt();
+                }}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                title="Convert real photo into coloring page"
+              >
+                <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                <span>Photo Art</span>
+                {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+              </button>
+            )}
+
+            {/* Educational Numbers Mode Toggle */}
+            {onToggleColorByNumber && (
+              <button
+                onClick={() => {
+                  playClick();
+                  onToggleColorByNumber();
+                }}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                  isColorByNumber
+                    ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
+                    : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
+                }`}
+                title="Toggle Educational Color-by-Number Learning Mode"
+              >
+                <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
+                <span className="hidden md:inline">Numbers</span>
+                <span className="text-[10px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+              </button>
+            )}
+
+            {/* Why VIP Button */}
+            {onOpenPricingPage && !isPro && (
+              <button
+                onClick={() => {
+                  playClick();
+                  onOpenPricingPage();
+                }}
+                className="hidden xl:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
+                title="See all Free vs VIP Superpower features"
+              >
+                <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+                <span>Why VIP?</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
 
       {/* Action Controls Cluster */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         {/* Undo / Redo (Only active on Canvas) */}
         {!showTemplates && (
-          <div className="flex items-center bg-[#F7F5EC] p-1 rounded-2xl border border-[#E9E5D6] shadow-inner">
+          <div className="flex items-center bg-[#F7F5EC] px-1 h-9 sm:h-9.5 rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
             <button
               onClick={handleUndo}
               disabled={historyIndex <= 0}
-              className="p-1.5 sm:p-2 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+              className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
               title="Undo (Ctrl+Z)"
             >
-              <Undo2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Undo2 className="w-4 h-4" />
             </button>
             <div className="w-px h-4 bg-[#E0DCBC] mx-0.5" />
             <button
               onClick={handleRedo}
               disabled={historyIndex >= historyLength - 1}
-              className="p-1.5 sm:p-2 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+              className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
               title="Redo (Ctrl+Y)"
             >
-              <Redo2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Redo2 className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -239,29 +341,29 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Sound FX Toggle */}
         <button
           onClick={handleToggleSound}
-          className={`p-2 rounded-2xl border transition-all text-xs font-bold active:scale-90 cursor-pointer ${
+          className={`h-9 sm:h-9.5 w-9 sm:w-9.5 rounded-2xl border transition-all active:scale-90 cursor-pointer flex items-center justify-center shrink-0 ${
             soundOn 
               ? 'bg-[#EBF7FF] border-[#B9E0FF] text-[#0984E3] hover:bg-[#DDF0FF]' 
               : 'bg-[#F5F5F5] border-[#E0E0E0] text-[#A0A0A0] hover:bg-[#EBEBEB]'
           }`}
           title={soundOn ? 'Sound FX: ON' : 'Sound FX: Muted'}
         >
-          {soundOn ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />}
+          {soundOn ? <Volume2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <VolumeX className="w-4 h-4 sm:w-4.5 sm:h-4.5" />}
         </button>
 
         {/* Save Masterpiece Button */}
         <button
           onClick={handleSave}
-          className={`btn-bubbly flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer ${
+          className={`btn-bubbly h-9 sm:h-9.5 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap shrink-0 ${
             isPro 
               ? 'bg-gradient-to-r from-[#6BCB77] to-[#4EBA5C] hover:brightness-105' 
               : 'bg-gradient-to-r from-[#FF9F43] to-[#EE5253] animate-shimmer'
           }`}
         >
-          <Download className="w-4 h-4 sm:w-4.5 sm:h-4.5 drop-shadow-sm" />
+          <Download className="w-4 h-4 drop-shadow-sm shrink-0" />
           <span>Save Art</span>
           {!isPro && (
-            <span className="flex items-center gap-0.5 bg-yellow-300 text-yellow-900 text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm ml-0.5">
+            <span className="flex items-center gap-0.5 bg-yellow-300 text-yellow-900 text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm ml-0.5 shrink-0">
               <Crown className="w-2.5 h-2.5 fill-current" />
               VIP
             </span>

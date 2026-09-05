@@ -433,19 +433,28 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     setScale((prevScale) => Math.min(5.0, Math.max(1.0, prevScale + zoomDelta)));
   };
 
+  const cursorStyle = selectedSticker 
+    ? 'copy' 
+    : selectedColor === '#FFFFFF' 
+      ? 'cell' 
+      : 'crosshair';
+
+  const completedTargets = numberTargets.filter((t) => t.isCompleted).length;
+
   return (
     <motion.div
       ref={containerRef}
       key="dual-layer-canvas-container"
       initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl bg-white select-none cursor-crosshair touch-none border-2 border-[#EBE8DC] shrink-0"
+      className="relative rounded-2xl sm:rounded-3xl overflow-hidden sketchbook-paper select-none touch-none border-2 sm:border-3 border-[#EDE6D4] shrink-0"
       style={{
         aspectRatio: '1 / 1',
         maxHeight: '100%',
         maxWidth: '100%',
         height: '100%',
         width: 'auto',
+        cursor: cursorStyle,
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
@@ -455,6 +464,37 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
       onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
     >
+      {/* Playful Washi Tape Paper Corner Accents */}
+      <div className="absolute top-1.5 -left-3 w-10 h-3.5 -rotate-45 bg-[#FFD93D]/70 border border-dashed border-amber-300/80 shadow-2xs pointer-events-none z-20" />
+      <div className="absolute top-1.5 -right-3 w-10 h-3.5 rotate-45 bg-[#4D96FF]/45 border border-dashed border-blue-300/80 shadow-2xs pointer-events-none z-20" />
+
+      {/* Sketchbook Top Spiral Binder: Punched Holes & Metallic Coils */}
+      <div className="absolute top-1 left-0 right-0 z-20 flex justify-evenly items-center px-5 sm:px-8 pointer-events-none">
+        {[...Array(11)].map((_, i) => (
+          <div key={i} className="relative flex flex-col items-center">
+            {/* Punched Paper Hole */}
+            <div className="w-2 sm:w-2.5 h-3 rounded-full bg-[#E5DFCF] shadow-inner ring-1 ring-black/10" />
+            {/* Metallic Spiral Coil Loop */}
+            <div className="absolute -top-1 w-2 sm:w-2.5 h-4.5 rounded-full border border-[#BDB7A6] bg-gradient-to-r from-[#DDD7C9] via-white to-[#BFB9A8] shadow-xs" />
+          </div>
+        ))}
+      </div>
+
+      {/* Floating Coloring Progress / Encouragement Badge */}
+      <div className="absolute top-4 left-3 z-20 pointer-events-none">
+        {isColorByNumber ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm border border-[#FFD93D] shadow-xs text-[11px] font-black text-[#7A4B00]">
+            <span>🔢</span>
+            <span>{completedTargets} / {numberTargets.length} Completed</span>
+          </div>
+        ) : fillCount > 0 ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 backdrop-blur-sm border border-[#EBE8DC] shadow-xs text-[10px] sm:text-[11px] font-black text-[#2D3436]">
+            <span>⭐</span>
+            <span>{fillCount} filled</span>
+          </div>
+        ) : null}
+      </div>
+
       {/* Zoomable & Pannable Viewport Group */}
       <div
         className="w-full h-full relative origin-top-left transition-transform duration-75"

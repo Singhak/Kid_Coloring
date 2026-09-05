@@ -32,6 +32,7 @@ import {
 import { generateDynamicAiColoringImage } from './services/dynamicAiGenerator';
 import { generateProceduralPaths } from './services/imageGenerator';
 import { printColoringSheet } from './services/pdfExporter';
+import { playSwish } from './services/soundEffects';
 import AppHeader from './components/AppHeader';
 import ColorPaletteDock from './components/ColorPaletteDock';
 import CategorySelector from './components/CategorySelector';
@@ -315,6 +316,15 @@ export default function App() {
     setSelectedCategory(template.category);
   };
 
+  const handleQuickNext = useCallback(() => {
+    playSwish();
+    const available = STATIC_TEMPLATES.filter(t => t.paths && t.paths.length > 0);
+    if (available.length > 0) {
+      const randomIndex = Math.floor(Math.random() * available.length);
+      selectTemplate(available[randomIndex]);
+    }
+  }, []);
+
   // Dynamic AI generation using high-quality Diffusion line art
   const handleGenerateAiImage = async (customPrompt?: string) => {
     if (!isPro) {
@@ -547,9 +557,12 @@ export default function App() {
         isColorByNumber={isColorByNumber}
         onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
         onOpenPricingPage={() => setShowPricingPage(true)}
+        onOpenMagicAI={handleOpenMagicPrompt}
+        isGenerating={isGenerating}
+        onQuickNext={handleQuickNext}
       />
 
-      <main className="flex-1 flex flex-col px-2 sm:px-5 pt-1.5 pb-1 gap-1.5 sm:gap-2 overflow-hidden min-h-0">
+      <main className="flex-1 flex flex-col px-2 sm:px-5 pt-1 pb-1 gap-1 sm:gap-1.5 overflow-hidden min-h-0">
         {/* Category Selection Bar (Shown when browsing Library) */}
         {showTemplates && (
           <CategorySelector
@@ -588,6 +601,7 @@ export default function App() {
           isColorByNumber={isColorByNumber}
           onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
           onOpenStickers={() => setShowStickerModal(true)}
+          onQuickNext={handleQuickNext}
         />
 
         {/* Bottom Palette Dock (Crayons & Tools) */}
