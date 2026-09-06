@@ -481,7 +481,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
       </div>
 
       {/* Floating Coloring Progress / Encouragement Badge */}
-      <div className="absolute top-4 left-3 z-20 pointer-events-none">
+      <div className="absolute top-4 right-3 z-20 pointer-events-none">
         {isColorByNumber ? (
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm border border-[#FFD93D] shadow-xs text-[11px] font-black text-[#7A4B00]">
             <span>🔢</span>

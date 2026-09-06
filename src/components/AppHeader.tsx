@@ -131,7 +131,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <header className="px-3 py-1.5 sm:px-6 sm:py-2 flex items-center justify-between bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-30">
+    <header className="relative px-3 py-1.5 sm:px-6 sm:py-2 flex items-center justify-between bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50">
       {/* Brand & Mode Switcher */}
       <div className="flex items-center gap-2 sm:gap-4">
         <button
@@ -475,7 +475,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         ) : (
           <button
             onClick={handleLogin}
-            className="btn-bubbly flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-[#4D96FF] text-white font-bold rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-1 cursor-pointer"
+            className="btn-bubbly flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#4D96FF] text-white font-bold rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-1 cursor-pointer shrink-0"
           >
             <LogIn className="w-4 h-4" />
             <span>Login</span>

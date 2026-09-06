@@ -95,7 +95,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
       <div className={`flex-1 relative rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#EBE8DC] shadow-inner flex items-center justify-center overflow-hidden group min-h-0 min-w-0 p-1 sm:p-2.5 ${showTemplates ? 'bg-[#F7F5EC]' : 'art-studio-bg'}`}>
         {/* Floating Utility Controls (Print, Reset, Zoom, Next) - Non-intrusive corner dock */}
         {!showTemplates && !isGenerating && (
-          <div className="absolute top-2 sm:top-2.5 right-2 sm:right-2.5 z-30">
+          <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 z-20">
             <CanvasActionButtons
               isPro={isPro}
               isGenerating={isGenerating}
