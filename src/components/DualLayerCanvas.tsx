@@ -448,6 +448,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
 
   return (
     <motion.div
+      id="tour-canvas-paper"
       ref={containerRef}
       key="dual-layer-canvas-container"
       initial={{ scale: 0.95, opacity: 0 }}

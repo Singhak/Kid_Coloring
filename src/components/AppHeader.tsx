@@ -15,7 +15,9 @@ import {
   Paintbrush,
   Camera,
   Hash,
-  Shuffle
+  Shuffle,
+  HelpCircle,
+  Compass
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -45,6 +47,7 @@ interface AppHeaderProps {
   onOpenMagicAI?: () => void;
   isGenerating?: boolean;
   onQuickNext?: () => void;
+  onOpenHelpFlow?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -69,7 +72,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenPricingPage,
   onOpenMagicAI,
   isGenerating = false,
-  onQuickNext
+  onQuickNext,
+  onOpenHelpFlow
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -133,7 +137,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="relative px-3 py-1.5 sm:px-6 sm:py-2 flex items-center justify-between bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50">
       {/* Brand & Mode Switcher */}
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div id="tour-nav-brand" className="flex items-center gap-2 sm:gap-4">
         <button
           onClick={() => {
             playClick();
@@ -214,7 +218,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           </>
         ) : (
           /* Coloring Canvas Mode: Sleek unified creative toolbar with uniform heights */
-          <div className="flex items-center gap-1.5 sm:gap-2 ml-1">
+          <div id="tour-creative-tools" className="flex items-center gap-1.5 sm:gap-2 ml-1">
             {/* Back to Library */}
             <button
               onClick={() => {
@@ -314,7 +318,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
 
       {/* Action Controls Cluster */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
+      <div id="tour-save-actions" className="flex items-center gap-1.5 sm:gap-2">
         {/* Undo / Redo (Only active on Canvas) */}
         {!showTemplates && (
           <div className="flex items-center bg-[#F7F5EC] px-1 h-9 sm:h-9.5 rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
@@ -350,6 +354,21 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         >
           {soundOn ? <Volume2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <VolumeX className="w-4 h-4 sm:w-4.5 sm:h-4.5" />}
         </button>
+
+        {/* Simple Help (?) Button */}
+        {onOpenHelpFlow && (
+          <button
+            id="tour-help-button"
+            onClick={() => {
+              playClick();
+              onOpenHelpFlow();
+            }}
+            className="h-9 sm:h-9.5 w-9 sm:w-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-2xl font-black flex items-center justify-center shadow-xs transition-all active:scale-90 cursor-pointer shrink-0"
+            title="Help & Studio Guide (?)"
+          >
+            <span className="font-display font-black text-base sm:text-lg text-[#E67E22] leading-none select-none">?</span>
+          </button>
+        )}
 
         {/* Save Masterpiece Button */}
         <button
@@ -456,6 +475,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-semibold text-[#666] hover:bg-[#F5F5F5] rounded-xl transition-colors mb-1 cursor-pointer"
                     >
                       <Settings className="w-4 h-4 text-[#888]" /> Manage Subscription
+                    </button>
+                  )}
+
+                  {onOpenHelpFlow && (
+                    <button
+                      onClick={() => {
+                        playClick();
+                        onOpenHelpFlow();
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <Compass className="w-4 h-4 text-[#4D96FF]" />
+                      <span>Help Flow & Studio Guide</span>
                     </button>
                   )}
 

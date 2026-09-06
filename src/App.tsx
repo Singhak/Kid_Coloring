@@ -45,6 +45,8 @@ import UpgradeModal from './components/UpgradeModal';
 import PhotoToLineArtModal from './components/PhotoToLineArtModal';
 import StickerStampsModal, { StickerItem } from './components/StickerStampsModal';
 import FreeVsPaidPage from './components/FreeVsPaidPage';
+import HelpFlowModal from './components/HelpFlowModal';
+import SpotlightTourOverlay from './components/SpotlightTourOverlay';
 import { motion, AnimatePresence } from 'motion/react';
 import { Crown, Sparkles, X } from 'lucide-react';
 
@@ -71,6 +73,8 @@ export default function App() {
   const [selectedSticker, setSelectedSticker] = useState<StickerItem | null>(null);
   const [isColorByNumber, setIsColorByNumber] = useState(false);
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
+  const [showHelpFlow, setShowHelpFlow] = useState(false);
+  const [isTourActive, setIsTourActive] = useState(false);
 
   const [paths, setPaths] = useState<SvgPath[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
@@ -693,6 +697,7 @@ export default function App() {
         onOpenMagicAI={handleOpenMagicPrompt}
         isGenerating={isGenerating}
         onQuickNext={handleQuickNext}
+        onOpenHelpFlow={() => setShowHelpFlow(true)}
       />
 
       <main className="flex-1 flex flex-col px-2 sm:px-5 pt-1 pb-1 gap-1 sm:gap-1.5 overflow-hidden min-h-0">
@@ -708,51 +713,55 @@ export default function App() {
         )}
 
         {/* Center: Canvas Area / Template Library */}
-        <CanvasArea
-          isPro={isPro}
-          isGenerating={isGenerating}
-          showTemplates={showTemplates}
-          setShowTemplates={setShowTemplates}
-          selectedCategory={selectedCategory}
-          paths={paths}
-          viewBox={viewBox}
-          imageUrl={currentImageUrl}
-          selectedColor={selectedColor}
-          paintCanvasRef={paintCanvasRef}
-          lineArtCanvasRef={lineArtCanvasRef}
-          onHistoryPush={handleHistoryPush}
-          restoredDataUrl={restoredDataUrl}
-          generateRandomImage={handleOpenMagicPrompt}
-          selectTemplate={selectTemplate}
-          downloadImage={downloadImage}
-          clearCanvas={clearCanvas}
-          setShowUpgradeModal={setShowUpgradeModal}
-          onPrintSheet={handlePrintSheet}
-          onOpenPhotoArt={() => setShowPhotoModal(true)}
-          selectedSticker={selectedSticker}
-          onClearSticker={() => setSelectedSticker(null)}
-          isColorByNumber={isColorByNumber}
-          onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
-          onOpenStickers={() => setShowStickerModal(true)}
-          onQuickNext={handleQuickNext}
-        />
+        <div id="tour-canvas-area" className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
+          <CanvasArea
+            isPro={isPro}
+            isGenerating={isGenerating}
+            showTemplates={showTemplates}
+            setShowTemplates={setShowTemplates}
+            selectedCategory={selectedCategory}
+            paths={paths}
+            viewBox={viewBox}
+            imageUrl={currentImageUrl}
+            selectedColor={selectedColor}
+            paintCanvasRef={paintCanvasRef}
+            lineArtCanvasRef={lineArtCanvasRef}
+            onHistoryPush={handleHistoryPush}
+            restoredDataUrl={restoredDataUrl}
+            generateRandomImage={handleOpenMagicPrompt}
+            selectTemplate={selectTemplate}
+            downloadImage={downloadImage}
+            clearCanvas={clearCanvas}
+            setShowUpgradeModal={setShowUpgradeModal}
+            onPrintSheet={handlePrintSheet}
+            onOpenPhotoArt={() => setShowPhotoModal(true)}
+            selectedSticker={selectedSticker}
+            onClearSticker={() => setSelectedSticker(null)}
+            isColorByNumber={isColorByNumber}
+            onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
+            onOpenStickers={() => setShowStickerModal(true)}
+            onQuickNext={handleQuickNext}
+          />
+        </div>
 
         {/* Bottom Palette Dock (Crayons & Tools) */}
         {!showTemplates && (
-          <ColorPaletteDock
-            selectedColor={selectedColor}
-            setSelectedColor={(c) => {
-              setSelectedSticker(null);
-              setSelectedColor(c);
-            }}
-            isPro={isPro}
-            setShowUpgradeModal={setShowUpgradeModal}
-            showProColors={showProColors}
-            setShowProColors={setShowProColors}
-            selectedSticker={selectedSticker}
-            onOpenStickers={() => setShowStickerModal(true)}
-            isColorByNumber={isColorByNumber}
-          />
+          <div id="tour-palette-dock" className="w-full shrink-0">
+            <ColorPaletteDock
+              selectedColor={selectedColor}
+              setSelectedColor={(c) => {
+                setSelectedSticker(null);
+                setSelectedColor(c);
+              }}
+              isPro={isPro}
+              setShowUpgradeModal={setShowUpgradeModal}
+              showProColors={showProColors}
+              setShowProColors={setShowProColors}
+              selectedSticker={selectedSticker}
+              onOpenStickers={() => setShowStickerModal(true)}
+              isColorByNumber={isColorByNumber}
+            />
+          </div>
         )}
       </main>
 
@@ -843,6 +852,42 @@ export default function App() {
         handleLogin={handleLogin}
         handleSubscribe={handleSubscribe}
         onOpenPricingPage={() => setShowPricingPage(true)}
+      />
+
+      {/* Help Flow Guided Modal */}
+      <HelpFlowModal
+        isOpen={showHelpFlow}
+        onClose={() => setShowHelpFlow(false)}
+        onStartLiveTour={() => {
+          setShowHelpFlow(false);
+          if (showTemplates) {
+            setShowTemplates(false);
+          }
+          setIsTourActive(true);
+        }}
+        onOpenLibrary={() => {
+          setShowTemplates(true);
+        }}
+        onOpenMagicAI={handleOpenMagicPrompt}
+        onOpenPhotoArt={() => setShowPhotoModal(true)}
+        onToggleNumbers={() => {
+          setShowTemplates(false);
+          setIsColorByNumber(prev => !prev);
+        }}
+        onOpenStickers={() => {
+          setShowTemplates(false);
+          setShowStickerModal(true);
+        }}
+        onPrintSheet={handlePrintSheet}
+        onOpenPricingPage={() => setShowPricingPage(true)}
+        onQuickNext={handleQuickNext}
+        isPro={isPro}
+      />
+
+      {/* Live Spotlight On-Screen Tour */}
+      <SpotlightTourOverlay
+        isActive={isTourActive}
+        onClose={() => setIsTourActive(false)}
       />
     </div>
   );
