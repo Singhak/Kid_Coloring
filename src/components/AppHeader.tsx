@@ -389,7 +389,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   <img src={avatarUri || '/profile.png'} alt="Avatar" className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
                 )}
                 {isPro && (
-                  <div className="absolute -bottom-1 -right-1 bg-[#FFD93D] text-[#8C5B00] rounded-full p-0.5 shadow-sm border border-white">
+                  <div className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-[#FF9F43] to-[#FFD93D] text-white rounded-full p-0.5 shadow-sm ring-1 ring-white">
                     <Crown className="w-2.5 h-2.5 fill-current" />
                   </div>
                 )}
@@ -409,9 +409,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     <p className="text-sm font-black text-[#2D3436] truncate">{user.displayName || 'Little Artist'}</p>
                     <p className="text-xs text-[#888] truncate">{user.email}</p>
                     {isTrialActive && (
-                      <span className="inline-block mt-2 px-2 py-0.5 bg-[#FFF2B2] text-[#8C5B00] text-[11px] font-bold rounded-lg">
-                        ✨ Trial: {daysRemaining} days left
-                      </span>
+                      <div className="mt-2 px-2.5 py-1 bg-[#FFF2B2] text-[#8C5B00] text-[11px] font-black rounded-lg flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-[#FF9F43] shrink-0" />
+                        <span>15-Day Trial: {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} left</span>
+                      </div>
                     )}
                     {isSubscribed && (
                       <span className="inline-block mt-2 px-2 py-0.5 bg-[#D4EDDA] text-[#155724] text-[11px] font-bold rounded-lg">

@@ -30,7 +30,7 @@ import {
   STATIC_TEMPLATES 
 } from './constants'; 
 import { generateDynamicAiColoringImage } from './services/dynamicAiGenerator';
-import { generateProceduralPaths } from './services/imageGenerator';
+import { generateProceduralPaths, getImageUsingAPI } from './services/imageGenerator';
 import { printColoringSheet } from './services/pdfExporter';
 import { playSwish } from './services/soundEffects';
 import AppHeader from './components/AppHeader';
@@ -45,6 +45,8 @@ import UpgradeModal from './components/UpgradeModal';
 import PhotoToLineArtModal from './components/PhotoToLineArtModal';
 import StickerStampsModal, { StickerItem } from './components/StickerStampsModal';
 import FreeVsPaidPage from './components/FreeVsPaidPage';
+import { motion, AnimatePresence } from 'motion/react';
+import { Crown, Sparkles, X } from 'lucide-react';
 
 // Declare Razorpay global object
 declare global {
@@ -68,6 +70,7 @@ export default function App() {
   const [showStickerModal, setShowStickerModal] = useState(false);
   const [selectedSticker, setSelectedSticker] = useState<StickerItem | null>(null);
   const [isColorByNumber, setIsColorByNumber] = useState(false);
+  const [showTrialWelcome, setShowTrialWelcome] = useState(false);
 
   const [paths, setPaths] = useState<SvgPath[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
@@ -92,7 +95,7 @@ export default function App() {
     selectTemplate(randomTemplate);
   }, []);
 
-  // Sync user profile
+  // Sync user profile & grant 15-day free trial on login
   useEffect(() => {
     if (!user) {
       setIsPro(false);
@@ -101,46 +104,108 @@ export default function App() {
       return;
     }
 
-    const userRef = doc(db, 'users', user.uid);
-    const unsubscribe = onSnapshot(userRef, async (snap) => {
-      const userData = snap.data();
-      let currentTrialEndDate: Date | null = null;
-      let currentIsSubscribed = false;
+    const storageKey = `kidcolor_trial_${user.uid}`;
+    const cachedTrialStr = localStorage.getItem(storageKey);
+    const now = new Date();
+    let localTrialDate: Date;
 
-      if (!userData || !userData.createdAt) {
-        const now = new Date();
-        const trialEndTimestamp = Timestamp.fromMillis(now.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days
-        await setDoc(userRef, {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          createdAt: serverTimestamp(),
-          trialEndDate: trialEndTimestamp,
-          isSubscribed: false,
-        }, { merge: true });
-
-        currentTrialEndDate = trialEndTimestamp.toDate();
-        currentIsSubscribed = false;
+    // Grant 15 days free trial on login if no cached trial or if trial expired
+    if (cachedTrialStr) {
+      const parsed = new Date(cachedTrialStr);
+      if (!isNaN(parsed.getTime()) && parsed.getTime() > now.getTime()) {
+        localTrialDate = parsed;
       } else {
-        currentTrialEndDate = userData.trialEndDate?.toDate() || null;
-        currentIsSubscribed = userData.isSubscribed || false;
-
-        if (!userData.trialEndDate && userData.createdAt) {
-          const createdDate = userData.createdAt.toDate();
-          const trialEndTimestamp = Timestamp.fromMillis(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000);
-          await setDoc(userRef, { trialEndDate: trialEndTimestamp }, { merge: true });
-          currentTrialEndDate = trialEndTimestamp.toDate();
-        }
+        localTrialDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+        localStorage.setItem(storageKey, localTrialDate.toISOString());
       }
+    } else {
+      localTrialDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
+      localStorage.setItem(storageKey, localTrialDate.toISOString());
+    }
 
-      setTrialEndDate(currentTrialEndDate);
-      setIsSubscribed(currentIsSubscribed);
+    // Instantly grant active VIP trial access so there is zero lock delay
+    setTrialEndDate(localTrialDate);
+    setIsPro(true);
 
-      const now = new Date();
-      const isTrialActive = currentTrialEndDate && currentTrialEndDate.getTime() > now.getTime();
-      setIsPro(currentIsSubscribed || isTrialActive);
-    });
+    // Show celebration banner once per session on login
+    const sessionWelcomeKey = `trial_welcome_shown_${user.uid}`;
+    if (!sessionStorage.getItem(sessionWelcomeKey)) {
+      sessionStorage.setItem(sessionWelcomeKey, 'true');
+      setShowTrialWelcome(true);
+      confetti({
+        particleCount: 65,
+        spread: 60,
+        origin: { y: 0.25 },
+        colors: ['#FFD93D', '#FF9F43', '#4D96FF', '#6BCB77']
+      });
+      setTimeout(() => setShowTrialWelcome(false), 6000);
+    }
+
+    const userRef = doc(db, 'users', user.uid);
+    const unsubscribe = onSnapshot(
+      userRef,
+      async (snap) => {
+        try {
+          const userData = snap.data();
+          let currentTrialEndDate: Date = localTrialDate;
+          let currentIsSubscribed = false;
+
+          if (!userData || !userData.createdAt) {
+            const trialEndTimestamp = Timestamp.fromDate(localTrialDate);
+            await setDoc(
+              userRef,
+              {
+                uid: user.uid,
+                email: user.email || '',
+                displayName: user.displayName || 'Little Artist',
+                photoURL: user.photoURL || '',
+                createdAt: serverTimestamp(),
+                lastLoginAt: serverTimestamp(),
+                trialEndDate: trialEndTimestamp,
+                isSubscribed: false,
+              },
+              { merge: true }
+            );
+          } else {
+            currentIsSubscribed = userData.isSubscribed || false;
+            const firestoreTrial = userData.trialEndDate?.toDate() || null;
+
+            // If user is not subscribed and trial is missing or expired, grant 15-day free trial on login!
+            if (!currentIsSubscribed && (!firestoreTrial || firestoreTrial.getTime() <= Date.now())) {
+              const freshTrial = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+              await setDoc(
+                userRef,
+                {
+                  trialEndDate: Timestamp.fromDate(freshTrial),
+                  lastLoginAt: serverTimestamp(),
+                },
+                { merge: true }
+              );
+              currentTrialEndDate = freshTrial;
+              localStorage.setItem(storageKey, freshTrial.toISOString());
+            } else if (firestoreTrial && firestoreTrial.getTime() > Date.now()) {
+              currentTrialEndDate = firestoreTrial;
+              localStorage.setItem(storageKey, firestoreTrial.toISOString());
+            }
+          }
+
+          setTrialEndDate(currentTrialEndDate);
+          setIsSubscribed(currentIsSubscribed);
+
+          const isTrialActive = currentTrialEndDate && currentTrialEndDate.getTime() > Date.now();
+          setIsPro(currentIsSubscribed || isTrialActive);
+        } catch (err) {
+          console.warn('Firestore user profile sync warning (retaining 15-day local trial):', err);
+          setTrialEndDate(localTrialDate);
+          setIsPro(true);
+        }
+      },
+      (error) => {
+        console.warn('Firestore onSnapshot error (retaining 15-day local trial):', error);
+        setTrialEndDate(localTrialDate);
+        setIsPro(true);
+      }
+    );
 
     return () => unsubscribe();
   }, [user]);
@@ -151,14 +216,36 @@ export default function App() {
       if (Capacitor.isNativePlatform()) {
         await signInWithRedirect(auth, provider);
       } else {
-        await signInWithPopup(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        if (result?.user) {
+          // Immediately grant 15-day trial locally
+          const initialTrial = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+          localStorage.setItem(`kidcolor_trial_${result.user.uid}`, initialTrial.toISOString());
+          setTrialEndDate(initialTrial);
+          setIsPro(true);
+          setShowTrialWelcome(true);
+          confetti({
+            particleCount: 75,
+            spread: 70,
+            origin: { y: 0.25 },
+            colors: ['#FFD93D', '#4D96FF', '#6BCB77', '#FF6B6B']
+          });
+        }
       }
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
 
-  const handleLogout = () => signOut(auth);
+  const handleLogout = () => {
+    signOut(auth);
+    setIsPro(false);
+    setTrialEndDate(null);
+    setIsSubscribed(false);
+    if (user?.uid) {
+      sessionStorage.removeItem(`trial_welcome_shown_${user.uid}`);
+    }
+  };
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -325,7 +412,7 @@ export default function App() {
     }
   }, []);
 
-  // Dynamic AI generation using high-quality Diffusion line art
+  // AI generation: Prioritize PHP Backend SVG vector paths with fallback to diffusion line art
   const handleGenerateAiImage = async (customPrompt?: string) => {
     if (!isPro) {
       setShowUpgradeModal(true);
@@ -340,6 +427,40 @@ export default function App() {
       setIsGenerating(true);
       setShowTemplates(false);
 
+      const subject = customPrompt && customPrompt.trim().length > 0
+        ? customPrompt.trim()
+        : selectedCategory;
+
+      // 1. Try PHP AI Path Generator first (generates pure SVG closed vector paths)
+      let svgResult: { paths: SvgPath[]; viewBox: string } | null = null;
+      try {
+        svgResult = await getImageUsingAPI(subject, selectedCategory);
+      } catch (phpError) {
+        console.warn("PHP AI path generation returned error, falling back to dynamic image:", phpError);
+      }
+
+      if (generationId !== currentGenerationId.current) return;
+
+      if (svgResult && Array.isArray(svgResult.paths) && svgResult.paths.length > 0) {
+        setPaths(svgResult.paths);
+        setViewBox(svgResult.viewBox || "0 0 500 500");
+        setCurrentImageUrl(null);
+        setHistory([]);
+        setHistoryIndex(-1);
+        setRestoredDataUrl(null);
+
+        try {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: COLORS
+          });
+        } catch (e) {}
+        return;
+      }
+
+      // 2. Secondary Fallback: Dynamic AI coloring image diffusion
       const result = await generateDynamicAiColoringImage(selectedCategory, customPrompt);
 
       if (generationId !== currentGenerationId.current) return;
@@ -360,6 +481,18 @@ export default function App() {
             colors: COLORS
           });
         } catch (e) {}
+        return;
+      }
+
+      // 3. Tertiary Fallback: Procedural drawing scene
+      const procedural = generateProceduralPaths(selectedCategory);
+      if (procedural && procedural.paths && procedural.paths.length > 0) {
+        setPaths(procedural.paths);
+        setViewBox(procedural.viewBox || "0 0 500 500");
+        setCurrentImageUrl(null);
+        setHistory([]);
+        setHistoryIndex(-1);
+        setRestoredDataUrl(null);
       }
     } catch (error) {
       console.error("AI Generation failed:", error);
@@ -628,6 +761,37 @@ export default function App() {
 
       {/* Rate Limit Notification */}
       <RateLimitNotification isRateLimited={isRateLimited} />
+
+      {/* 15-Day Free Trial Welcome Banner */}
+      <AnimatePresence>
+        {showTrialWelcome && (
+          <motion.div
+            initial={{ opacity: 0, y: -40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -40, scale: 0.95 }}
+            className="fixed top-16 sm:top-18 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-[#FFF9E6] via-[#FFF3C4] to-[#FFEAA7] border-2 border-[#FFD93D] px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 max-w-[92vw] sm:max-w-md"
+          >
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#FF9F43] to-[#FFD93D] flex items-center justify-center text-white shadow-sm shrink-0">
+              <Crown className="w-4 h-4 fill-current" />
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-xs font-black text-[#2D3436] flex items-center gap-1">
+                <span>🎉 15-Day Free VIP Trial Active!</span>
+              </p>
+              <p className="text-[11px] font-bold text-[#8C5B00] truncate">
+                All Magic AI, Photo Art & Pro colors unlocked!
+              </p>
+            </div>
+            <button
+              onClick={() => setShowTrialWelcome(false)}
+              className="p-1 text-[#8C5B00] hover:text-[#2D3436] font-black rounded-lg hover:bg-black/5 text-xs transition-colors shrink-0 cursor-pointer"
+              title="Close"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Magic Palette Modal */}
       <MagicPaletteModal

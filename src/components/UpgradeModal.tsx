@@ -212,7 +212,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                       <span className="text-xs font-bold text-[#888]">/ year</span>
                     </div>
                     <span className="block text-[11px] font-black text-[#10B981] mt-1">
-                      ✨ 7-Day Free Trial Included
+                      ✨ 15-Day Free Trial Included
                     </span>
                   </button>
 
@@ -384,8 +384,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   >
                     <span>
                       {user 
-                        ? (selectedPlan === 'annual' ? 'Start 7-Day Free Trial (₹499/yr)' : 'Subscribe to Monthly Pass (₹99/mo)')
-                        : 'Sign In & Start Free Trial'}
+                        ? (selectedPlan === 'annual' ? 'Start 15-Day Free Trial (₹499/yr)' : 'Subscribe to Monthly Pass (₹99/mo)')
+                        : 'Sign In & Start 15-Day Free Trial'}
                     </span>
                     <ArrowRight className="w-5 h-5" />
                   </button>

@@ -68,8 +68,8 @@ const COMPARISON_ROWS = [
 
 const FAQS = [
   {
-    q: 'How does the 7-Day Free Trial work?',
-    a: 'You get full, unlimited access to all VIP Superpowers (Photo to Art, AI generator, Glitter, unlimited PDF printing) for 7 days. You will not be charged if you cancel before the trial ends.'
+    q: 'How does the 15-Day Free Trial work?',
+    a: 'You get full, unlimited access to all VIP Superpowers (Photo to Art, AI generator, Glitter, unlimited PDF printing) for 15 days. You will not be charged if you cancel before the trial ends.'
   },
   {
     q: 'Can I print these sheets on my home printer for real crayons?',
@@ -136,7 +136,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
             className="btn-bubbly flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] text-white font-black text-xs sm:text-sm rounded-xl shadow-md cursor-pointer hover:brightness-105"
           >
             <Crown className="w-4 h-4 fill-current" />
-            <span>{isPro ? 'Manage VIP Pass' : 'Start 7-Day Free Trial'}</span>
+            <span>{isPro ? 'Manage VIP Pass' : 'Start 15-Day Free Trial'}</span>
           </button>
         </div>
       </header>
@@ -309,7 +309,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
                   <span className="text-xs font-bold text-[#888]">/ year (just ~₹41/mo)</span>
                 </div>
                 <p className="text-xs font-black text-[#10B981] mt-1.5 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" /> 7-Day Free Trial Included
+                  <Sparkles className="w-3.5 h-3.5" /> 15-Day Free Trial Included
                 </p>
                 <p className="text-xs text-[#636E72] font-semibold mt-2">
                   Includes all superpowers, unlimited AI generation, photo conversion, and printable packs.
@@ -320,7 +320,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
                 onClick={handleCtaClick}
                 className="btn-bubbly w-full py-3.5 bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] text-white font-black rounded-2xl shadow-md text-sm cursor-pointer hover:brightness-105 flex items-center justify-center gap-2"
               >
-                <span>Start 7-Day Free Trial</span>
+                <span>Start 15-Day Free Trial</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -431,7 +431,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-center sm:text-left">
             <span className="block font-black text-sm text-[#2D3436]">
-              Unlock All VIP Superpowers with a 7-Day Free Trial
+              Unlock All VIP Superpowers with a 15-Day Free Trial
             </span>
             <span className="text-xs text-[#888] font-bold">
               Just ₹499/year (~₹41/mo) • Cancel anytime with 1 click
@@ -443,7 +443,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
             className="btn-bubbly w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] text-white font-black text-sm rounded-xl shadow-md cursor-pointer hover:brightness-105 flex items-center justify-center gap-2"
           >
             <Crown className="w-4 h-4 fill-current" />
-            <span>{isPro ? 'Manage Subscription' : 'Start 7-Day Free Trial'}</span>
+            <span>{isPro ? 'Manage Subscription' : 'Start 15-Day Free Trial'}</span>
           </button>
         </div>
       </footer>

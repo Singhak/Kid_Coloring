@@ -15,14 +15,14 @@ export const generateProceduralPaths = (category: string): { paths: SvgPath[], v
 };
 
 export const generateAiPaths = async (subject: string): Promise<{ paths: SvgPath[], viewBox: string }> => {
-  const API_KEY = process.env.GEMINI_API_KEY || ""
+  const API_KEY = process.env.GEMINI_API_KEY || "";
   if (!API_KEY) {
     throw new Error("GEMINI_API_KEY is missing");
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash",
     contents: `Generate a simple, bold line art SVG of a ${subject} for a kids' coloring book. 
     The SVG should consist of multiple closed paths so they can be filled with color.
     The drawing should be clear and easy for a child to color.
@@ -75,58 +75,66 @@ export const getImageUsingAPI = async (subject: string, category: string): Promi
     subject = ALL_SUBJECTS[Math.floor(Math.random() * ALL_SUBJECTS.length)];
   }
 
-  const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs: number = 1500): Promise<Response> => {
-    // Start the fetch request WITHOUT an AbortController so it continues in the background
+  const isCurrentDomain = typeof window !== 'undefined' && window.location.hostname.includes('storywalla.com');
+  const geminiEndpoint = isCurrentDomain
+    ? '/api/generate-paths-gemini.php'
+    : 'https://kidcolor.storywalla.com/api/generate-paths-gemini.php';
+  const openRouterEndpoint = isCurrentDomain
+    ? '/api/generate-paths.php'
+    : 'https://kidcolor.storywalla.com/api/generate-paths.php';
+
+  const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs: number = 35000): Promise<Response> => {
     const fetchPromise = fetch(url, options);
-    
-    // Prevent unhandled promise rejections if the fetch fails silently in the background later
     fetchPromise.catch(() => {}); 
 
     const timeoutPromise = new Promise<Response>((_, reject) => {
-      setTimeout(() => reject(new Error("Timeout")), timeoutMs);
+      setTimeout(() => reject(new Error("Request timed out")), timeoutMs);
     });
 
-    // Race the fetch against the timer. If the timer wins, we reject and fallback instantly.
     return Promise.race([fetchPromise, timeoutPromise]);
   };
 
-  // Fallback to OpenRouter via Backend Proxy
+  // 1. Try Gemini PHP endpoint first (live tested and confirmed functional on server)
+  let response: Response | undefined;
   try {
-    let response: Response | undefined;
-    try {
-      response = await fetchWithTimeout("https://kidcolor.storywalla.com/api/generate-paths.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, category })
-      }, 15000); // 5 seconds timeout for first API
-    } catch (e) {
-      console.warn("First API attempt failed or timed out, trying fallback...");
-    }
-
-    if (!response || !response.ok) {
-      // Try with Google GenAI API directly if proxy fails (e.g., due to CORS or network issues)
-      response = await fetchWithTimeout("https://kidcolor.storywalla.com/api/generate-paths-gemini.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, category })
-      }, 10000); // 5 seconds timeout for fallback API
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Backend generation failed");
-      }
-    }
-
-    const data = await response.json();
-    const newPaths: SvgPath[] = data.paths.map((p: any) => ({
-      ...p,
-      fill: '#FFFFFF',
-      stroke: p.stroke || '#000000',
-      strokeWidth: p.strokeWidth || 3
-    }));
-
-    return { paths: newPaths, viewBox: data.viewBox || "0 0 500 500" };
-  } catch (error) {
-    console.error("All AI generation methods failed:", error);
-    throw error;
+    response = await fetchWithTimeout(geminiEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subject, category })
+    }, 35000); // 35 seconds for live Gemini generation or fast cached return
+  } catch (e) {
+    console.warn("Primary Gemini PHP endpoint timed out or failed, trying secondary endpoint...", e);
   }
-}
+
+  // 2. Fallback to OpenRouter PHP endpoint if Gemini failed
+  if (!response || !response.ok) {
+    try {
+      response = await fetchWithTimeout(openRouterEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject, category })
+      }, 25000);
+    } catch (e) {
+      console.warn("Secondary PHP endpoint failed:", e);
+    }
+  }
+
+  if (!response || !response.ok) {
+    throw new Error("Backend PHP AI path generation failed");
+  }
+
+  const data = await response.json();
+  if (!data || !Array.isArray(data.paths) || data.paths.length === 0) {
+    throw new Error("Backend returned empty or invalid path structure");
+  }
+
+  const newPaths: SvgPath[] = data.paths.map((p: any, idx: number) => ({
+    id: p.id || `part-${idx + 1}`,
+    d: p.d,
+    fill: '#FFFFFF',
+    stroke: p.stroke || '#000000',
+    strokeWidth: p.strokeWidth || 3
+  }));
+
+  return { paths: newPaths, viewBox: data.viewBox || "0 0 500 500" };
+};
