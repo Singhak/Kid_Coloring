@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { SvgPath } from '../types';
 import { performFloodFill } from '../services/floodFill';
+import { getBrushCursor, getEraserCursor } from '../services/cursorService';
 import { StickerItem } from './StickerStampsModal';
 import ColorByNumberOverlay, { NumberTarget } from './ColorByNumberOverlay';
 import { playPop, playFanfare, playChime } from '../services/soundEffects';
@@ -357,11 +358,11 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (e.buttons === 1 || e.buttons === 4) {
+    if (scale > 1.05 && (e.buttons === 1 || e.buttons === 4)) {
       const dx = e.clientX - dragStartRef.current.x;
       const dy = e.clientY - dragStartRef.current.y;
 
-      if (Math.hypot(dx, dy) > 5) {
+      if (Math.hypot(dx, dy) > 8) {
         isDraggingRef.current = true;
         setPan({
           x: panStartRef.current.x + dx,
@@ -433,11 +434,15 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     setScale((prevScale) => Math.min(5.0, Math.max(1.0, prevScale + zoomDelta)));
   };
 
-  const cursorStyle = selectedSticker 
-    ? 'copy' 
-    : selectedColor === '#FFFFFF' 
-      ? 'cell' 
-      : 'crosshair';
+  const isEraser = selectedColor === '#FFFFFF' && !selectedSticker;
+
+  const cursorStyle = useMemo(() => {
+    if (selectedSticker) return 'copy';
+    if (isEraser) {
+      return getEraserCursor();
+    }
+    return getBrushCursor(selectedColor);
+  }, [selectedSticker, isEraser, selectedColor]);
 
   const completedTargets = numberTargets.filter((t) => t.isCompleted).length;
 

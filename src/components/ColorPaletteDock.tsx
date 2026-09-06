@@ -76,6 +76,16 @@ const ColorPaletteDock: React.FC<ColorPaletteDockProps> = ({
             <span className="font-display">Stamp Active: Tap canvas to stamp!</span>
           </div>
         )}
+        {selectedColor.startsWith('pattern:') && !selectedSticker && (
+          <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/95 border-2 border-[#FFD93D] shadow-xs text-xs font-black tracking-wide animate-float">
+            <span className="text-sm">
+              {SPECIAL_PATTERNS.find(p => p.id === selectedColor)?.icon || '✨'}
+            </span>
+            <span className="text-[#2D3436] font-display">
+              {SPECIAL_PATTERNS.find(p => p.id === selectedColor)?.label || 'Special Pattern'}
+            </span>
+          </div>
+        )}
         {selectedColor === '#FFFFFF' && !selectedSticker && (
           <div className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white border-2 border-[#4D96FF] shadow-xs text-xs font-black tracking-wide text-[#2B8A3E]">
             <span className="text-sm">🧽</span>

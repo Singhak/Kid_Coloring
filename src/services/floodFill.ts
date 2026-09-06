@@ -208,10 +208,10 @@ export function performFloodFill(
 
   let startIndex = (startY * width + startX) * 4;
 
-  // If clicked directly on a line, look around in a 5x5 neighborhood for the nearest open region
+  // If clicked directly on a line, look around in neighborhood for the nearest open region
   if (isLineArtBoundary(lineArtData, startIndex, 95)) {
     let found = false;
-    for (let radius = 1; radius <= 4; radius++) {
+    for (let radius = 1; radius <= 6; radius++) {
       for (let dy = -radius; dy <= radius; dy++) {
         for (let dx = -radius; dx <= radius; dx++) {
           const nx = startX + dx;
@@ -234,14 +234,43 @@ export function performFloodFill(
     if (!found) return false;
   }
 
-  const targetR = paintData[startIndex];
-  const targetG = paintData[startIndex + 1];
-  const targetB = paintData[startIndex + 2];
+  // Detect if the clicked region is a pattern / multi-colored region (e.g. polka dots, glitter, rainbow, hearts, stars)
+  let isPatternRegion = false;
+  const startR = paintData[startIndex];
+  const startG = paintData[startIndex + 1];
+  const startB = paintData[startIndex + 2];
+  let variations = 0;
+
+  for (let dy = -10; dy <= 10; dy += 5) {
+    for (let dx = -10; dx <= 10; dx += 5) {
+      const nx = startX + dx;
+      const ny = startY + dy;
+      if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+        const nIdx = (ny * width + nx) * 4;
+        if (!isLineArtBoundary(lineArtData, nIdx, 95)) {
+          const nr = paintData[nIdx];
+          const ng = paintData[nIdx + 1];
+          const nb = paintData[nIdx + 2];
+          if (Math.abs(nr - startR) > 35 || Math.abs(ng - startG) > 35 || Math.abs(nb - startB) > 35) {
+            variations++;
+          }
+        }
+      }
+    }
+  }
+  if (variations >= 2) {
+    isPatternRegion = true;
+  }
+
+  const targetR = startR;
+  const targetG = startG;
+  const targetB = startB;
   const targetA = paintData[startIndex + 3];
 
-  // If not a pattern, avoid filling if already exact same color
+  // If not a pattern and not clicking over a pattern, avoid re-filling identical solid color
   if (
     !isPattern &&
+    !isPatternRegion &&
     Math.abs(targetR - targetFillRgba.r) < 5 &&
     Math.abs(targetG - targetFillRgba.g) < 5 &&
     Math.abs(targetB - targetFillRgba.b) < 5 &&
@@ -270,7 +299,7 @@ export function performFloodFill(
       const idx = pos * 4;
 
       if (visited[pos] || isLineArtBoundary(lineArtData, idx, 100)) break;
-      if (!colorMatch(paintData, idx, targetR, targetG, targetB, targetA, tolerance)) break;
+      if (!isPatternRegion && !colorMatch(paintData, idx, targetR, targetG, targetB, targetA, tolerance)) break;
 
       visited[pos] = 1;
       lx = nextX;
@@ -284,7 +313,7 @@ export function performFloodFill(
       const idx = pos * 4;
 
       if (visited[pos] || isLineArtBoundary(lineArtData, idx, 100)) break;
-      if (!colorMatch(paintData, idx, targetR, targetG, targetB, targetA, tolerance)) break;
+      if (!isPatternRegion && !colorMatch(paintData, idx, targetR, targetG, targetB, targetA, tolerance)) break;
 
       visited[pos] = 1;
       rx = nextX;
@@ -309,7 +338,7 @@ export function performFloodFill(
         const isFillable =
           !visited[pos] &&
           !isLineArtBoundary(lineArtData, idx, 100) &&
-          colorMatch(paintData, idx, targetR, targetG, targetB, targetA, tolerance);
+          (isPatternRegion || colorMatch(paintData, idx, targetR, targetG, targetB, targetA, tolerance));
 
         if (isFillable) {
           if (!inSpan) {
