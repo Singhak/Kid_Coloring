@@ -1,22 +1,43 @@
 <?php
 /**
  * KidColor Queue Processor
- * This handles background AI generation for Hostinger.
+ * Handles background AI generation for Hostinger cron jobs.
  */
 
 $queueDir = __DIR__ . '/queue';
 $queueFile = $queueDir . '/tasks.txt';
 $logFile = __DIR__ . '/api_error.log';
 
-// Helper function for cron logging
-function logCronError($message, $subject) {
+function logCronError($message, $subject = 'unknown') {
     global $logFile;
     $timestamp = date("Y-m-d H:i:s");
-    file_put_contents($logFile, "[$timestamp] [CRON - Subject: $subject] " . print_r($message, true) . PHP_EOL, FILE_APPEND);
+    $entry = "[$timestamp] [CRON - Subject: " . strval($subject) . "] " . (is_string($message) ? $message : json_encode($message)) . PHP_EOL;
+    @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+}
+
+function loadEnv($path = __DIR__ . '/.env') {
+    $vars = [];
+    if (file_exists($path) && is_readable($path)) {
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || strpos($line, '#') === 0) continue;
+            if (strpos($line, '=') !== false) {
+                list($name, $value) = explode('=', $line, 2);
+                $name = trim($name);
+                $value = trim($value, " \t\n\r\0\x0B\"'");
+                $vars[$name] = $value;
+                if (!getenv($name)) {
+                    putenv("$name=$value");
+                }
+            }
+        }
+    }
+    return $vars;
 }
 
 if (!file_exists($queueFile)) {
-    exit; // No queue file means no pending tasks
+    exit;
 }
 
 $startTime = time();
@@ -26,20 +47,17 @@ while (time() - $startTime < $maxExecutionTime) {
     $fp = fopen($queueFile, "c+");
     if (!$fp) break;
 
-    // Safely lock the file to prevent conflicts
     if (flock($fp, LOCK_EX)) {
         $lines = file($queueFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         
         if (empty($lines)) {
             flock($fp, LOCK_UN);
             fclose($fp);
-            break; // Queue is completely empty
+            break;
         }
 
-        // Pop the first task off the queue
         $taskJson = array_shift($lines);
 
-        // Save remaining tasks back to the queue file
         ftruncate($fp, 0);
         rewind($fp);
         if (!empty($lines)) {
@@ -48,17 +66,15 @@ while (time() - $startTime < $maxExecutionTime) {
         flock($fp, LOCK_UN);
         fclose($fp);
 
-        // Process the extracted task
         $task = json_decode($taskJson, true);
         if ($task) {
             processTask($task);
         }
     } else {
         fclose($fp);
-        break; // Could not get lock, we'll try again next minute
+        break;
     }
     
-    // Sleep briefly to avoid tripping rate limiters between requests
     sleep(2);
 }
 
@@ -70,77 +86,128 @@ function processTask($task) {
     if (!$subject) return;
 
     $cacheDir = __DIR__ . '/cache';
-    if (!is_dir($cacheDir)) mkdir($cacheDir, 0777, true);
+    if (!is_dir($cacheDir)) @mkdir($cacheDir, 0777, true);
     
     $safeSubject = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($category));
     $cacheFile = $cacheDir . '/' . $safeSubject . '.json';
-    $env = file_exists(__DIR__ . '/.env') ? parse_ini_file(__DIR__ . '/.env') : [];
+    $env = loadEnv();
+
+    $content = null;
 
     if ($provider === 'openrouter') {
-        logCronError("Processing OpenRouter task for subject '$subject'.", $subject);
         $apiKey = $env['OPENROUTER_API_KEY'] ?? getenv("OPENROUTER_API_KEY");
+        if (!$apiKey) return;
+
         $url = "https://openrouter.ai/api/v1/chat/completions";
         $data = [
-            "models" => ["nvidia/nemotron-3-super-120b-a12b:free","arcee-ai/trinity-mini:free","openrouter/free"],
+            "models" => [
+                "google/gemini-2.0-flash-exp:free",
+                "meta-llama/llama-3.3-70b-instruct:free",
+                "mistralai/mistral-small-24b-instruct-2501:free",
+                "openrouter/auto"
+            ],
             "messages" => [
-                ["role" => "system", "content" => "You are a specialized SVG path generator for kids' coloring books. You only output valid JSON."],
-                ["role" => "user", "content" => "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and it can be easy, medium or difficult for a child to color.\nReturn ONLY a JSON object with:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include fill colors."]
+                ["role" => "system", "content" => "You are a specialized SVG path generator for kids' coloring books. Output valid JSON only."],
+                ["role" => "user", "content" => "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book. Return ONLY a JSON object with viewBox and closed paths."]
             ],
             "response_format" => ["type" => "json_object"]
         ];
-        $headers = [
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 40);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer $apiKey",
             "HTTP-Referer: https://kidcolor.storywalla.com",
             "X-Title: KidColor App",
             "Content-Type: application/json"
-        ];
-    } else if ($provider === 'gemini') {
-        logCronError("Processing Gemini task for subject '$subject'.", $subject);
-        $apiKey = $env['GEMINI_API_KEY'] ?? getenv("GEMINI_API_KEY");
-        $model = "gemini-3-flash-preview";
-        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . $apiKey;
-        $prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG should consist of multiple closed paths so they can be filled with color.\nThe drawing should be clear and it can be easy, medium or difficult for a child to color.\nReturn ONLY a JSON object with the following structure:\n{\n  \"viewBox\": \"0 0 500 500\",\n  \"paths\": [\n    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\" }\n  ]\n}\nEnsure all paths are closed (end with Z). Do not include any fill colors in the paths.";
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200 && $response) {
+            $result = json_decode($response, true);
+            $content = $result["choices"][0]["message"]["content"] ?? null;
+        }
+    } else { // Gemini (default)
+        $apiKey = $env['GEMINI_API_KEY'] ?? $env['API_KEY'] ?? $env['GOOGLE_API_KEY'] ?? getenv("GEMINI_API_KEY") ?? getenv("API_KEY") ?? getenv("GOOGLE_API_KEY");
+        if (!$apiKey) return;
+
+        $models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+        $prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG must consist of multiple closed paths so each part can be filled with color.\nReturn ONLY a JSON object with: { \"viewBox\": \"0 0 500 500\", \"paths\": [ { \"id\": \"part-name\", \"d\": \"...\", \"stroke\": \"#000\", \"strokeWidth\": 3 } ] }";
+        
         $data = [
             "contents" => [["parts" => [["text" => $prompt]]]],
             "generationConfig" => [
                 "responseMimeType" => "application/json",
-                "responseSchema" => ["type" => "OBJECT", "properties" => ["viewBox" => [ "type" => "STRING" ], "paths" => ["type" => "ARRAY", "items" => ["type" => "OBJECT", "properties" => ["id" => [ "type" => "STRING" ], "d" => [ "type" => "STRING" ], "stroke" => [ "type" => "STRING" ], "strokeWidth" => [ "type" => "NUMBER" ]], "required" => ["id", "d"]]]], "required" => ["viewBox", "paths"]]
+                "responseSchema" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "viewBox" => [ "type" => "STRING" ],
+                        "paths" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "id" => [ "type" => "STRING" ],
+                                    "d" => [ "type" => "STRING" ],
+                                    "stroke" => [ "type" => "STRING" ],
+                                    "strokeWidth" => [ "type" => "NUMBER" ]
+                                ],
+                                "required" => ["id", "d"]
+                            ]
+                        ]
+                    ],
+                    "required" => ["viewBox", "paths"]
+                ]
             ]
         ];
-        $headers = [
-            "Content-Type: application/json",
-            "Referer: https://kidcolor.storywalla.com"
-        ];
-    } else {
-        return;
+
+        foreach ($models as $m) {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$m}:generateContent?key=" . urlencode($apiKey);
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 40);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                "Content-Type: application/json",
+                "Referer: https://kidcolor.storywalla.com"
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode === 200 && $response) {
+                $result = json_decode($response, true);
+                $content = $result["candidates"][0]["content"]["parts"][0]["text"] ?? null;
+                if ($content) break;
+            }
+        }
     }
 
-    // Make the API request
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    
-    $response = curl_exec($ch);
-    if (curl_errno($ch)) { logCronError("cURL Error: " . curl_error($ch), $subject); curl_close($ch); return; }
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($httpCode !== 200) return;
-    
-    $result = json_decode($response, true);
-    $content = $provider === 'openrouter' ? ($result["choices"][0]["message"]["content"] ?? null) : ($result["candidates"][0]["content"]["parts"][0]["text"] ?? null);
-
     if ($content) {
-        $newImage = json_decode($content, true);
-        if ($newImage && isset($newImage['paths'])) {
+        $cleanJson = trim($content);
+        if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/is', $cleanJson, $matches)) {
+            $cleanJson = trim($matches[1]);
+        } else if (preg_match('/\{[\s\S]*\}/', $cleanJson, $matches)) {
+            $cleanJson = trim($matches[0]);
+        }
+
+        $newImage = json_decode($cleanJson, true);
+        if ($newImage && !empty($newImage['paths'])) {
             $cacheData = [];
-            if (file_exists($cacheFile)) { $fileData = json_decode(file_get_contents($cacheFile), true); if (is_array($fileData)) { $cacheData = $fileData; } }
-            if (count($cacheData) >= 30) { array_shift($cacheData); }
+            if (file_exists($cacheFile)) {
+                $fileData = json_decode(@file_get_contents($cacheFile), true);
+                if (is_array($fileData)) $cacheData = $fileData;
+            }
+            if (count($cacheData) >= 30) array_shift($cacheData);
             $cacheData[] = $newImage;
-            logCronError("'$provider' Generated new image for subject '$subject' and cached it.", $subject);
-            file_put_contents($cacheFile, json_encode($cacheData), LOCK_EX);
+            logCronError("Generated new image for subject '$subject' and cached it.", $subject);
+            @file_put_contents($cacheFile, json_encode($cacheData, JSON_UNESCAPED_SLASHES), LOCK_EX);
         }
     }
 }
