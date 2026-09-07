@@ -28,6 +28,7 @@ interface FreeVsPaidPageProps {
   user: any;
   handleLogin: () => void;
   onOpenUpgradeModal: () => void;
+  onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund') => void;
 }
 
 const COMPARISON_ROWS = [
@@ -94,7 +95,8 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
   isPro,
   user,
   handleLogin,
-  onOpenUpgradeModal
+  onOpenUpgradeModal,
+  onOpenLegalPage
 }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -430,15 +432,49 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
         </section>
       </main>
 
+      {/* Legal & Compliance Footer Links */}
+      <section className="bg-white border-t-2 border-[#EBE8DC] py-8 px-4 sm:px-8 mt-12 text-center text-xs text-[#888] font-semibold space-y-3">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <img src="/coloro-web-logo.png" alt="Coloro" className="h-6 w-auto object-contain" />
+            <span>© {new Date().getFullYear()} Coloro (Storywalla). 100% Kid-safe, ad-free studio.</span>
+          </div>
+          {onOpenLegalPage && (
+            <div className="flex items-center gap-4 text-xs font-bold text-[#555]">
+              <button
+                onClick={() => onOpenLegalPage('privacy')}
+                className="hover:text-[#4D96FF] cursor-pointer"
+              >
+                Privacy Policy
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => onOpenLegalPage('terms')}
+                className="hover:text-[#4D96FF] cursor-pointer"
+              >
+                Terms & Conditions
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => onOpenLegalPage('refund')}
+                className="hover:text-[#4D96FF] cursor-pointer"
+              >
+                Refund Policy
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Bottom Sticky Footer CTA Banner */}
       <footer className="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border-t-2 border-[#EBE8DC] p-3.5 sm:p-4 shadow-lg">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-center sm:text-left">
             <span className="block font-black text-sm text-[#2D3436]">
-              Unlock All VIP Superpowers with a 15-Day Free Trial
+              Unlock All VIP Superpowers — Choose Your Pass
             </span>
             <span className="text-xs text-[#888] font-bold">
-              Just ₹499/year (~₹41/mo) • Cancel anytime with 1 click
+              ₹499 for 1 Full Year (~₹41/mo) • One-Time Pass • No Auto-Renew
             </span>
           </div>
 
@@ -447,7 +483,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
             className="btn-bubbly w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] text-white font-black text-sm rounded-xl shadow-md cursor-pointer hover:brightness-105 flex items-center justify-center gap-2"
           >
             <Crown className="w-4 h-4 fill-current" />
-            <span>{isPro ? 'Manage Subscription' : 'Start 15-Day Free Trial'}</span>
+            <span>{isPro ? 'Manage VIP Pass' : 'Get VIP Pass'}</span>
           </button>
         </div>
       </footer>

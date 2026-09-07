@@ -45,6 +45,7 @@ import UpgradeModal from './components/UpgradeModal';
 import PhotoToLineArtModal from './components/PhotoToLineArtModal';
 import StickerStampsModal, { StickerItem } from './components/StickerStampsModal';
 import FreeVsPaidPage from './components/FreeVsPaidPage';
+import LegalPolicyPage, { LegalTabType } from './components/LegalPolicyPage';
 import HelpFlowModal from './components/HelpFlowModal';
 import SpotlightTourOverlay from './components/SpotlightTourOverlay';
 import PaymentStatusModal, { PaymentModalStatus } from './components/PaymentStatusModal';
@@ -70,6 +71,30 @@ export default function App() {
   const [isSubscribed, setIsSubscribed] = useState(false); // User's subscription status
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showPricingPage, setShowPricingPage] = useState(false);
+  const [legalTab, setLegalTab] = useState<LegalTabType | null>(null);
+
+  // Listen for direct URL hash navigation (#privacy, #terms, #refund, #pricing)
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#privacy') {
+        setLegalTab('privacy');
+        setShowPricingPage(false);
+      } else if (hash === '#terms' || hash === '#terms-and-conditions') {
+        setLegalTab('terms');
+        setShowPricingPage(false);
+      } else if (hash === '#refund' || hash === '#refund-policy' || hash === '#cancellation') {
+        setLegalTab('refund');
+        setShowPricingPage(false);
+      } else if (hash === '#pricing' || hash === '#upgrade') {
+        setShowPricingPage(true);
+        setLegalTab(null);
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
   const [showProColors, setShowProColors] = useState(false);
   const [showMagicPromptModal, setShowMagicPromptModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -860,6 +885,26 @@ export default function App() {
     setResetTrigger((prev) => prev + 1);
   };
 
+  if (legalTab) {
+    return (
+      <LegalPolicyPage
+        initialTab={legalTab}
+        onBack={() => {
+          setLegalTab(null);
+          if (window.location.hash) {
+            try {
+              history.pushState("", document.title, window.location.pathname + window.location.search);
+            } catch (e) {}
+          }
+        }}
+        onOpenPricing={() => {
+          setLegalTab(null);
+          setShowPricingPage(true);
+        }}
+      />
+    );
+  }
+
   if (showPricingPage) {
     return (
       <FreeVsPaidPage
@@ -868,6 +913,7 @@ export default function App() {
         user={user}
         handleLogin={handleLogin}
         onOpenUpgradeModal={() => setShowUpgradeModal(true)}
+        onOpenLegalPage={(tab) => setLegalTab(tab)}
       />
     );
   }
@@ -902,6 +948,7 @@ export default function App() {
         onPrintSheet={handlePrintSheet}
         onOpenChatBot={() => setShowChatBotModal(true)}
         onOpenArticles={() => setShowArticlesModal(true)}
+        onOpenLegalPage={(tab) => setLegalTab(tab)}
       />
 
       <main className="flex-1 flex flex-col px-1.5 sm:px-5 pt-0.5 sm:pt-1 pb-1 gap-1 sm:gap-1.5 overflow-hidden min-h-0">
@@ -1065,6 +1112,7 @@ export default function App() {
         handleLogin={handleLogin}
         handleSubscribe={handleSubscribe}
         onOpenPricingPage={() => setShowPricingPage(true)}
+        onOpenLegalPage={(tab) => setLegalTab(tab)}
       />
 
       {/* Cashfree Payment Status Modal */}

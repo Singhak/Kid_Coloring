@@ -172,6 +172,27 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
           </button>
         ))}
       </div>
+
+      {/* Educational & Legal Footer */}
+      <footer className="mt-8 pt-6 pb-8 border-t border-[#EBE8DC] text-center text-xs text-[#888] space-y-2">
+        <p className="font-bold text-[#666]">
+          Coloro by Storywalla — AI-Powered Educational Coloring Studio for Kids
+        </p>
+        <div className="flex items-center justify-center gap-3 flex-wrap text-xs font-bold text-[#555]">
+          <a href="#privacy" className="hover:text-[#4D96FF]">Privacy Policy</a>
+          <span>•</span>
+          <a href="#terms" className="hover:text-[#4D96FF]">Terms & Conditions</a>
+          <span>•</span>
+          <a href="#refund" className="hover:text-[#4D96FF]">Refund Policy</a>
+          <span>•</span>
+          <a href="#pricing" className="hover:text-[#4D96FF]">Pricing Plans</a>
+          <span>•</span>
+          <a href="mailto:support@storywalla.com" className="hover:text-[#4D96FF]">Contact Support</a>
+        </div>
+        <p className="text-[11px] text-[#A0A0A0]">
+          100% Ad-Free • Kid-Safe • Non-Recurring One-Time Passes
+        </p>
+      </footer>
     </motion.div>
   );
 };

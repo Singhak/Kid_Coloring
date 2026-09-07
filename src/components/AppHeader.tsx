@@ -21,7 +21,10 @@ import {
   Trash2,
   Printer,
   Bot,
-  BookOpen
+  BookOpen,
+  ShieldCheck,
+  FileText,
+  CreditCard
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -56,6 +59,7 @@ interface AppHeaderProps {
   onPrintSheet?: () => void;
   onOpenChatBot?: () => void;
   onOpenArticles?: () => void;
+  onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund') => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -85,7 +89,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   clearCanvas,
   onPrintSheet,
   onOpenChatBot,
-  onOpenArticles
+  onOpenArticles,
+  onOpenLegalPage
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -563,6 +568,47 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       <Compass className="w-4 h-4 text-[#4D96FF]" />
                       <span>Help Flow & Studio Guide</span>
                     </button>
+                  )}
+
+                  {onOpenLegalPage && (
+                    <div className="border-t border-[#EBE8DC] my-1 pt-1">
+                      <span className="px-3.5 py-1 text-[10px] font-black uppercase text-[#888] tracking-wider block">
+                        Legal & Policies
+                      </span>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('privacy');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+                        <span>Privacy Policy</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('terms');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-[#3B82F6]" />
+                        <span>Terms & Conditions</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('refund');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-[#F59E0B]" />
+                        <span>Refund Policy</span>
+                      </button>
+                    </div>
                   )}
 
                   <button

@@ -31,6 +31,7 @@ interface UpgradeModalProps {
   handleLogin: () => void;
   handleSubscribe: (plan?: 'annual' | 'monthly') => void;
   onOpenPricingPage?: () => void;
+  onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund') => void;
 }
 
 const COMPARISON_FEATURES = [
@@ -53,6 +54,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   handleLogin,
   handleSubscribe,
   onOpenPricingPage,
+  onOpenLegalPage,
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [showParentGate, setShowParentGate] = useState(false);
@@ -384,19 +386,19 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   >
                     <span>
                       {user 
-                        ? (selectedPlan === 'annual' ? 'Start 15-Day Free Trial (₹499/yr)' : 'Subscribe to Monthly Pass (₹99/mo)')
-                        : 'Sign In & Start 15-Day Free Trial'}
+                        ? (selectedPlan === 'annual' ? 'Get 1-Year VIP Pass (₹499 one-time)' : 'Get 1-Month VIP Pass (₹99 one-time)')
+                        : 'Sign In & Get VIP Pass'}
                     </span>
                     <ArrowRight className="w-5 h-5" />
                   </button>
 
                   <div className="flex items-center justify-center gap-4 mt-3 text-[11px] font-bold text-[#888]">
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" /> 100% Ad-Free & Child-Safe
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" /> 100% Ad-Free & Kid-Safe
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <HeartHandshake className="w-3.5 h-3.5 text-[#4D96FF]" /> Cancel Anytime
+                      <Sparkles className="w-3.5 h-3.5 text-[#FFA801]" /> One-Time Pass (No Auto-Renew)
                     </span>
                   </div>
 
@@ -415,6 +417,43 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     >
                       Compare full Free vs. VIP Features Breakdown →
                     </button>
+                  )}
+
+                  {onOpenLegalPage && (
+                    <div className="mt-2.5 pt-2 border-t border-[#F0ECE1] flex items-center justify-center gap-2.5 text-[10px] text-[#888] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          onOpenLegalPage('privacy');
+                        }}
+                        className="hover:text-[#2D3436] hover:underline cursor-pointer"
+                      >
+                        Privacy Policy
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          onOpenLegalPage('terms');
+                        }}
+                        className="hover:text-[#2D3436] hover:underline cursor-pointer"
+                      >
+                        Terms
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          onOpenLegalPage('refund');
+                        }}
+                        className="hover:text-[#2D3436] hover:underline cursor-pointer"
+                      >
+                        Refund Policy
+                      </button>
+                    </div>
                   )}
                 </>
               )}
