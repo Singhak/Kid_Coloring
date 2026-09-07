@@ -47,15 +47,17 @@ import StickerStampsModal, { StickerItem } from './components/StickerStampsModal
 import FreeVsPaidPage from './components/FreeVsPaidPage';
 import HelpFlowModal from './components/HelpFlowModal';
 import SpotlightTourOverlay from './components/SpotlightTourOverlay';
+import PaymentStatusModal, { PaymentModalStatus } from './components/PaymentStatusModal';
+import {
+  createCashfreeOrder,
+  initiateCashfreeCheckout,
+  verifyCashfreePayment,
+  pollCashfreePayment,
+  recordOrderSuccessInFirestore,
+  PlanType,
+} from './services/paymentService';
 import { motion, AnimatePresence } from 'motion/react';
 import { Crown, Sparkles, X } from 'lucide-react';
-
-// Declare Razorpay global object
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
 
 // --- App Component ---
 
@@ -91,7 +93,32 @@ export default function App() {
   const [viewBox, setViewBox] = useState("0 0 1000 1000");
   const [fillCount, setFillCount] = useState(0);
   const [resetTrigger, setResetTrigger] = useState(0);
+
+  // Cashfree Payment Modal State
+  const [paymentModalState, setPaymentModalState] = useState<{
+    isOpen: boolean;
+    status: PaymentModalStatus;
+    planName?: string;
+    orderId?: string;
+    errorMessage?: string;
+    planType?: PlanType;
+  }>({
+    isOpen: false,
+    status: 'idle',
+  });
   
+  const activePollCancelRef = useRef<(() => void) | null>(null);
+
+  // Clean up any polling on unmount
+  useEffect(() => {
+    return () => {
+      if (activePollCancelRef.current) {
+        activePollCancelRef.current();
+        activePollCancelRef.current = null;
+      }
+    };
+  }, []);
+
   const paintCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const lineArtCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -173,11 +200,14 @@ export default function App() {
               { merge: true }
             );
           } else {
-            currentIsSubscribed = userData.isSubscribed || false;
+            // Check if user has an active, unexpired subscription
+            const subEndDate = userData.subscriptionEndDate?.toDate() || null;
+            const isSubValid = Boolean(userData.isSubscribed && subEndDate && subEndDate.getTime() > Date.now());
+            currentIsSubscribed = isSubValid;
             const firestoreTrial = userData.trialEndDate?.toDate() || null;
 
-            // If user is not subscribed and trial is missing or expired, grant 15-day free trial on login!
-            if (!currentIsSubscribed && (!firestoreTrial || firestoreTrial.getTime() <= Date.now())) {
+            // Grant 15-day free trial ONCE on new user onboarding if trialEndDate is not set
+            if (!firestoreTrial) {
               const freshTrial = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
               await setDoc(
                 userRef,
@@ -189,7 +219,7 @@ export default function App() {
               );
               currentTrialEndDate = freshTrial;
               localStorage.setItem(storageKey, freshTrial.toISOString());
-            } else if (firestoreTrial && firestoreTrial.getTime() > Date.now()) {
+            } else {
               currentTrialEndDate = firestoreTrial;
               localStorage.setItem(storageKey, firestoreTrial.toISOString());
             }
@@ -253,108 +283,258 @@ export default function App() {
     }
   };
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (document.getElementById('razorpay-checkout-script')) {
-        setRazorpayLoaded(true);
-        resolve(true);
-        return;
-      }
-      const script = document.createElement('script');
-      script.id = 'razorpay-checkout-script';
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => {
-        setRazorpayLoaded(true);
-        resolve(true);
-      };
-      script.onerror = () => { console.error("Failed to load Razorpay SDK."); resolve(false); };
-      document.body.appendChild(script);
-    });
-  };
-
-  const handleSubscribe = async () => {
+  // Cashfree Payment Flow with Idempotency and order_id primary key
+  const handleSubscribe = async (plan: PlanType = 'annual') => {
     if (!user) {
       handleLogin();
       return;
     }
 
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      alert("Failed to load payment gateway. Please try again.");
+    // Cancel any previous polling if running
+    if (activePollCancelRef.current) {
+      activePollCancelRef.current();
+      activePollCancelRef.current = null;
+    }
+
+    setShowUpgradeModal(false);
+    const planTitle = plan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+
+    setPaymentModalState({
+      isOpen: true,
+      status: 'verifying',
+      planName: planTitle,
+      planType: plan,
+    });
+
+    try {
+      // 1. Create order on Cashfree via secure backend
+      const order = await createCashfreeOrder({
+        userId: user.uid,
+        planType: plan,
+        customerEmail: user.email || 'parent@coloro.com',
+        customerName: user.displayName || 'Coloro Artist',
+        customerPhone: '9876543210',
+      });
+
+      if (!order || !order.payment_session_id) {
+        throw new Error(order?.error || 'Failed to initialize payment order with Cashfree.');
+      }
+
+      setPaymentModalState(prev => ({
+        ...prev,
+        orderId: order.order_id,
+      }));
+
+      // 2. Open Cashfree In-App Modal Checkout with matching environment mode
+      const checkoutResult = await initiateCashfreeCheckout(order.payment_session_id, order.environment);
+
+      if (!checkoutResult.success) {
+        setPaymentModalState({
+          isOpen: true,
+          status: 'failed',
+          orderId: order.order_id,
+          errorMessage: checkoutResult.error || 'Payment was cancelled or closed.',
+          planName: planTitle,
+          planType: plan,
+        });
+        return;
+      }
+
+      // 3. Verify Payment Status with Backend
+      setPaymentModalState(prev => ({
+        ...prev,
+        status: 'verifying',
+      }));
+
+      const verifyRes = await verifyCashfreePayment(order.order_id, user.uid);
+      const verifiedPlan: PlanType = (verifyRes.planType as PlanType) || plan;
+      const finalPlanTitle = verifiedPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+
+      if (verifyRes.success) {
+        // 4. Idempotently record order in Firestore strictly keyed by order_id (orders/{order_id})
+        await recordOrderSuccessInFirestore(order.order_id, user.uid, verifiedPlan, verifyRes);
+        setIsSubscribed(true);
+        setIsPro(true);
+        setPaymentModalState({
+          isOpen: true,
+          status: 'success',
+          orderId: order.order_id,
+          planName: finalPlanTitle,
+          planType: verifiedPlan,
+        });
+      } else if (verifyRes.isPending) {
+        // Pending state: waiting for UPI authorization
+        setPaymentModalState({
+          isOpen: true,
+          status: 'pending',
+          orderId: order.order_id,
+          planName: finalPlanTitle,
+          planType: verifiedPlan,
+        });
+
+        // Start polling verification
+        activePollCancelRef.current = pollCashfreePayment(order.order_id, user.uid, async (pollRes) => {
+          if (pollRes.success) {
+            const pollPlan: PlanType = (pollRes.planType as PlanType) || verifiedPlan;
+            await recordOrderSuccessInFirestore(order.order_id, user.uid, pollPlan, pollRes);
+            setIsSubscribed(true);
+            setIsPro(true);
+            setPaymentModalState({
+              isOpen: true,
+              status: 'success',
+              orderId: order.order_id,
+              planName: pollPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)',
+              planType: pollPlan,
+            });
+          } else if (!pollRes.isPending && pollRes.error) {
+            setPaymentModalState({
+              isOpen: true,
+              status: 'failed',
+              orderId: order.order_id,
+              errorMessage: pollRes.error,
+              planName: finalPlanTitle,
+              planType: verifiedPlan,
+            });
+          }
+        });
+      } else {
+        setPaymentModalState({
+          isOpen: true,
+          status: 'failed',
+          orderId: order.order_id,
+          errorMessage: verifyRes.error || 'Payment could not be confirmed.',
+          planName: finalPlanTitle,
+          planType: verifiedPlan,
+        });
+      }
+    } catch (err: any) {
+      console.error('Subscription process failed:', err);
+      setPaymentModalState({
+        isOpen: true,
+        status: 'failed',
+        errorMessage: err.message || 'Payment initiation failed. Please try again.',
+        planName: planTitle,
+        planType: plan,
+      });
+    }
+  };
+
+  // Handle redirect return on mobile or UPI full-page callbacks
+  const handleVerifyReturnedOrder = useCallback(async (returnedOrderId: string) => {
+    if (!user) {
+      sessionStorage.setItem('pending_cashfree_order_id', returnedOrderId);
       return;
     }
 
-    try {
-      const orderResponse = await fetch('/api/create-razorpay-order.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.uid,
-          amount: 49900,
-          currency: 'INR',
-          receipt: `receipt_${user.uid}_${Date.now()}`,
-        }),
-      });
-
-      const orderData = await orderResponse.json();
-
-      if (!orderResponse.ok || orderData.error) {
-        throw new Error(orderData.error || 'Failed to create Razorpay order.');
-      }
-
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: 'KidColor VIP Subscription',
-        description: 'Magic Pass for All Superpowers',
-        image: '/logo.svg',
-        order_id: orderData.id,
-        handler: async function (response: any) {
-          try {
-            const verifyResponse = await fetch('/api/verify-razorpay-payment.php', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                userId: user.uid,
-              }),
-            });
-
-            const verifyData = await verifyResponse.json();
-
-            if (!verifyResponse.ok || verifyData.error) {
-              throw new Error(verifyData.error || 'Payment verification failed.');
-            }
-
-            setShowUpgradeModal(false);
-            alert("Subscription successful! Welcome to KidColor VIP!");
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#FFD93D', '#4D96FF', '#6BCB77'] });
-
-          } catch (error: any) {
-            console.error("Payment verification error:", error);
-            alert(`Payment verification failed: ${error.message}`);
-          }
-        },
-        prefill: { name: user.displayName || '', email: user.email || '' },
-        theme: { color: '#FF6B6B' },
-        modal: { ondismiss: function() { alert('Payment cancelled by user.'); } }
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-
-    } catch (error: any) {
-      console.error("Subscription process failed:", error);
-      alert(`Subscription failed: ${error.message}`);
+    // Cancel any previous polling
+    if (activePollCancelRef.current) {
+      activePollCancelRef.current();
+      activePollCancelRef.current = null;
     }
-  };
+
+    const initialPlan: PlanType = (returnedOrderId.includes('mon') || returnedOrderId.startsWith('kc_mon_')) ? 'monthly' : 'annual';
+    const planTitle = initialPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+
+    setPaymentModalState({
+      isOpen: true,
+      status: 'verifying',
+      orderId: returnedOrderId,
+      planName: planTitle,
+      planType: initialPlan,
+    });
+
+    try {
+      const verifyRes = await verifyCashfreePayment(returnedOrderId, user.uid);
+      const verifiedPlan: PlanType = (verifyRes.planType as PlanType) || initialPlan;
+      const finalPlanTitle = verifiedPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+
+      if (verifyRes.success) {
+        await recordOrderSuccessInFirestore(returnedOrderId, user.uid, verifiedPlan, verifyRes);
+        setIsSubscribed(true);
+        setIsPro(true);
+        setPaymentModalState({
+          isOpen: true,
+          status: 'success',
+          orderId: returnedOrderId,
+          planName: finalPlanTitle,
+          planType: verifiedPlan,
+        });
+      } else if (verifyRes.isPending) {
+        setPaymentModalState({
+          isOpen: true,
+          status: 'pending',
+          orderId: returnedOrderId,
+          planName: finalPlanTitle,
+          planType: verifiedPlan,
+        });
+
+        activePollCancelRef.current = pollCashfreePayment(returnedOrderId, user.uid, async (pollRes) => {
+          if (pollRes.success) {
+            const pollPlan: PlanType = (pollRes.planType as PlanType) || verifiedPlan;
+            await recordOrderSuccessInFirestore(returnedOrderId, user.uid, pollPlan, pollRes);
+            setIsSubscribed(true);
+            setIsPro(true);
+            setPaymentModalState({
+              isOpen: true,
+              status: 'success',
+              orderId: returnedOrderId,
+              planName: pollPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)',
+              planType: pollPlan,
+            });
+          } else if (!pollRes.isPending && pollRes.error) {
+            setPaymentModalState({
+              isOpen: true,
+              status: 'failed',
+              orderId: returnedOrderId,
+              errorMessage: pollRes.error,
+              planName: finalPlanTitle,
+              planType: verifiedPlan,
+            });
+          }
+        });
+      } else {
+        setPaymentModalState({
+          isOpen: true,
+          status: 'failed',
+          orderId: returnedOrderId,
+          errorMessage: verifyRes.error || 'Payment could not be verified.',
+          planName: finalPlanTitle,
+          planType: verifiedPlan,
+        });
+      }
+    } catch (e: any) {
+      setPaymentModalState({
+        isOpen: true,
+        status: 'failed',
+        orderId: returnedOrderId,
+        errorMessage: e.message || 'Payment verification failed.',
+        planName: planTitle,
+        planType: initialPlan,
+      });
+    }
+  }, [user]);
+
+  // Inspect URL on page load for Cashfree return_url (?order_id=...)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const orderIdParam = searchParams.get('order_id');
+
+    if (orderIdParam) {
+      // Clean query parameters from URL without reloading
+      const cleanPath = window.location.pathname;
+      window.history.replaceState({}, document.title, cleanPath);
+
+      handleVerifyReturnedOrder(orderIdParam);
+    } else if (user) {
+      // Check if there was an unauthenticated order waiting
+      const pendingOrderId = sessionStorage.getItem('pending_cashfree_order_id');
+      if (pendingOrderId) {
+        sessionStorage.removeItem('pending_cashfree_order_id');
+        handleVerifyReturnedOrder(pendingOrderId);
+      }
+    }
+  }, [user, handleVerifyReturnedOrder]);
 
   const handleCancelSubscription = async () => {
     if (!user) return;
@@ -608,7 +788,7 @@ export default function App() {
       if (Capacitor.isNativePlatform()) {
         const base64Data = pngUrl.split(',')[1];
         Filesystem.writeFile({
-          path: `kidcolor-${Date.now()}.png`,
+          path: `coloro-${Date.now()}.png`,
           data: base64Data,
           directory: Directory.Documents
         }).then(() => {
@@ -620,7 +800,7 @@ export default function App() {
       } else {
         const downloadLink = document.createElement("a");
         downloadLink.href = pngUrl;
-        downloadLink.download = `kidcolor-${Date.now()}.png`;
+        downloadLink.download = `coloro-${Date.now()}.png`;
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -636,7 +816,7 @@ export default function App() {
         ctx.fillStyle = "#2D3436";
         ctx.font = "bold 20px Arial";
         ctx.textAlign = "left";
-        ctx.fillText("Created with Magic at KidColor - kidcolor.storywalla.com", 335, 1066);
+        ctx.fillText("Created with Magic at Coloro - kidcolor.storywalla.com", 335, 1066);
       } catch (e) {}
       finishExport();
     };
@@ -645,7 +825,7 @@ export default function App() {
       ctx.fillStyle = "#2D3436";
       ctx.font = "bold 22px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🎨 Created with Magic at KidColor - kidcolor.storywalla.com", 500, 1065);
+      ctx.fillText("🎨 Created with Magic at Coloro - kidcolor.storywalla.com", 500, 1065);
       finishExport();
     };
 
@@ -873,6 +1053,43 @@ export default function App() {
         handleLogin={handleLogin}
         handleSubscribe={handleSubscribe}
         onOpenPricingPage={() => setShowPricingPage(true)}
+      />
+
+      {/* Cashfree Payment Status Modal */}
+      <PaymentStatusModal
+        isOpen={paymentModalState.isOpen}
+        status={paymentModalState.status}
+        planName={paymentModalState.planName}
+        orderId={paymentModalState.orderId}
+        errorMessage={paymentModalState.errorMessage}
+        onClose={() => {
+          if (activePollCancelRef.current) {
+            activePollCancelRef.current();
+            activePollCancelRef.current = null;
+          }
+          setPaymentModalState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+        }}
+        onRetry={() => {
+          if (activePollCancelRef.current) {
+            activePollCancelRef.current();
+            activePollCancelRef.current = null;
+          }
+          setPaymentModalState(prev => ({ ...prev, isOpen: false, status: 'idle' }));
+          handleSubscribe(paymentModalState.planType || 'annual');
+        }}
+        onCheckStatus={async () => {
+          if (paymentModalState.orderId) {
+            try {
+              await handleVerifyReturnedOrder(paymentModalState.orderId);
+            } catch (err: any) {
+              setPaymentModalState(prev => ({
+                ...prev,
+                status: 'failed',
+                errorMessage: err.message || 'Status check failed. Please retry.',
+              }));
+            }
+          }
+        }}
       />
 
       {/* Help Flow Guided Modal */}

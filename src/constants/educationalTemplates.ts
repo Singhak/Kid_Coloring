@@ -1,5 +1,5 @@
 /**
- * Educational & Thematic Templates for KidColor
+ * Educational & Thematic Templates for Coloro
  * Categories: Alphabets, Numbers, Fruits, Vegetables, Animals, Objects
  */
 

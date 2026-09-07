@@ -31,7 +31,7 @@ export function printColoringSheet(
     <!DOCTYPE html>
     <html>
       <head>
-        <title>KidColor - ${title}</title>
+        <title>Coloro - ${title}</title>
         <style>
           @page {
             size: A4 portrait;
@@ -98,7 +98,7 @@ export function printColoringSheet(
       </head>
       <body>
         <div class="header">
-          <div class="logo">🎨 Kid<span>Color</span> Magic Studio</div>
+          <div class="logo">🎨 Color<span>o</span> Magic Studio</div>
           <div class="artist-line">Little Artist: ______________________ Date: ________</div>
         </div>
 
