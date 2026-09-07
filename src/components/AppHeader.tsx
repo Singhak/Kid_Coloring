@@ -19,7 +19,9 @@ import {
   HelpCircle,
   Compass,
   Trash2,
-  Printer
+  Printer,
+  Bot,
+  BookOpen
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -52,6 +54,8 @@ interface AppHeaderProps {
   onOpenHelpFlow?: () => void;
   clearCanvas?: () => void;
   onPrintSheet?: () => void;
+  onOpenChatBot?: () => void;
+  onOpenArticles?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -79,7 +83,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onQuickNext,
   onOpenHelpFlow,
   clearCanvas,
-  onPrintSheet
+  onPrintSheet,
+  onOpenChatBot,
+  onOpenArticles
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -297,6 +303,39 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 </button>
               )}
 
+              {/* AI Buddy Chatbot */}
+              {onOpenChatBot && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenChatBot();
+                  }}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#1D4ED8] border border-[#93C5FD] rounded-xl text-xs sm:text-sm font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Chat with Coloro AI Buddy for coloring ideas"
+                >
+                  <Bot className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+                  <span>AI Buddy</span>
+                  <span className="hidden lg:inline-block bg-[#2563EB] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                    Chat
+                  </span>
+                </button>
+              )}
+
+              {/* Benefits Guide for Parents & Teachers */}
+              {onOpenArticles && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenArticles();
+                  }}
+                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Read child development & color benefits guide"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                  <span>Parent Guide</span>
+                </button>
+              )}
+
               {/* Educational Numbers Mode Toggle */}
               {onToggleColorByNumber && (
                 <button
@@ -495,6 +534,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-semibold text-[#666] hover:bg-[#F5F5F5] rounded-xl transition-colors mb-1 cursor-pointer"
                     >
                       <Settings className="w-4 h-4 text-[#888]" /> Manage Subscription
+                    </button>
+                  )}
+
+                  {onOpenArticles && (
+                    <button
+                      onClick={() => {
+                        playClick();
+                        onOpenArticles();
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 text-[#059669]" />
+                      <span>Benefits & Learning Guide</span>
                     </button>
                   )}
 

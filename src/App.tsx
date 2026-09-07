@@ -48,6 +48,8 @@ import FreeVsPaidPage from './components/FreeVsPaidPage';
 import HelpFlowModal from './components/HelpFlowModal';
 import SpotlightTourOverlay from './components/SpotlightTourOverlay';
 import PaymentStatusModal, { PaymentModalStatus } from './components/PaymentStatusModal';
+import EducationalArticlesModal from './components/EducationalArticlesModal';
+import ColoroChatBotModal from './components/ColoroChatBotModal';
 import {
   createCashfreeOrder,
   initiateCashfreeCheckout,
@@ -77,6 +79,8 @@ export default function App() {
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
   const [showHelpFlow, setShowHelpFlow] = useState(false);
   const [isTourActive, setIsTourActive] = useState(false);
+  const [showChatBotModal, setShowChatBotModal] = useState(false);
+  const [showArticlesModal, setShowArticlesModal] = useState(false);
 
   const [paths, setPaths] = useState<SvgPath[]>([]);
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(null);
@@ -896,6 +900,8 @@ export default function App() {
         onOpenHelpFlow={() => setShowHelpFlow(true)}
         clearCanvas={clearCanvas}
         onPrintSheet={handlePrintSheet}
+        onOpenChatBot={() => setShowChatBotModal(true)}
+        onOpenArticles={() => setShowArticlesModal(true)}
       />
 
       <main className="flex-1 flex flex-col px-1.5 sm:px-5 pt-0.5 sm:pt-1 pb-1 gap-1 sm:gap-1.5 overflow-hidden min-h-0">
@@ -967,7 +973,13 @@ export default function App() {
       </main>
 
       {/* Footer (Library only) */}
-      {showTemplates && <AppFooter onOpenPricingPage={() => setShowPricingPage(true)} />}
+      {showTemplates && (
+        <AppFooter 
+          onOpenPricingPage={() => setShowPricingPage(true)} 
+          onOpenArticles={() => setShowArticlesModal(true)}
+          onOpenChatBot={() => setShowChatBotModal(true)}
+        />
+      )}
 
       {/* Rate Limit Notification */}
       <RateLimitNotification isRateLimited={isRateLimited} />
@@ -1126,6 +1138,24 @@ export default function App() {
       <SpotlightTourOverlay
         isActive={isTourActive}
         onClose={() => setIsTourActive(false)}
+      />
+
+      {/* Coloro AI Buddy Chatbot Modal */}
+      <ColoroChatBotModal
+        isOpen={showChatBotModal}
+        onClose={() => setShowChatBotModal(false)}
+        onGenerateFromChat={(prompt) => {
+          setShowTemplates(false);
+          handleGenerateAiImage(prompt);
+        }}
+      />
+
+      {/* Educational & Child Development Articles Modal */}
+      <EducationalArticlesModal
+        isOpen={showArticlesModal}
+        onClose={() => setShowArticlesModal(false)}
+        onOpenMagicAI={handleOpenMagicPrompt}
+        onPrintSheet={handlePrintSheet}
       />
     </div>
   );
