@@ -165,13 +165,13 @@ const PhotoToLineArtModal: React.FC<PhotoToLineArtModalProps> = ({
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-[#4D96FF] my-auto z-10 max-h-[95vh] flex flex-col"
+            className="relative w-full max-w-2xl bg-white rounded-3xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-3 sm:border-4 border-[#4D96FF] my-auto z-10 max-h-[90dvh] flex flex-col"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-[#EBF4FF] via-[#F4F9FF] to-[#FFF8E7] p-5 sm:p-6 pb-4 flex items-center justify-between border-b-2 border-[#EBE8DC] shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-tr from-[#4D96FF] to-[#6BCB77] text-white rounded-2xl flex items-center justify-center shadow-md rotate-2">
-                  <Camera className="w-6 h-6" />
+            <div className="bg-gradient-to-r from-[#EBF4FF] via-[#F4F9FF] to-[#FFF8E7] p-3.5 sm:p-6 pb-3 sm:pb-4 flex items-center justify-between border-b-2 border-[#EBE8DC] shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-tr from-[#4D96FF] to-[#6BCB77] text-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-md rotate-2 shrink-0">
+                  <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">

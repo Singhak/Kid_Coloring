@@ -73,7 +73,7 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -89,7 +89,7 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-6 sm:p-8 border-4 border-[#FFD93D]"
+            className="relative w-full max-w-lg bg-white rounded-3xl sm:rounded-[2.5rem] shadow-2xl overflow-y-auto max-h-[90dvh] p-4 sm:p-8 border-3 sm:border-4 border-[#FFD93D] my-auto flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
