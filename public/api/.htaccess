@@ -1,0 +1,101 @@
+# ==============================================================================
+# Kid Coloring Backend - Apache Access Control & Environment Configuration
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Directory Security & Access Restrictions
+# ------------------------------------------------------------------------------
+# Disable directory indexing / directory browsing
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
+
+# Enable SymLinks (required by mod_rewrite)
+<IfModule mod_rewrite.c>
+    Options +FollowSymLinks
+</IfModule>
+
+# Block direct web access to sensitive files (.env, logs, git, config, archives)
+<FilesMatch "(^\.env|\.env\..*|\.log$|\.sql$|\.bak$|\.rar$|\.zip$|\.git.*|composer\.(json|lock)|package(-lock)?\.json|\.htaccess$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ------------------------------------------------------------------------------
+# 2. CORS (Cross-Origin Resource Sharing) Configuration
+# ------------------------------------------------------------------------------
+# Allow cross-origin requests from web frontends, localhost dev servers, and mobile apps
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE"
+    Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-version, x-client-id, x-client-secret"
+    Header set Access-Control-Max-Age "86400"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 3. Clean URL Routing & Extensionless PHP Access
+# ------------------------------------------------------------------------------
+# Allows API endpoints to be called either with or without .php extension
+# (e.g. /api/create-cashfree-order -> /api/create-cashfree-order.php)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # If the file exists with .php appended, rewrite internally
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}\.php -f
+    RewriteRule ^([^\.]+)$ $1.php [NC,L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 4. Payment Gateway Environment Variables
+# ------------------------------------------------------------------------------
+# These variables are read by PHP scripts (create-cashfree-order.php,
+# verify-cashfree-payment.php, cashfree-webhook.php, and Razorpay endpoints).
+#
+# Replace the placeholder values with your actual API credentials from:
+# - Cashfree Merchant Dashboard: https://merchant.cashfree.com/merchants/login
+# - Razorpay Dashboard: https://dashboard.razorpay.com/
+<IfModule mod_env.c>
+    # --------------------------------------------------------------------------
+    # Cashfree Payment Gateway Credentials
+    # --------------------------------------------------------------------------
+    # Environment mode: Set to "sandbox" for testing, "production" for live
+    SetEnv CASHFREE_ENV "sandbox"
+
+    # Cashfree App ID / Client ID
+    SetEnv CASHFREE_APP_ID "your_cashfree_app_id_here"
+
+    # Cashfree Secret Key
+    SetEnv CASHFREE_SECRET_KEY "your_cashfree_secret_key_here"
+
+    # --------------------------------------------------------------------------
+    # Razorpay Payment Gateway Credentials (Optional / Dual-Gateway)
+    # --------------------------------------------------------------------------
+    SetEnv RAZORPAY_KEY_ID "your_razorpay_key_id_here"
+    SetEnv RAZORPAY_KEY_SECRET "your_razorpay_key_secret_here"
+
+    # --------------------------------------------------------------------------
+    # AI Engine API Keys (Optional / Background Generation)
+    # --------------------------------------------------------------------------
+    # SetEnv OPENROUTER_API_KEY "your_openrouter_api_key_here"
+    # SetEnv GEMINI_API_KEY "your_gemini_api_key_here"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 5. PHP Execution & Performance Settings (mod_php)
+# ------------------------------------------------------------------------------
+<IfModule mod_php7.c>
+    php_flag display_errors Off
+    php_value max_execution_time 120
+    php_value memory_limit 256M
+</IfModule>
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_value max_execution_time 120
+    php_value memory_limit 256M
+</IfModule>

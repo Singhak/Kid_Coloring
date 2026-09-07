@@ -1,6 +1,6 @@
 <?php
 /**
- * KidColor Queue Processor
+ * Coloro Queue Processor
  * Handles background AI generation for Hostinger cron jobs.
  */
 
@@ -120,7 +120,7 @@ function processTask($task) {
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer $apiKey",
             "HTTP-Referer: https://kidcolor.storywalla.com",
-            "X-Title: KidColor App",
+            "X-Title: Coloro App",
             "Content-Type: application/json"
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));

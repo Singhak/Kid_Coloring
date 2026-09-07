@@ -24,12 +24,12 @@ if (file_exists($envPath)) {
     $env = [];
 }
 
-$razorpayKeyId = $env['RAZORPAY_KEY_ID'] ?? getenv('RAZORPAY_KEY_ID');
-$razorpayKeySecret = $env['RAZORPAY_KEY_SECRET'] ?? getenv('RAZORPAY_KEY_SECRET');
+$razorpayKeyId = $env['RAZORPAY_KEY_ID'] ?? $_SERVER['RAZORPAY_KEY_ID'] ?? $_SERVER['REDIRECT_RAZORPAY_KEY_ID'] ?? (getenv('RAZORPAY_KEY_ID') ?: null);
+$razorpayKeySecret = $env['RAZORPAY_KEY_SECRET'] ?? $_SERVER['RAZORPAY_KEY_SECRET'] ?? $_SERVER['REDIRECT_RAZORPAY_KEY_SECRET'] ?? (getenv('RAZORPAY_KEY_SECRET') ?: null);
 
 if (!$razorpayKeyId || !$razorpayKeySecret) {
     http_response_code(500);
-    echo json_encode(["error" => "Razorpay API keys are not configured on the server."]);
+    echo json_encode(["error" => "Razorpay API keys are not configured on the server. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .htaccess or .env."]);
     exit;
 }
 

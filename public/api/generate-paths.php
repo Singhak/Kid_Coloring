@@ -172,7 +172,7 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Authorization: Bearer $openRouterApiKey",
         "HTTP-Referer: https://kidcolor.storywalla.com",
-        "X-Title: KidColor App",
+        "X-Title: Coloro App",
         "Content-Type: application/json"
     ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
