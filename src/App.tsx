@@ -89,6 +89,8 @@ export default function App() {
   const currentGenerationId = useRef<number>(0);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [viewBox, setViewBox] = useState("0 0 1000 1000");
+  const [fillCount, setFillCount] = useState(0);
+  const [resetTrigger, setResetTrigger] = useState(0);
   
   const paintCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const lineArtCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -379,6 +381,7 @@ export default function App() {
       const prevIndex = historyIndex - 1;
       setHistoryIndex(prevIndex);
       setRestoredDataUrl(history[prevIndex]);
+      setFillCount((prev) => Math.max(0, prev - 1));
     }
   }, [historyIndex, history]);
 
@@ -387,6 +390,7 @@ export default function App() {
       const nextIndex = historyIndex + 1;
       setHistoryIndex(nextIndex);
       setRestoredDataUrl(history[nextIndex]);
+      setFillCount((prev) => prev + 1);
     }
   }, [historyIndex, history]);
 
@@ -405,6 +409,8 @@ export default function App() {
     setRestoredDataUrl(null);
     setShowTemplates(false);
     setSelectedCategory(template.category);
+    setFillCount(0);
+    setResetTrigger((prev) => prev + 1);
   };
 
   const handleQuickNext = useCallback(() => {
@@ -452,6 +458,8 @@ export default function App() {
         setHistory([]);
         setHistoryIndex(-1);
         setRestoredDataUrl(null);
+        setFillCount(0);
+        setResetTrigger((prev) => prev + 1);
 
         try {
           confetti({
@@ -476,6 +484,8 @@ export default function App() {
         setHistory([]);
         setHistoryIndex(-1);
         setRestoredDataUrl(null);
+        setFillCount(0);
+        setResetTrigger((prev) => prev + 1);
 
         try {
           confetti({
@@ -521,6 +531,8 @@ export default function App() {
     setHistoryIndex(-1);
     setRestoredDataUrl(null);
     setShowTemplates(false);
+    setFillCount(0);
+    setResetTrigger((prev) => prev + 1);
     try {
       confetti({
         particleCount: 80,
@@ -547,6 +559,8 @@ export default function App() {
     setHistoryIndex(-1);
     setRestoredDataUrl(null);
     setShowTemplates(false);
+    setFillCount(0);
+    setResetTrigger((prev) => prev + 1);
   };
 
   const downloadImage = () => {
@@ -658,6 +672,8 @@ export default function App() {
     const blankDataUrl = paintCanvas.toDataURL();
     handleHistoryPush(blankDataUrl);
     setRestoredDataUrl(blankDataUrl);
+    setFillCount(0);
+    setResetTrigger((prev) => prev + 1);
   };
 
   if (showPricingPage) {
@@ -673,7 +689,7 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen bg-[#FBF9F1] font-sans text-[#2D3436] overflow-hidden flex flex-col"> 
+    <div className="h-[100dvh] min-h-[100dvh] w-screen bg-[#FBF9F1] font-sans text-[#2D3436] overflow-hidden flex flex-col"> 
       <AppHeader
         user={user}
         isPro={isPro}
@@ -698,9 +714,11 @@ export default function App() {
         isGenerating={isGenerating}
         onQuickNext={handleQuickNext}
         onOpenHelpFlow={() => setShowHelpFlow(true)}
+        clearCanvas={clearCanvas}
+        onPrintSheet={handlePrintSheet}
       />
 
-      <main className="flex-1 flex flex-col px-2 sm:px-5 pt-1 pb-1 gap-1 sm:gap-1.5 overflow-hidden min-h-0">
+      <main className="flex-1 flex flex-col px-1.5 sm:px-5 pt-0.5 sm:pt-1 pb-1 gap-1 sm:gap-1.5 overflow-hidden min-h-0">
         {/* Category Selection Bar (Shown when browsing Library) */}
         {showTemplates && (
           <CategorySelector
@@ -741,6 +759,9 @@ export default function App() {
             onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
             onOpenStickers={() => setShowStickerModal(true)}
             onQuickNext={handleQuickNext}
+            fillCount={fillCount}
+            onIncrementFillCount={() => setFillCount((prev) => prev + 1)}
+            resetTrigger={resetTrigger}
           />
         </div>
 

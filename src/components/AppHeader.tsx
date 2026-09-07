@@ -17,7 +17,9 @@ import {
   Hash,
   Shuffle,
   HelpCircle,
-  Compass
+  Compass,
+  Trash2,
+  Printer
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -48,6 +50,8 @@ interface AppHeaderProps {
   isGenerating?: boolean;
   onQuickNext?: () => void;
   onOpenHelpFlow?: () => void;
+  clearCanvas?: () => void;
+  onPrintSheet?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -73,7 +77,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onOpenMagicAI,
   isGenerating = false,
   onQuickNext,
-  onOpenHelpFlow
+  onOpenHelpFlow,
+  clearCanvas,
+  onPrintSheet
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -135,259 +141,278 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <header className="relative px-3 py-1.5 sm:px-6 sm:py-2 flex items-center justify-between bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50">
-      {/* Brand & Mode Switcher */}
-      <div id="tour-nav-brand" className="flex items-center gap-2 sm:gap-4">
-        <button
-          onClick={() => {
-            playClick();
-            setShowTemplates(true);
-          }}
-          className="flex items-center gap-2 sm:gap-2.5 group cursor-pointer focus:outline-none"
-        >
-          <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-tr from-[#FF6B6B] via-[#FFD93D] to-[#4D96FF] rounded-2xl flex items-center justify-center shadow-md transform -rotate-3 group-hover:rotate-6 transition-transform">
-            <Palette className="text-white w-5 h-5 sm:w-6 sm:h-6 drop-shadow-sm" />
-          </div>
-          <div className="text-left">
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-[#2D3436] font-display flex items-center">
-              Kid<span className="text-[#FF6B6B]">Color</span>
-              <span className="text-xs font-bold px-2 py-0.5 ml-1.5 bg-[#FFD93D]/30 text-[#E67E22] rounded-full hidden sm:inline-flex items-center whitespace-nowrap">
-                ✨ Magic Studio
+    <header className="relative flex flex-col bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50">
+      {/* Primary Top Bar */}
+      <div className="px-2.5 py-1.5 sm:px-6 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-4">
+        {/* Brand & Mode Switcher */}
+        <div id="tour-nav-brand" className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <button
+            onClick={() => {
+              playClick();
+              setShowTemplates(true);
+            }}
+            className="flex items-center gap-1.5 sm:gap-2.5 group cursor-pointer focus:outline-none shrink-0"
+          >
+            <div className="w-8 h-8 sm:w-11 sm:h-11 bg-gradient-to-tr from-[#FF6B6B] via-[#FFD93D] to-[#4D96FF] rounded-2xl flex items-center justify-center shadow-md transform -rotate-3 group-hover:rotate-6 transition-transform shrink-0">
+              <Palette className="text-white w-4 h-4 sm:w-6 sm:h-6 drop-shadow-sm" />
+            </div>
+            <div className="text-left">
+              <span className="text-lg sm:text-2xl font-black tracking-tight text-[#2D3436] font-display flex items-center">
+                Kid<span className="text-[#FF6B6B]">Color</span>
+                <span className="text-xs font-bold px-2 py-0.5 ml-1.5 bg-[#FFD93D]/30 text-[#E67E22] rounded-full hidden sm:inline-flex items-center whitespace-nowrap">
+                  ✨ Magic Studio
+                </span>
               </span>
-            </span>
-          </div>
-        </button>
+            </div>
+          </button>
 
-        {/* Mode Navigation & Creative Superpowers */}
-        {showTemplates ? (
-          /* Library Mode: View Mode Toggle & Quick Actions */
-          <>
-            <div className="hidden md:flex items-center p-0.5 bg-[#F4F1DE]/60 rounded-2xl border border-[#E6E2D3] ml-1 sm:ml-2 h-9 sm:h-9.5">
+          {/* Mobile Back to Active Canvas button (Shown when browsing Library on mobile) */}
+          {showTemplates && (
+            <button
+              onClick={() => {
+                playClick();
+                setShowTemplates(false);
+              }}
+              className="md:hidden flex items-center gap-1 px-2.5 py-1 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
+              title="Return to your active coloring canvas"
+            >
+              <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B]" />
+              <span>Canvas</span>
+            </button>
+          )}
+
+          {/* Desktop Mode Navigation & Creative Superpowers (>= md) */}
+          {showTemplates ? (
+            /* Library Mode: View Mode Toggle & Quick Actions */
+            <>
+              <div className="hidden md:flex items-center p-0.5 bg-[#F4F1DE]/60 rounded-2xl border border-[#E6E2D3] ml-1 sm:ml-2 h-9 sm:h-9.5">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setShowTemplates(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm bg-white text-[#2D3436] shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
+                  <span>Library</span>
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setShowTemplates(false);
+                  }}
+                  className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm text-[#888] hover:text-[#2D3436] cursor-pointer transition-all whitespace-nowrap"
+                >
+                  <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B] shrink-0" />
+                  <span>Coloring Canvas</span>
+                </button>
+              </div>
+
+              {/* Why VIP Button */}
+              {onOpenPricingPage && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPricingPage();
+                  }}
+                  className="hidden lg:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0"
+                  title="See all Free vs VIP Superpower features"
+                >
+                  <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+                  <span>Why VIP?</span>
+                </button>
+              )}
+
+              {/* Photo to Art Button */}
+              {onOpenPhotoArt && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPhotoArt();
+                  }}
+                  className="hidden sm:flex items-center gap-1.5 px-2.5 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Convert your real photos into coloring pages"
+                >
+                  <Camera className="w-3.5 h-3.5 shrink-0" />
+                  <span>Photo Art</span>
+                  {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+                </button>
+              )}
+            </>
+          ) : (
+            /* Coloring Canvas Mode: Desktop Creative Toolbar (>= md) */
+            <div id="tour-creative-tools" className="hidden md:flex items-center gap-1.5 sm:gap-2 ml-1">
+              {/* Back to Library */}
               <button
                 onClick={() => {
                   playClick();
                   setShowTemplates(true);
                 }}
-                className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm bg-white text-[#2D3436] shadow-sm cursor-pointer whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs sm:text-sm transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                title="Return to Coloring Library"
               >
                 <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
                 <span>Library</span>
               </button>
+
+              {/* Magic AI Generation */}
+              {onOpenMagicAI && (
+                <button
+                  onClick={() => {
+                    if (!isPro) {
+                      playChime();
+                      setShowUpgradeModal(true);
+                      return;
+                    }
+                    if (isGenerating) return;
+                    playChime();
+                    onOpenMagicAI();
+                  }}
+                  disabled={isGenerating}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                    isPro
+                      ? 'bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D]'
+                      : 'bg-white hover:bg-[#FFFDF0] text-[#2D3436] border border-[#EBE8DC]'
+                  }`}
+                  title="Create with AI Magic"
+                >
+                  <Sparkles className={`w-3.5 h-3.5 text-[#FF9F43] shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
+                  <span>Magic AI</span>
+                  {!isPro && (
+                    <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
+                      <Crown className="w-2.5 h-2.5 fill-current" /> VIP
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {/* Photo Art */}
+              {onOpenPhotoArt && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPhotoArt();
+                  }}
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Convert real photo into coloring page"
+                >
+                  <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                  <span>Photo Art</span>
+                  {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+                </button>
+              )}
+
+              {/* Educational Numbers Mode Toggle */}
+              {onToggleColorByNumber && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onToggleColorByNumber();
+                  }}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                    isColorByNumber
+                      ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
+                      : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
+                  }`}
+                  title="Toggle Educational Color-by-Number Learning Mode"
+                >
+                  <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
+                  <span className="hidden md:inline">Numbers</span>
+                  <span className="text-[10px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+                </button>
+              )}
+
+              {/* Why VIP Button */}
+              {onOpenPricingPage && !isPro && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPricingPage();
+                  }}
+                  className="hidden xl:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
+                  title="See all Free vs VIP Superpower features"
+                >
+                  <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+                  <span>Why VIP?</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Action Controls Cluster */}
+        <div id="tour-save-actions" className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* Undo / Redo (Only active on Canvas - Desktop) */}
+          {!showTemplates && (
+            <div className="hidden md:flex items-center bg-[#F7F5EC] px-1 h-9 sm:h-9.5 rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
               <button
-                onClick={() => {
-                  playClick();
-                  setShowTemplates(false);
-                }}
-                className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm text-[#888] hover:text-[#2D3436] cursor-pointer transition-all whitespace-nowrap"
+                onClick={handleUndo}
+                disabled={historyIndex <= 0}
+                className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+                title="Undo (Ctrl+Z)"
               >
-                <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B] shrink-0" />
-                <span>Coloring Canvas</span>
+                <Undo2 className="w-4 h-4" />
+              </button>
+              <div className="w-px h-4 bg-[#E0DCBC] mx-0.5" />
+              <button
+                onClick={handleRedo}
+                disabled={historyIndex >= historyLength - 1}
+                className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo2 className="w-4 h-4" />
               </button>
             </div>
+          )}
 
-            {/* Why VIP Button */}
-            {onOpenPricingPage && (
-              <button
-                onClick={() => {
-                  playClick();
-                  onOpenPricingPage();
-                }}
-                className="hidden lg:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0"
-                title="See all Free vs VIP Superpower features"
-              >
-                <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
-                <span>Why VIP?</span>
-              </button>
-            )}
+          {/* Sound FX Toggle */}
+          <button
+            onClick={handleToggleSound}
+            className={`h-8 w-8 sm:h-9.5 sm:w-9.5 rounded-xl sm:rounded-2xl border transition-all active:scale-90 cursor-pointer flex items-center justify-center shrink-0 ${
+              soundOn 
+                ? 'bg-[#EBF7FF] border-[#B9E0FF] text-[#0984E3] hover:bg-[#DDF0FF]' 
+                : 'bg-[#F5F5F5] border-[#E0E0E0] text-[#A0A0A0] hover:bg-[#EBEBEB]'
+            }`}
+            title={soundOn ? 'Sound FX: ON' : 'Sound FX: Muted'}
+          >
+            {soundOn ? <Volume2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />}
+          </button>
 
-            {/* Photo to Art Button */}
-            {onOpenPhotoArt && (
-              <button
-                onClick={() => {
-                  playClick();
-                  onOpenPhotoArt();
-                }}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
-                title="Convert your real photos into coloring pages"
-              >
-                <Camera className="w-3.5 h-3.5 shrink-0" />
-                <span>Photo Art</span>
-                {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
-              </button>
-            )}
-          </>
-        ) : (
-          /* Coloring Canvas Mode: Sleek unified creative toolbar with uniform heights */
-          <div id="tour-creative-tools" className="flex items-center gap-1.5 sm:gap-2 ml-1">
-            {/* Back to Library */}
+          {/* Simple Help (?) Button */}
+          {onOpenHelpFlow && (
             <button
+              id="tour-help-button"
               onClick={() => {
                 playClick();
-                setShowTemplates(true);
+                onOpenHelpFlow();
               }}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs sm:text-sm transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
-              title="Return to Coloring Library"
+              className="h-8 w-8 sm:h-9.5 sm:w-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl sm:rounded-2xl font-black flex items-center justify-center shadow-xs transition-all active:scale-90 cursor-pointer shrink-0"
+              title="Help & Studio Guide (?)"
             >
-              <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
-              <span>Library</span>
+              <span className="font-display font-black text-sm sm:text-lg text-[#E67E22] leading-none select-none">?</span>
             </button>
-
-            {/* Magic AI Generation */}
-            {onOpenMagicAI && (
-              <button
-                onClick={() => {
-                  if (!isPro) {
-                    playChime();
-                    setShowUpgradeModal(true);
-                    return;
-                  }
-                  if (isGenerating) return;
-                  playChime();
-                  onOpenMagicAI();
-                }}
-                disabled={isGenerating}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
-                  isPro
-                    ? 'bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D]'
-                    : 'bg-white hover:bg-[#FFFDF0] text-[#2D3436] border border-[#EBE8DC]'
-                }`}
-                title="Create with AI Magic"
-              >
-                <Sparkles className={`w-3.5 h-3.5 text-[#FF9F43] shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
-                <span>Magic AI</span>
-                {!isPro && (
-                  <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
-                    <Crown className="w-2.5 h-2.5 fill-current" /> VIP
-                  </span>
-                )}
-              </button>
-            )}
-
-            {/* Photo Art */}
-            {onOpenPhotoArt && (
-              <button
-                onClick={() => {
-                  playClick();
-                  onOpenPhotoArt();
-                }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
-                title="Convert real photo into coloring page"
-              >
-                <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
-                <span>Photo Art</span>
-                {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
-              </button>
-            )}
-
-            {/* Educational Numbers Mode Toggle */}
-            {onToggleColorByNumber && (
-              <button
-                onClick={() => {
-                  playClick();
-                  onToggleColorByNumber();
-                }}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
-                  isColorByNumber
-                    ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
-                    : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
-                }`}
-                title="Toggle Educational Color-by-Number Learning Mode"
-              >
-                <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
-                <span className="hidden md:inline">Numbers</span>
-                <span className="text-[10px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
-              </button>
-            )}
-
-            {/* Why VIP Button */}
-            {onOpenPricingPage && !isPro && (
-              <button
-                onClick={() => {
-                  playClick();
-                  onOpenPricingPage();
-                }}
-                className="hidden xl:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
-                title="See all Free vs VIP Superpower features"
-              >
-                <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
-                <span>Why VIP?</span>
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Action Controls Cluster */}
-      <div id="tour-save-actions" className="flex items-center gap-1.5 sm:gap-2">
-        {/* Undo / Redo (Only active on Canvas) */}
-        {!showTemplates && (
-          <div className="flex items-center bg-[#F7F5EC] px-1 h-9 sm:h-9.5 rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
-            <button
-              onClick={handleUndo}
-              disabled={historyIndex <= 0}
-              className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo2 className="w-4 h-4" />
-            </button>
-            <div className="w-px h-4 bg-[#E0DCBC] mx-0.5" />
-            <button
-              onClick={handleRedo}
-              disabled={historyIndex >= historyLength - 1}
-              className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
-              title="Redo (Ctrl+Y)"
-            >
-              <Redo2 className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Sound FX Toggle */}
-        <button
-          onClick={handleToggleSound}
-          className={`h-9 sm:h-9.5 w-9 sm:w-9.5 rounded-2xl border transition-all active:scale-90 cursor-pointer flex items-center justify-center shrink-0 ${
-            soundOn 
-              ? 'bg-[#EBF7FF] border-[#B9E0FF] text-[#0984E3] hover:bg-[#DDF0FF]' 
-              : 'bg-[#F5F5F5] border-[#E0E0E0] text-[#A0A0A0] hover:bg-[#EBEBEB]'
-          }`}
-          title={soundOn ? 'Sound FX: ON' : 'Sound FX: Muted'}
-        >
-          {soundOn ? <Volume2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" /> : <VolumeX className="w-4 h-4 sm:w-4.5 sm:h-4.5" />}
-        </button>
-
-        {/* Simple Help (?) Button */}
-        {onOpenHelpFlow && (
-          <button
-            id="tour-help-button"
-            onClick={() => {
-              playClick();
-              onOpenHelpFlow();
-            }}
-            className="h-9 sm:h-9.5 w-9 sm:w-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-2xl font-black flex items-center justify-center shadow-xs transition-all active:scale-90 cursor-pointer shrink-0"
-            title="Help & Studio Guide (?)"
-          >
-            <span className="font-display font-black text-base sm:text-lg text-[#E67E22] leading-none select-none">?</span>
-          </button>
-        )}
-
-        {/* Save Masterpiece Button */}
-        <button
-          onClick={handleSave}
-          className={`btn-bubbly h-9 sm:h-9.5 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap shrink-0 ${
-            isPro 
-              ? 'bg-gradient-to-r from-[#6BCB77] to-[#4EBA5C] hover:brightness-105' 
-              : 'bg-gradient-to-r from-[#FF9F43] to-[#EE5253] animate-shimmer'
-          }`}
-        >
-          <Download className="w-4 h-4 drop-shadow-sm shrink-0" />
-          <span>Save Art</span>
-          {!isPro && (
-            <span className="flex items-center gap-0.5 bg-yellow-300 text-yellow-900 text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm ml-0.5 shrink-0">
-              <Crown className="w-2.5 h-2.5 fill-current" />
-              VIP
-            </span>
           )}
-        </button>
+
+          {/* Save Masterpiece Button (Shown on Canvas mode) */}
+          {!showTemplates && (
+            <button
+              onClick={handleSave}
+              className={`btn-bubbly h-8 sm:h-9.5 flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap shrink-0 ${
+                isPro 
+                  ? 'bg-gradient-to-r from-[#6BCB77] to-[#4EBA5C] hover:brightness-105' 
+                  : 'bg-gradient-to-r from-[#FF9F43] to-[#EE5253] animate-shimmer'
+              }`}
+            >
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 drop-shadow-sm shrink-0" />
+              <span>Save</span>
+              {!isPro && (
+                <span className="hidden sm:inline-flex items-center gap-0.5 bg-yellow-300 text-yellow-900 text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm ml-0.5 shrink-0">
+                  <Crown className="w-2.5 h-2.5 fill-current" />
+                  VIP
+                </span>
+              )}
+            </button>
+          )}
 
         {/* User Profile / Login */}
         {user ? (
@@ -514,7 +539,179 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <span>Login</span>
           </button>
         )}
+        </div>
       </div>
+
+      {/* Mobile Secondary Creative Toolbar (Shown only on Canvas mode < md) */}
+      {!showTemplates && (
+        <div id="tour-creative-tools-mobile" className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 bg-[#FAF8EF] border-t border-[#EBE8DC] overflow-x-auto no-scrollbar shrink-0">
+          {/* Back to Library */}
+          <button
+            onClick={() => {
+              playClick();
+              setShowTemplates(true);
+            }}
+            className="flex items-center gap-1 px-2.5 py-1 bg-[#F4F1DE]/90 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-black text-xs transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+            title="Return to Coloring Library"
+          >
+            <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
+            <span>Pages</span>
+          </button>
+
+          {/* Undo / Redo */}
+          <div className="flex items-center bg-white px-1 py-0.5 rounded-xl border border-[#E9E5D6] shadow-2xs shrink-0">
+            <button
+              onClick={handleUndo}
+              disabled={historyIndex <= 0}
+              className="p-1 rounded-lg hover:bg-[#F5F3E9] disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+              title="Undo"
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+            <div className="w-px h-3.5 bg-[#E0DCBC] mx-0.5" />
+            <button
+              onClick={handleRedo}
+              disabled={historyIndex >= historyLength - 1}
+              className="p-1 rounded-lg hover:bg-[#F5F3E9] disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+              title="Redo"
+            >
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Reset / Clear Drawing (Mobile) */}
+          {clearCanvas && (
+            <button
+              onClick={() => {
+                playClick();
+                clearCanvas();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-[#FFF5F5] text-[#FF6B6B] rounded-xl font-black text-xs transition-all border border-[#FFD5D5] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Clear Canvas / Reset Drawing"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Reset</span>
+            </button>
+          )}
+
+          {/* Print Coloring Sheet (Mobile) */}
+          {onPrintSheet && (
+            <button
+              onClick={() => {
+                if (!isPro) {
+                  playChime();
+                  setShowUpgradeModal(true);
+                  return;
+                }
+                playClick();
+                onPrintSheet();
+              }}
+              className="flex items-center gap-1 px-2 py-1 bg-white hover:bg-[#F0FDF4] text-[#15803D] rounded-xl font-bold text-xs transition-all border border-[#86EFAC] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Print coloring sheet"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print</span>
+            </button>
+          )}
+
+          {/* Magic AI Generation */}
+          {onOpenMagicAI && (
+            <button
+              onClick={() => {
+                if (!isPro) {
+                  playChime();
+                  setShowUpgradeModal(true);
+                  return;
+                }
+                if (isGenerating) return;
+                playChime();
+                onOpenMagicAI();
+              }}
+              disabled={isGenerating}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-black text-xs transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                isPro
+                  ? 'bg-[#FFF9E6] text-[#8C5B00] border border-[#FFD93D]'
+                  : 'bg-white text-[#2D3436] border border-[#EBE8DC]'
+              }`}
+              title="Create with AI Magic"
+            >
+              <Sparkles className={`w-3.5 h-3.5 text-[#FF9F43] shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
+              <span>Magic AI</span>
+              {!isPro && (
+                <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1 rounded-full shrink-0">
+                  VIP
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Photo Art */}
+          {onOpenPhotoArt && (
+            <button
+              onClick={() => {
+                playClick();
+                onOpenPhotoArt();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#F0FDF4] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Convert real photo into coloring page"
+            >
+              <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+              <span>Photo Art</span>
+              {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+            </button>
+          )}
+
+          {/* Educational Numbers Mode Toggle */}
+          {onToggleColorByNumber && (
+            <button
+              onClick={() => {
+                playClick();
+                onToggleColorByNumber();
+              }}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-black text-xs transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                isColorByNumber
+                  ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
+                  : 'bg-white text-[#636E72] border border-[#EBE8DC]'
+              }`}
+              title="Toggle Color-by-Number Learning Mode"
+            >
+              <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
+              <span>123</span>
+              <span className="text-[9px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+            </button>
+          )}
+
+          {/* Instant Next button on mobile strip */}
+          {onQuickNext && (
+            <button
+              onClick={() => {
+                playClick();
+                onQuickNext();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-white text-[#2D3436] border border-[#EBE8DC] rounded-xl text-xs font-black active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Instant Next Drawing"
+            >
+              <Shuffle className="w-3.5 h-3.5 text-[#FF9F43] shrink-0" />
+              <span>Next</span>
+            </button>
+          )}
+
+          {/* Why VIP Button */}
+          {onOpenPricingPage && !isPro && (
+            <button
+              onClick={() => {
+                playClick();
+                onOpenPricingPage();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#FFF9E6] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
+              title="See all Free vs VIP features"
+            >
+              <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+              <span>VIP</span>
+            </button>
+          )}
+        </div>
+      )}
     </header>
   );
 };
