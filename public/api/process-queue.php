@@ -119,7 +119,7 @@ function processTask($task) {
         curl_setopt($ch, CURLOPT_TIMEOUT, 40);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Authorization: Bearer $apiKey",
-            "HTTP-Referer: https://kidcolor.storywalla.com",
+            "HTTP-Referer: https://coloro.in",
             "X-Title: Coloro App",
             "Content-Type: application/json"
         ]);
@@ -174,7 +174,7 @@ function processTask($task) {
             curl_setopt($ch, CURLOPT_TIMEOUT, 40);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "Content-Type: application/json",
-                "Referer: https://kidcolor.storywalla.com"
+                "Referer: https://coloro.in"
             ]);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             $response = curl_exec($ch);

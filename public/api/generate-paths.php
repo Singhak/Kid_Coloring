@@ -213,7 +213,7 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Authorization: Bearer $openRouterApiKey",
-        "HTTP-Referer: https://kidcolor.storywalla.com",
+        "HTTP-Referer: https://coloro.in",
         "X-Title: Coloro App",
         "Content-Type: application/json"
     ]);
@@ -295,7 +295,7 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
         curl_setopt($ch, CURLOPT_TIMEOUT, 35);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Content-Type: application/json",
-            "Referer: https://kidcolor.storywalla.com"
+            "Referer: https://coloro.in"
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($geminiPayload));
         $resp = curl_exec($ch);

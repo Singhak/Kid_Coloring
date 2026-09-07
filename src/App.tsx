@@ -852,7 +852,7 @@ export default function App() {
         ctx.fillStyle = "#2D3436";
         ctx.font = "bold 20px Arial";
         ctx.textAlign = "left";
-        ctx.fillText("Created with Magic at Coloro - kidcolor.storywalla.com", 335, 1066);
+        ctx.fillText("Created with Magic at Coloro - https://coloro.in", 335, 1066);
       } catch (e) {}
       finishExport();
     };
@@ -861,7 +861,7 @@ export default function App() {
       ctx.fillStyle = "#2D3436";
       ctx.font = "bold 22px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("🎨 Created with Magic at Coloro - kidcolor.storywalla.com", 500, 1065);
+      ctx.fillText("🎨 Created with Magic at Coloro - https://coloro.in", 500, 1065);
       finishExport();
     };
 

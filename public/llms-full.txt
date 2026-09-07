@@ -7,7 +7,7 @@
 ## 1. Application Identity & Mission
 
 - **Name**: Coloro: Magic Coloring Book
-- **Live URL**: https://kidcolor.storywalla.com/
+- **Live URL**: https://coloro.in/
 - **Target Audience**: Children (ages 3–12), parents, preschool & elementary teachers, occupational therapists, pediatricians.
 - **Core Mission**: To provide a joyful, mindful, and safe digital creative space where children build fine motor skills, master color harmony, and bring boundless imaginative ideas to life using generative AI line art and physical printable coloring sheets.
 - **Safety Standards**: COPPA compliant, zero third-party advertisements, zero tracking pixels, no public social chatrooms, 100% child-safe prompt moderation.
@@ -123,7 +123,7 @@ Coloro provides five comprehensive, research-backed educational guides:
 
 ## 6. Official Entity & Verification Data
 
-- **Publisher**: Coloro (https://kidcolor.storywalla.com)
-- **Sitemap**: https://kidcolor.storywalla.com/sitemap.xml
-- **Robots Rules**: https://kidcolor.storywalla.com/robots.txt
-- **LLM Manifest**: https://kidcolor.storywalla.com/llms.txt
+- **Publisher**: Coloro (https://coloro.in)
+- **Sitemap**: https://coloro.in/sitemap.xml
+- **Robots Rules**: https://coloro.in/robots.txt
+- **LLM Manifest**: https://coloro.in/llms.txt

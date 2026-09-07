@@ -91,7 +91,7 @@ if (strlen($cleanPhone) < 10) {
 }
 
 // Return URL configuration: handles redirect return on mobile / UPI apps with concrete orderId
-$origin = !empty($_SERVER['HTTP_ORIGIN']) ? rtrim($_SERVER['HTTP_ORIGIN'], '/') : 'https://kidcolor.storywalla.com';
+$origin = !empty($_SERVER['HTTP_ORIGIN']) ? rtrim($_SERVER['HTTP_ORIGIN'], '/') : 'https://coloro.in';
 $returnUrl = $origin . '/?order_id=' . $orderId;
 
 // Notify URL configuration: Always point to a public HTTPS endpoint so Cashfree API does not reject localhost
@@ -99,7 +99,7 @@ $host = !empty($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
 $isLocal = in_array(strtolower(explode(':', $host)[0]), ['localhost', '127.0.0.1', '::1', '']);
 $notifyUrl = (!$isLocal && $host)
     ? 'https://' . $host . '/api/cashfree-webhook.php'
-    : 'https://kidcolor.storywalla.com/api/cashfree-webhook.php';
+    : 'https://coloro.in/api/cashfree-webhook.php';
 
 $orderPayload = [
     "order_id" => $orderId,

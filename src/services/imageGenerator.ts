@@ -18,13 +18,13 @@ export const getImageUsingAPI = async (subject: string, category: string): Promi
     subject = ALL_SUBJECTS[Math.floor(Math.random() * ALL_SUBJECTS.length)];
   }
 
-  const isCurrentDomain = typeof window !== 'undefined' && window.location.hostname.includes('storywalla.com');
+  const isCurrentDomain = typeof window !== 'undefined' && (window.location.hostname.includes('coloro.in') || window.location.hostname.includes('storywalla.com'));
   const geminiEndpoint = isCurrentDomain
     ? '/api/generate-paths-gemini.php'
-    : 'https://kidcolor.storywalla.com/api/generate-paths-gemini.php';
+    : 'https://coloro.in/api/generate-paths-gemini.php';
   const openRouterEndpoint = isCurrentDomain
     ? '/api/generate-paths.php'
-    : 'https://kidcolor.storywalla.com/api/generate-paths.php';
+    : 'https://coloro.in/api/generate-paths.php';
 
   const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs: number = 35000): Promise<Response> => {
     const fetchPromise = fetch(url, options);

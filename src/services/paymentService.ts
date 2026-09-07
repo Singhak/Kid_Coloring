@@ -35,7 +35,7 @@ export interface CashfreeVerifyResponse {
 const getApiBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    if (hostname.includes('storywalla.com')) {
+    if (hostname.includes('coloro.in') || hostname.includes('storywalla.com')) {
       return '/api';
     }
   }
@@ -100,8 +100,8 @@ export const createCashfreeOrder = async (params: {
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
       // Try fallback to absolute domain if local proxy returned HTML
-      if (!url.startsWith('https://kidcolor.storywalla.com')) {
-        const fallbackRes = await fetch('https://kidcolor.storywalla.com/api/create-cashfree-order.php', {
+      if (!url.startsWith('https://coloro.in') && !url.startsWith('https://kidcolor.storywalla.com')) {
+        const fallbackRes = await fetch('https://coloro.in/api/create-cashfree-order.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(params),
@@ -197,8 +197,8 @@ export const verifyCashfreePayment = async (
 
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
-      if (!url.startsWith('https://kidcolor.storywalla.com')) {
-        const fallbackRes = await fetch('https://kidcolor.storywalla.com/api/verify-cashfree-payment.php', {
+      if (!url.startsWith('https://coloro.in') && !url.startsWith('https://kidcolor.storywalla.com')) {
+        const fallbackRes = await fetch('https://coloro.in/api/verify-cashfree-payment.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ order_id: orderId, userId }),

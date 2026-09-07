@@ -250,7 +250,7 @@ foreach ($modelsToTry as $model) {
     curl_setopt($ch, CURLOPT_TIMEOUT, 40);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Content-Type: application/json",
-        "Referer: https://kidcolor.storywalla.com"
+        "Referer: https://coloro.in"
     ]);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($requestData));
 

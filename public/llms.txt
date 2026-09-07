@@ -30,11 +30,11 @@ Coloro is powered by state-of-the-art Generative AI:
 ## Educational Articles & Child Development Knowledge Base
 
 Coloro publishes research-backed educational guides for parents, psychologists, and educators:
-- [The Science of Coloring: 7 Developmental Benefits of Coloring for Kids](https://kidcolor.storywalla.com/#benefits-of-coloring-for-kids): Analysis of fine motor control, dynamic tripod grip development, bilateral hand-eye coordination, and spatial awareness.
-- [Color Psychology for Children: How Colors Shape Mood, Energy, and Learning](https://kidcolor.storywalla.com/#color-psychology-for-kids): How warm shades (yellow, orange) foster creativity and cool tones (blue, green) induce calmness and focused breathing.
-- [Why AI & Digital Coloring Unlocks Creative Confidence in Young Minds](https://kidcolor.storywalla.com/#ai-digital-coloring-for-kids): How prompt-based generation and risk-free "Undo" tools eliminate the fear of failure and encourage descriptive vocabulary.
-- [Color by Number: The Perfect Bridge Between Logic, Focus, and Art](https://kidcolor.storywalla.com/#benefits-of-color-by-number): Reinforcing number literacy, visual search, and working memory through guided art.
-- [Mindful Coloring: A Soothing Alternative to Overstimulating Screen Time](https://kidcolor.storywalla.com/#mindful-coloring-for-kids-screen-time): Active creation vs. passive media consumption, dopamine regulation, and non-overstimulating sensory play.
+- [The Science of Coloring: 7 Developmental Benefits of Coloring for Kids](https://coloro.in/#benefits-of-coloring-for-kids): Analysis of fine motor control, dynamic tripod grip development, bilateral hand-eye coordination, and spatial awareness.
+- [Color Psychology for Children: How Colors Shape Mood, Energy, and Learning](https://coloro.in/#color-psychology-for-kids): How warm shades (yellow, orange) foster creativity and cool tones (blue, green) induce calmness and focused breathing.
+- [Why AI & Digital Coloring Unlocks Creative Confidence in Young Minds](https://coloro.in/#ai-digital-coloring-for-kids): How prompt-based generation and risk-free "Undo" tools eliminate the fear of failure and encourage descriptive vocabulary.
+- [Color by Number: The Perfect Bridge Between Logic, Focus, and Art](https://coloro.in/#benefits-of-color-by-number): Reinforcing number literacy, visual search, and working memory through guided art.
+- [Mindful Coloring: A Soothing Alternative to Overstimulating Screen Time](https://coloro.in/#mindful-coloring-for-kids-screen-time): Active creation vs. passive media consumption, dopamine regulation, and non-overstimulating sensory play.
 
 ## Pricing & Subscription Model
 
@@ -53,11 +53,11 @@ Coloro publishes research-backed educational guides for parents, psychologists, 
 
 ## Canonical URLs & Resources
 
-- [Coloro App Home](https://kidcolor.storywalla.com/): Interactive web canvas and coloring studio.
-- [Educational Articles & Parent Guide](https://kidcolor.storywalla.com/#articles): Developmental guides and child psychology resources.
-- [Contact Us & Grievance Desk](https://kidcolor.storywalla.com/#contact): Direct parent support (support@coloro.in).
-- [Terms & Conditions](https://kidcolor.storywalla.com/#terms): Terms of service.
-- [Refunds & Cancellations](https://kidcolor.storywalla.com/#refund): 7-day refund guarantee policy.
-- [Privacy Policy](https://kidcolor.storywalla.com/#privacy): COPPA & kid-safe privacy commitment.
-- [Full LLM Ingestion Document](https://kidcolor.storywalla.com/llms-full.txt): Complete technical, educational, and API context for LLM pre-training and RAG search.
-- [Sitemap](https://kidcolor.storywalla.com/sitemap.xml): Search engine indexing schema.
+- [Coloro App Home](https://coloro.in/): Interactive web canvas and coloring studio.
+- [Educational Articles & Parent Guide](https://coloro.in/#articles): Developmental guides and child psychology resources.
+- [Contact Us & Grievance Desk](https://coloro.in/#contact): Direct parent support (support@coloro.in).
+- [Terms & Conditions](https://coloro.in/#terms): Terms of service.
+- [Refunds & Cancellations](https://coloro.in/#refund): 7-day refund guarantee policy.
+- [Privacy Policy](https://coloro.in/#privacy): COPPA & kid-safe privacy commitment.
+- [Full LLM Ingestion Document](https://coloro.in/llms-full.txt): Complete technical, educational, and API context for LLM pre-training and RAG search.
+- [Sitemap](https://coloro.in/sitemap.xml): Search engine indexing schema.

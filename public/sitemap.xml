@@ -4,22 +4,22 @@
   
   <!-- Main Application Route -->
   <url>
-    <loc>https://kidcolor.storywalla.com/</loc>
+    <loc>https://coloro.in/</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://kidcolor.storywalla.com/coloro-web-logo.png</image:loc>
+      <image:loc>https://coloro.in/coloro-web-logo.png</image:loc>
       <image:title>Coloro: AI Magic Coloring Book for Kids</image:title>
       <image:caption>Interactive AI-powered coloring book app with Gemini 2.5 Flash line art generation.</image:caption>
     </image:image>
     <image:image>
-      <image:loc>https://kidcolor.storywalla.com/coloro-mascot-palette.jpg</image:loc>
+      <image:loc>https://coloro.in/coloro-mascot-palette.jpg</image:loc>
       <image:title>Coloro Palette Mascot</image:title>
       <image:caption>Vibrant kid-safe color palette for fine motor skill development.</image:caption>
     </image:image>
     <image:image>
-      <image:loc>https://kidcolor.storywalla.com/coloro-mascot-dragon.jpg</image:loc>
+      <image:loc>https://coloro.in/coloro-mascot-dragon.jpg</image:loc>
       <image:title>Coloro Dragon Mascot</image:title>
       <image:caption>Coloro AI Buddy mascot guiding children through creative coloring adventures.</image:caption>
     </image:image>
@@ -27,7 +27,7 @@
 
   <!-- Educational Parent & Educator Guide -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#articles</loc>
+    <loc>https://coloro.in/#articles</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -35,7 +35,7 @@
 
   <!-- Article 1: Benefits of Coloring for Kids -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#benefits-of-coloring-for-kids</loc>
+    <loc>https://coloro.in/#benefits-of-coloring-for-kids</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -43,7 +43,7 @@
 
   <!-- Article 2: Color Psychology for Children -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#color-psychology-for-kids</loc>
+    <loc>https://coloro.in/#color-psychology-for-kids</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -51,7 +51,7 @@
 
   <!-- Article 3: AI & Digital Creative Confidence -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#ai-digital-coloring-for-kids</loc>
+    <loc>https://coloro.in/#ai-digital-coloring-for-kids</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
@@ -59,7 +59,7 @@
 
   <!-- Article 4: Color by Number Cognitive Growth -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#benefits-of-color-by-number</loc>
+    <loc>https://coloro.in/#benefits-of-color-by-number</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -67,7 +67,7 @@
 
   <!-- Article 5: Mindful Coloring Screen Time -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#mindful-coloring-for-kids-screen-time</loc>
+    <loc>https://coloro.in/#mindful-coloring-for-kids-screen-time</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -75,7 +75,7 @@
 
   <!-- Pricing & Free vs VIP Comparison -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#free-vs-vip</loc>
+    <loc>https://coloro.in/#free-vs-vip</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -83,7 +83,7 @@
 
   <!-- Legal & Compliance: Privacy Policy (COPPA & Kid Safe) -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#privacy</loc>
+    <loc>https://coloro.in/#privacy</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -91,7 +91,7 @@
 
   <!-- Legal & Compliance: Terms & Conditions -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#terms</loc>
+    <loc>https://coloro.in/#terms</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -99,7 +99,7 @@
 
   <!-- Legal & Compliance: Refund & Cancellation Policy -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#refund</loc>
+    <loc>https://coloro.in/#refund</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -107,7 +107,7 @@
 
   <!-- Legal & Compliance: Contact Us & Grievance Desk -->
   <url>
-    <loc>https://kidcolor.storywalla.com/#contact</loc>
+    <loc>https://coloro.in/#contact</loc>
     <lastmod>2026-09-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

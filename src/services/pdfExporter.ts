@@ -108,7 +108,7 @@ export function printColoringSheet(
 
         <div class="footer">
           <span>✨ Print, color with real crayons & hang on your fridge!</span>
-          <span>kidcolor.storywalla.com</span>
+          <span>https://coloro.in</span>
         </div>
       </body>
     </html>
