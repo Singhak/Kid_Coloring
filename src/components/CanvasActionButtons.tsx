@@ -48,21 +48,22 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
   const isZoomed = Math.abs(scale - 1) > 0.05;
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 bg-white/90 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl border-2 border-[#EBE8DC] shadow-md select-none">
-      {/* Quick Next Drawing Button */}
+    <div className="flex items-center gap-0.5 sm:gap-1.5 bg-white/90 backdrop-blur-md p-0.5 sm:p-1.5 rounded-xl sm:rounded-2xl border-2 border-[#EBE8DC] shadow-md select-none">
+      {/* Quick Next Drawing Button (Shown on desktop; mobile has it in secondary header) */}
       {onQuickNext && (
         <button
           onClick={() => {
             playClick();
             onQuickNext();
           }}
-          className="flex items-center gap-1 px-2.5 py-1 sm:py-1.5 bg-gradient-to-r from-[#FFD93D] to-[#FF9F43] text-white font-black text-xs rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs hover:brightness-105"
+          className="hidden sm:flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 bg-gradient-to-r from-[#FFD93D] to-[#FF9F43] text-white font-black text-xs rounded-lg sm:rounded-xl transition-all active:scale-95 cursor-pointer shadow-xs hover:brightness-105"
           title="Instant Next Drawing"
         >
           <Shuffle className="w-3.5 h-3.5" />
           <span>Next</span>
         </button>
       )}
+
       {/* Printable PDF Button */}
       {onPrintSheet && (
         <button
@@ -75,14 +76,14 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
             playClick();
             onPrintSheet();
           }}
-          className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 bg-white hover:bg-[#F0FDF4] text-[#2D3436] border border-[#EBE8DC] hover:border-[#10B981] font-bold text-xs rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
+          className="flex items-center gap-1 px-1.5 sm:px-2.5 py-1 sm:py-1.5 bg-white hover:bg-[#F0FDF4] text-[#2D3436] border border-[#EBE8DC] hover:border-[#10B981] font-bold text-xs rounded-lg sm:rounded-xl transition-all active:scale-95 cursor-pointer shadow-2xs"
           title="Print A4 Coloring Sheet for real crayons at home"
         >
           <Printer className="w-3.5 h-3.5 text-[#10B981]" />
           <span className="hidden sm:inline">Print</span>
           {!isPro && (
-            <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
-              <Crown className="w-2.5 h-2.5 fill-current" /> VIP
+            <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1 py-0.2 rounded-full shadow-2xs">
+              <Crown className="w-2 h-2 fill-current" />
             </span>
           )}
         </button>
@@ -94,7 +95,7 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
           playClick();
           clearCanvas();
         }}
-        className="p-1 sm:px-2 sm:py-1.5 bg-white hover:bg-[#FFF5F5] text-[#FF6B6B] hover:text-[#EE5253] border border-[#FFD5D5] rounded-xl font-bold text-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1 shadow-2xs"
+        className="p-1 sm:px-2 sm:py-1.5 bg-white hover:bg-[#FFF5F5] text-[#FF6B6B] hover:text-[#EE5253] border border-[#FFD5D5] rounded-lg sm:rounded-xl font-bold text-xs transition-all active:scale-95 cursor-pointer flex items-center gap-1 shadow-2xs"
         title="Clear all colors"
       >
         <Trash2 className="w-3.5 h-3.5" />
@@ -104,13 +105,13 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
       {/* Zoom Controls */}
       {onZoomIn && onZoomOut && (
         <>
-          <div className="w-px h-5 bg-[#E2DFD2] mx-0.5" />
+          <div className="w-px h-4 sm:h-5 bg-[#E2DFD2] mx-0.5" />
           <button
             onClick={() => {
               playClick();
               onZoomOut();
             }}
-            className="p-1 sm:p-1.5 hover:bg-[#F7F5EC] rounded-xl text-[#2D3436] transition-all active:scale-90 cursor-pointer"
+            className="p-1 sm:p-1.5 hover:bg-[#F7F5EC] rounded-lg sm:rounded-xl text-[#2D3436] transition-all active:scale-90 cursor-pointer"
             title="Zoom Out"
           >
             <ZoomOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -120,7 +121,7 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
               playClick();
               onZoomIn();
             }}
-            className="p-1 sm:p-1.5 hover:bg-[#F7F5EC] rounded-xl text-[#2D3436] transition-all active:scale-90 cursor-pointer"
+            className="p-1 sm:p-1.5 hover:bg-[#F7F5EC] rounded-lg sm:rounded-xl text-[#2D3436] transition-all active:scale-90 cursor-pointer"
             title="Zoom In"
           >
             <ZoomIn className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -131,7 +132,7 @@ const CanvasActionButtons: React.FC<CanvasActionButtonsProps> = ({
                 playClick();
                 onResetZoom();
               }}
-              className="flex items-center gap-1 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-[#4D96FF] text-white text-[10px] font-bold rounded-lg shadow-2xs transition-all active:scale-90 cursor-pointer"
+              className="flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2 sm:py-1 bg-[#4D96FF] text-white text-[10px] font-bold rounded-md sm:rounded-lg shadow-2xs transition-all active:scale-90 cursor-pointer"
               title="Reset Zoom to 100%"
             >
               <Maximize2 className="w-2.5 h-2.5" />

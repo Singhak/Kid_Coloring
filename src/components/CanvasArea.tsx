@@ -34,6 +34,9 @@ interface CanvasAreaProps {
   onToggleColorByNumber?: () => void;
   onOpenStickers?: () => void;
   onQuickNext?: () => void;
+  fillCount?: number;
+  onIncrementFillCount?: () => void;
+  resetTrigger?: number;
 }
 
 const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -62,7 +65,10 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   isColorByNumber = false,
   onToggleColorByNumber,
   onOpenStickers,
-  onQuickNext
+  onQuickNext,
+  fillCount,
+  onIncrementFillCount,
+  resetTrigger
 }) => {
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -84,6 +90,11 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
     setPan({ x: 0, y: 0 });
   };
 
+  const handleClearCanvas = () => {
+    handleResetZoom();
+    clearCanvas();
+  };
+
   const handleSelectTemplate = (template: Template) => {
     handleResetZoom();
     selectTemplate(template);
@@ -93,15 +104,15 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
     <div className="flex-1 w-full h-full flex flex-col overflow-hidden min-h-0 relative">
       {/* Main Drawing Canvas / Library Container */}
       <div className={`flex-1 relative rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#EBE8DC] shadow-inner flex items-center justify-center overflow-hidden group min-h-0 min-w-0 p-1 sm:p-2.5 ${showTemplates ? 'bg-[#F7F5EC]' : 'art-studio-bg'}`}>
-        {/* Floating Utility Controls (Print, Reset, Zoom, Next) - Non-intrusive corner dock */}
+        {/* Floating Utility Controls (Desktop >= md, where canvas is centered with ample margin) */}
         {!showTemplates && !isGenerating && (
-          <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 z-20">
+          <div className="hidden md:block absolute top-2 sm:top-2.5 left-2 sm:left-2.5 z-20">
             <CanvasActionButtons
               isPro={isPro}
               isGenerating={isGenerating}
               downloadImage={downloadImage}
               generateRandomImage={generateRandomImage}
-              clearCanvas={clearCanvas}
+              clearCanvas={handleClearCanvas}
               setShowUpgradeModal={setShowUpgradeModal}
               onOpenGallery={() => setShowTemplates(true)}
               onPrintSheet={onPrintSheet}
@@ -151,6 +162,9 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                 onClearSticker={onClearSticker}
                 isColorByNumber={isColorByNumber}
                 onToggleColorByNumber={onToggleColorByNumber}
+                fillCount={fillCount}
+                onIncrementFillCount={onIncrementFillCount}
+                resetTrigger={resetTrigger}
               />
             </div>
           )}
