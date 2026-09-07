@@ -118,7 +118,6 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const currentGenerationId = useRef<number>(0);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [viewBox, setViewBox] = useState("0 0 1000 1000");
   const [fillCount, setFillCount] = useState(0);
   const [resetTrigger, setResetTrigger] = useState(0);
@@ -171,27 +170,22 @@ export default function App() {
     const now = new Date();
     let localTrialDate: Date;
 
-    // Grant 15 days free trial on login if no cached trial or if trial expired
+    // Free trial is granted exactly once per user account on first onboarding
     if (cachedTrialStr) {
       const parsed = new Date(cachedTrialStr);
-      if (!isNaN(parsed.getTime()) && parsed.getTime() > now.getTime()) {
-        localTrialDate = parsed;
-      } else {
-        localTrialDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
-        localStorage.setItem(storageKey, localTrialDate.toISOString());
-      }
+      localTrialDate = !isNaN(parsed.getTime()) ? parsed : new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
     } else {
       localTrialDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
       localStorage.setItem(storageKey, localTrialDate.toISOString());
     }
 
-    // Instantly grant active VIP trial access so there is zero lock delay
+    const isLocalTrialActive = localTrialDate.getTime() > now.getTime();
     setTrialEndDate(localTrialDate);
-    setIsPro(true);
+    setIsPro(isLocalTrialActive);
 
-    // Show celebration banner once per session on login
+    // Show celebration banner once per session ONLY if trial is currently active
     const sessionWelcomeKey = `trial_welcome_shown_${user.uid}`;
-    if (!sessionStorage.getItem(sessionWelcomeKey)) {
+    if (isLocalTrialActive && !sessionStorage.getItem(sessionWelcomeKey)) {
       sessionStorage.setItem(sessionWelcomeKey, 'true');
       setShowTrialWelcome(true);
       confetti({
@@ -283,18 +277,28 @@ export default function App() {
       } else {
         const result = await signInWithPopup(auth, provider);
         if (result?.user) {
-          // Immediately grant 15-day trial locally
-          const initialTrial = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-          localStorage.setItem(`kidcolor_trial_${result.user.uid}`, initialTrial.toISOString());
-          setTrialEndDate(initialTrial);
-          setIsPro(true);
-          setShowTrialWelcome(true);
-          confetti({
-            particleCount: 75,
-            spread: 70,
-            origin: { y: 0.25 },
-            colors: ['#FFD93D', '#4D96FF', '#6BCB77', '#FF6B6B']
-          });
+          const userTrialKey = `kidcolor_trial_${result.user.uid}`;
+          const existingTrialStr = localStorage.getItem(userTrialKey);
+          let targetTrial: Date;
+          if (existingTrialStr) {
+            const parsed = new Date(existingTrialStr);
+            targetTrial = !isNaN(parsed.getTime()) ? parsed : new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+          } else {
+            targetTrial = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+            localStorage.setItem(userTrialKey, targetTrial.toISOString());
+          }
+          const isTrialActive = targetTrial.getTime() > Date.now();
+          setTrialEndDate(targetTrial);
+          setIsPro(isTrialActive);
+          if (isTrialActive) {
+            setShowTrialWelcome(true);
+            confetti({
+              particleCount: 75,
+              spread: 70,
+              origin: { y: 0.25 },
+              colors: ['#FFD93D', '#4D96FF', '#6BCB77', '#FF6B6B']
+            });
+          }
         }
       }
     } catch (error) {
@@ -908,7 +912,14 @@ export default function App() {
   if (showPricingPage) {
     return (
       <FreeVsPaidPage
-        onBack={() => setShowPricingPage(false)}
+        onBack={() => {
+          setShowPricingPage(false);
+          if (window.location.hash) {
+            try {
+              history.pushState("", document.title, window.location.pathname + window.location.search);
+            } catch (e) {}
+          }
+        }}
         isPro={isPro}
         user={user}
         handleLogin={handleLogin}

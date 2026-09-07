@@ -1,0 +1,132 @@
+# ==============================================================================
+# Coloro: Magic AI Coloring Book - Production Apache Configuration
+# Optimized for Hostinger / Shared & Cloud Apache Servers
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Directory Options & Security
+# ------------------------------------------------------------------------------
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    Options +FollowSymLinks
+    RewriteEngine On
+    RewriteBase /
+
+    # --------------------------------------------------------------------------
+    # 2. Force HTTPS Redirection
+    # --------------------------------------------------------------------------
+    # Redirect all HTTP requests to secure HTTPS
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+    # --------------------------------------------------------------------------
+    # 3. Exclude Backend API Directory from SPA Rewrites
+    # --------------------------------------------------------------------------
+    # Ensure all calls to /api/ are handled directly by public/api/.htaccess and PHP
+    RewriteRule ^api/ - [L]
+
+    # --------------------------------------------------------------------------
+    # 4. SPA (Single Page Application) Routing Fallback
+    # --------------------------------------------------------------------------
+    # If the requested resource is an existing file or directory, serve it directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Otherwise rewrite all requests to index.html for client-side routing
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 5. Block Access to Sensitive Files & Dotfiles
+# ------------------------------------------------------------------------------
+<FilesMatch "(^\.env|\.env\..*|\.log$|\.sql$|\.bak$|\.rar$|\.zip$|\.git.*|composer\.(json|lock)|package(-lock)?\.json|\.htaccess$)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ------------------------------------------------------------------------------
+# 6. HTTP Security Headers
+# ------------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    # Prevent MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Mitigate clickjacking attacks
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Control Referrer information
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # Enforce HTTPS via HSTS (1 year)
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+
+    # Protect against XSS in older browsers
+    Header always set X-XSS-Protection "1; mode=block"
+
+    # Allow cross-origin media embedding for print & canvas operations
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 7. Gzip & Deflate Compression
+# ------------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE application/xhtml+xml
+    AddOutputFilterByType DEFLATE application/rss+xml
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 8. Browser Caching & Expiration Headers
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Default expiration: 1 hour
+    ExpiresDefault "access plus 1 hour"
+
+    # HTML: Do not cache aggressively so new releases take effect immediately
+    ExpiresByType text/html "access plus 0 seconds"
+
+    # CSS and JavaScript: 1 year (Vite bundles are content-hashed)
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType application/x-javascript "access plus 1 year"
+
+    # Images and Media: 1 month
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType audio/mpeg "access plus 1 month"
+    ExpiresByType audio/ogg "access plus 1 month"
+    ExpiresByType audio/wav "access plus 1 month"
+
+    # Web Fonts: 1 year
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType application/font-woff "access plus 1 year"
+    ExpiresByType application/font-woff2 "access plus 1 year"
+</IfModule>

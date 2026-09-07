@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { GoogleGenAI, Type } from "@google/genai";
 import { SvgPath } from "../types";
 import { SUBJECTS_BY_CATEGORY } from "../constants";
 import { generateProceduralRealisticScene } from "./proceduralRealisticGenerator";
@@ -12,62 +11,6 @@ const ALL_SUBJECTS = Object.values(SUBJECTS_BY_CATEGORY).flat();
 
 export const generateProceduralPaths = (category: string): { paths: SvgPath[], viewBox: string } => {
   return generateProceduralRealisticScene(category);
-};
-
-export const generateAiPaths = async (subject: string): Promise<{ paths: SvgPath[], viewBox: string }> => {
-  const API_KEY = process.env.GEMINI_API_KEY || "";
-  if (!API_KEY) {
-    throw new Error("GEMINI_API_KEY is missing");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: `Generate a simple, bold line art SVG of a ${subject} for a kids' coloring book. 
-    The SVG should consist of multiple closed paths so they can be filled with color.
-    The drawing should be clear and easy for a child to color.
-    Return ONLY a JSON object with the following structure:
-    {
-      "viewBox": "0 0 500 500",
-      "paths": [
-        { "id": "part-name", "d": "SVG_PATH_DATA" }
-      ]
-    }
-    Ensure all paths are closed (end with Z). Do not include any fill colors in the paths.`,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          viewBox: { type: Type.STRING },
-          paths: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                id: { type: Type.STRING },
-                d: { type: Type.STRING },
-                stroke: { type: Type.STRING },
-                strokeWidth: { type: Type.NUMBER }
-              },
-              required: ["id", "d"]
-            }
-          }
-        },
-        required: ["viewBox", "paths"]
-      }
-    }
-  });
-
-  const data = JSON.parse(response.text);
-  const newPaths: SvgPath[] = data.paths.map((p: any) => ({
-    ...p,
-    fill: '#FFFFFF',
-    stroke: p.stroke || '#000000',
-    strokeWidth: p.strokeWidth || 3
-  }));
-
-  return { paths: newPaths, viewBox: data.viewBox || "0 0 500 500" };
 };
 
 export const getImageUsingAPI = async (subject: string, category: string): Promise<{ paths: SvgPath[], viewBox: string }> => {

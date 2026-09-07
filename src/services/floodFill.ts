@@ -193,8 +193,15 @@ export function performFloodFill(
     return false;
   }
 
-  const paintImgData = paintCtx.getImageData(0, 0, width, height);
-  const lineArtImgData = lineArtCtx.getImageData(0, 0, width, height);
+  let paintImgData: ImageData;
+  let lineArtImgData: ImageData;
+  try {
+    paintImgData = paintCtx.getImageData(0, 0, width, height);
+    lineArtImgData = lineArtCtx.getImageData(0, 0, width, height);
+  } catch (err) {
+    console.warn('Flood fill skipped: Canvas context tainted or unavailable:', err);
+    return false;
+  }
 
   const paintData = paintImgData.data;
   const lineArtData = lineArtImgData.data;

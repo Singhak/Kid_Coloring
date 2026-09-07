@@ -7,6 +7,9 @@ coverage/
 .env*
 !.env.example
 Backup/
+*.rar
+*.zip
+*.bak
 .env.*
 android/
 ios/

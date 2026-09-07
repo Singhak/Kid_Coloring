@@ -38,9 +38,17 @@ $rawBody = file_get_contents("php://input");
 $signature = $_SERVER['HTTP_X_WEBHOOK_SIGNATURE'] ?? '';
 $timestamp = $_SERVER['HTTP_X_WEBHOOK_TIMESTAMP'] ?? '';
 
+function logWebhook($message, $data = null) {
+    $logFile = __DIR__ . '/webhook.log';
+    $timestamp = date("Y-m-d H:i:s");
+    $entry = "[$timestamp] $message" . ($data ? " | " . json_encode($data) : "") . PHP_EOL;
+    @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+}
+
 // If Cashfree Secret is set on server, strictly enforce signature authenticity
 if (!empty($cashfreeSecret)) {
     if (empty($signature) || empty($timestamp)) {
+        logWebhook("UNAUTHORIZED: Missing signature or timestamp header");
         http_response_code(401);
         echo json_encode(["error" => "Unauthorized. Missing webhook signature or timestamp header."]);
         exit;
@@ -48,6 +56,7 @@ if (!empty($cashfreeSecret)) {
 
     $expectedSignature = base64_encode(hash_hmac('sha256', $timestamp . $rawBody, $cashfreeSecret, true));
     if (!hash_equals($expectedSignature, $signature)) {
+        logWebhook("UNAUTHORIZED: Invalid webhook signature mismatch");
         http_response_code(401);
         echo json_encode(["error" => "Unauthorized. Invalid webhook signature."]);
         exit;
@@ -62,6 +71,13 @@ $paymentData = $payload['data']['payment'] ?? [];
 $orderId = $orderData['order_id'] ?? null;
 $paymentId = $paymentData['cf_payment_id'] ?? null;
 $paymentStatus = $paymentData['payment_status'] ?? null;
+
+logWebhook("SUCCESS: Event received", [
+    "type" => $type,
+    "order_id" => $orderId,
+    "payment_id" => $paymentId,
+    "payment_status" => $paymentStatus
+]);
 
 // Return 200 OK idempotently
 // All state updates in Firestore are keyed on orderId to ensure complete duplicate prevention

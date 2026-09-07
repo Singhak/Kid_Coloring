@@ -31,6 +31,43 @@ function logApiError($message, $subject = 'unknown')
     @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
 }
 
+// Lightweight IP Rate Limiter (Max 25 requests per 60s per IP)
+function checkIpRateLimit($maxRequests = 25, $windowSeconds = 60)
+{
+    $ip = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+    $safeIp = preg_replace('/[^a-zA-Z0-9_.-]/', '_', explode(',', $ip)[0]);
+    $rateDir = __DIR__ . '/cache/rate_limits';
+    if (!is_dir($rateDir)) {
+        @mkdir($rateDir, 0755, true);
+    }
+    $rateFile = $rateDir . '/rl_' . md5($safeIp) . '.json';
+    $now = time();
+    $data = ['count' => 0, 'start' => $now];
+
+    if (file_exists($rateFile)) {
+        $existing = json_decode(@file_get_contents($rateFile), true);
+        if (is_array($existing) && isset($existing['start'], $existing['count'])) {
+            if ($now - $existing['start'] < $windowSeconds) {
+                $data = $existing;
+            }
+        }
+    }
+
+    $data['count']++;
+    @file_put_contents($rateFile, json_encode($data), LOCK_EX);
+
+    if ($data['count'] > $maxRequests) {
+        http_response_code(429);
+        header('Retry-After: ' . max(1, $windowSeconds - ($now - $data['start'])));
+        echo json_encode([
+            "error" => "Rate limit exceeded. Please wait a moment before generating more coloring pages."
+        ]);
+        exit;
+    }
+}
+
+checkIpRateLimit(25, 60);
+
 // Robust custom .env parser that doesn't rely on parse_ini_file
 function loadEnv($path = __DIR__ . '/.env')
 {
@@ -105,7 +142,9 @@ if (file_exists($cacheFile)) {
             }
             $queueFile = $queueDir . '/tasks.txt';
             $task = json_encode(["provider" => "gemini", "subject" => $subject, "category" => $category]) . PHP_EOL;
-            @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+            if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
+                @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+            }
 
             exit;
         }
@@ -119,7 +158,9 @@ if (!is_dir($queueDir)) {
 }
 $queueFile = $queueDir . '/tasks.txt';
 $task = json_encode(["provider" => "gemini", "subject" => $subject, "category" => $category]) . PHP_EOL;
-@file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
+    @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+}
 
 // Load API key securely
 $env = loadEnv();

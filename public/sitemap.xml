@@ -81,4 +81,28 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Legal & Compliance: Privacy Policy (COPPA & Kid Safe) -->
+  <url>
+    <loc>https://kidcolor.storywalla.com/#privacy</loc>
+    <lastmod>2026-09-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Legal & Compliance: Terms & Conditions -->
+  <url>
+    <loc>https://kidcolor.storywalla.com/#terms</loc>
+    <lastmod>2026-09-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Legal & Compliance: Refund & Cancellation Policy -->
+  <url>
+    <loc>https://kidcolor.storywalla.com/#refund</loc>
+    <lastmod>2026-09-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>

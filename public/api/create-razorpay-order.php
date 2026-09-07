@@ -33,17 +33,23 @@ if (!$razorpayKeyId || !$razorpayKeySecret) {
     exit;
 }
 
-$input = json_decode(file_get_contents("php://input"), true);
+$input = json_decode(file_get_contents("php://input"), true) ?: [];
 $userId = $input["userId"] ?? null;
-$amount = $input["amount"] ?? null; // Amount in smallest currency unit (e.g., 999 for INR 9.99)
-$currency = $input["currency"] ?? 'INR';
-$receipt = $input["receipt"] ?? "receipt_" . uniqid();
+$rawPlan = strtolower(trim($input["planType"] ?? 'annual'));
+$planType = ($rawPlan === 'monthly') ? 'monthly' : 'annual';
 
-if (!$userId || !$amount) {
+if (!$userId) {
     http_response_code(400);
-    echo json_encode(["error" => "User ID and amount are required."]);
+    echo json_encode(["error" => "User ID is required."]);
     exit;
 }
+
+// Authoritative server-side pricing in paise (INR smallest currency unit):
+// Monthly = ₹99 (9900 paise), Annual = ₹499 (49900 paise)
+// Client-supplied amount is strictly ignored to eliminate price-tampering vulnerabilities
+$amount = ($planType === 'monthly') ? 9900 : 49900;
+$currency = 'INR';
+$receipt = "kc_rzp_" . ($planType === 'monthly' ? 'mon_' : 'ann_') . time() . "_" . mt_rand(100, 999);
 
 // Razorpay API endpoint for creating orders
 $url = "https://api.razorpay.com/v1/orders";
@@ -54,7 +60,8 @@ $data = [
     "receipt" => $receipt,
     "notes" => [
         "user_id" => $userId,
-        "subscription_type" => "monthly_pro"
+        "plan_type" => $planType,
+        "app" => "Coloro"
     ]
 ];
 
