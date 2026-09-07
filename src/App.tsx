@@ -86,6 +86,9 @@ export default function App() {
       } else if (hash === '#refund' || hash === '#refund-policy' || hash === '#cancellation') {
         setLegalTab('refund');
         setShowPricingPage(false);
+      } else if (hash === '#contact' || hash === '#contact-us') {
+        setLegalTab('contact');
+        setShowPricingPage(false);
       } else if (hash === '#pricing' || hash === '#upgrade') {
         setShowPricingPage(true);
         setLegalTab(null);
@@ -1036,6 +1039,7 @@ export default function App() {
           onOpenPricingPage={() => setShowPricingPage(true)} 
           onOpenArticles={() => setShowArticlesModal(true)}
           onOpenChatBot={() => setShowChatBotModal(true)}
+          onOpenLegalPage={(tab) => setLegalTab(tab)}
         />
       )}
 

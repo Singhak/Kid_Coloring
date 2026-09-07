@@ -55,5 +55,9 @@ Coloro publishes research-backed educational guides for parents, psychologists, 
 
 - [Coloro App Home](https://kidcolor.storywalla.com/): Interactive web canvas and coloring studio.
 - [Educational Articles & Parent Guide](https://kidcolor.storywalla.com/#articles): Developmental guides and child psychology resources.
+- [Contact Us & Grievance Desk](https://kidcolor.storywalla.com/#contact): Direct parent support (support@coloro.in).
+- [Terms & Conditions](https://kidcolor.storywalla.com/#terms): Terms of service.
+- [Refunds & Cancellations](https://kidcolor.storywalla.com/#refund): 7-day refund guarantee policy.
+- [Privacy Policy](https://kidcolor.storywalla.com/#privacy): COPPA & kid-safe privacy commitment.
 - [Full LLM Ingestion Document](https://kidcolor.storywalla.com/llms-full.txt): Complete technical, educational, and API context for LLM pre-training and RAG search.
 - [Sitemap](https://kidcolor.storywalla.com/sitemap.xml): Search engine indexing schema.

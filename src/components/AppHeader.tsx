@@ -24,7 +24,8 @@ import {
   BookOpen,
   ShieldCheck,
   FileText,
-  CreditCard
+  CreditCard,
+  Mail
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -59,7 +60,7 @@ interface AppHeaderProps {
   onPrintSheet?: () => void;
   onOpenChatBot?: () => void;
   onOpenArticles?: () => void;
-  onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund') => void;
+  onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund' | 'contact') => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -573,18 +574,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   {onOpenLegalPage && (
                     <div className="border-t border-[#EBE8DC] my-1 pt-1">
                       <span className="px-3.5 py-1 text-[10px] font-black uppercase text-[#888] tracking-wider block">
-                        Legal & Policies
+                        Legal & Support
                       </span>
                       <button
                         onClick={() => {
                           playClick();
-                          onOpenLegalPage('privacy');
+                          onOpenLegalPage('contact');
                           setShowProfileMenu(false);
                         }}
                         className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
                       >
-                        <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
-                        <span>Privacy Policy</span>
+                        <Mail className="w-3.5 h-3.5 text-[#EC4899]" />
+                        <span>Contact Us</span>
                       </button>
                       <button
                         onClick={() => {
@@ -607,6 +608,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       >
                         <CreditCard className="w-3.5 h-3.5 text-[#F59E0B]" />
                         <span>Refund Policy</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('privacy');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+                        <span>Privacy Policy</span>
                       </button>
                     </div>
                   )}

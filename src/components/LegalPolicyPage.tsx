@@ -16,7 +16,7 @@ import {
 import { LEGAL_DOCUMENTS, LegalDocument } from '../constants/legalPolicies';
 import { playClick } from '../services/soundEffects';
 
-export type LegalTabType = 'privacy' | 'terms' | 'refund';
+export type LegalTabType = 'contact' | 'terms' | 'refund' | 'privacy';
 
 interface LegalPolicyPageProps {
   initialTab?: LegalTabType;
@@ -25,9 +25,10 @@ interface LegalPolicyPageProps {
 }
 
 const TAB_CONFIG: { id: LegalTabType; label: string; icon: React.ReactNode; color: string }[] = [
-  { id: 'privacy', label: 'Privacy Policy', icon: <ShieldCheck className="w-4 h-4" />, color: '#10B981' },
+  { id: 'contact', label: 'Contact Us', icon: <Mail className="w-4 h-4" />, color: '#EC4899' },
   { id: 'terms', label: 'Terms & Conditions', icon: <FileText className="w-4 h-4" />, color: '#3B82F6' },
   { id: 'refund', label: 'Refund & Cancellation', icon: <CreditCard className="w-4 h-4" />, color: '#F59E0B' },
+  { id: 'privacy', label: 'Privacy Policy', icon: <ShieldCheck className="w-4 h-4" />, color: '#10B981' },
 ];
 
 const LegalPolicyPage: React.FC<LegalPolicyPageProps> = ({
@@ -46,7 +47,7 @@ const LegalPolicyPage: React.FC<LegalPolicyPageProps> = ({
   const handleTabChange = (tab: LegalTabType) => {
     playClick();
     setActiveTab(tab);
-    window.location.hash = tab === 'refund' ? 'refund-policy' : tab;
+    window.location.hash = tab === 'refund' ? 'refund-policy' : (tab === 'contact' ? 'contact-us' : tab);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -282,11 +283,11 @@ const LegalPolicyPage: React.FC<LegalPolicyPageProps> = ({
           </div>
 
           <a
-            href="mailto:support@storywalla.com"
+            href="mailto:support@coloro.in"
             className="btn-bubbly inline-flex items-center gap-2 px-6 py-3 bg-[#4D96FF] hover:bg-[#3B82F6] text-white font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all active:scale-95"
           >
             <Mail className="w-4 h-4" />
-            <span>support@storywalla.com</span>
+            <span>support@coloro.in</span>
           </a>
         </div>
       </main>
@@ -295,17 +296,21 @@ const LegalPolicyPage: React.FC<LegalPolicyPageProps> = ({
       <footer className="bg-white border-t-2 border-[#EBE8DC] py-6 px-4 sm:px-8 mt-12 text-center text-xs text-[#888] font-semibold">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>© {new Date().getFullYear()} Coloro (Storywalla). All rights reserved. Kid-safe digital art studio.</p>
-          <div className="flex items-center gap-4 text-xs font-bold text-[#666]">
-            <button onClick={() => handleTabChange('privacy')} className="hover:text-[#4D96FF] cursor-pointer">
-              Privacy Policy
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-bold text-[#666]">
+            <button onClick={() => handleTabChange('contact')} className="hover:text-[#EC4899] cursor-pointer">
+              Contact Us
             </button>
             <span>•</span>
             <button onClick={() => handleTabChange('terms')} className="hover:text-[#4D96FF] cursor-pointer">
               Terms & Conditions
             </button>
             <span>•</span>
-            <button onClick={() => handleTabChange('refund')} className="hover:text-[#4D96FF] cursor-pointer">
-              Refund Policy
+            <button onClick={() => handleTabChange('refund')} className="hover:text-[#F59E0B] cursor-pointer">
+              Refund & Cancellation
+            </button>
+            <span>•</span>
+            <button onClick={() => handleTabChange('privacy')} className="hover:text-[#10B981] cursor-pointer">
+              Privacy Policy
             </button>
           </div>
         </div>

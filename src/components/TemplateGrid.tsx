@@ -179,15 +179,17 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
           Coloro by Storywalla — AI-Powered Educational Coloring Studio for Kids
         </p>
         <div className="flex items-center justify-center gap-3 flex-wrap text-xs font-bold text-[#555]">
-          <a href="#privacy" className="hover:text-[#4D96FF]">Privacy Policy</a>
+          <a href="#contact" className="hover:text-[#4D96FF]">Contact Us</a>
           <span>•</span>
           <a href="#terms" className="hover:text-[#4D96FF]">Terms & Conditions</a>
           <span>•</span>
-          <a href="#refund" className="hover:text-[#4D96FF]">Refund Policy</a>
+          <a href="#refund" className="hover:text-[#4D96FF]">Refunds & Cancellations</a>
           <span>•</span>
-          <a href="#pricing" className="hover:text-[#4D96FF]">Pricing Plans</a>
+          <a href="#privacy" className="hover:text-[#4D96FF]">Privacy Policy</a>
           <span>•</span>
-          <a href="mailto:support@storywalla.com" className="hover:text-[#4D96FF]">Contact Support</a>
+          <a href="#pricing" className="hover:text-[#4D96FF]">Pricing (INR)</a>
+          <span>•</span>
+          <a href="mailto:support@coloro.in" className="hover:text-[#4D96FF]">support@coloro.in</a>
         </div>
         <p className="text-[11px] text-[#A0A0A0]">
           100% Ad-Free • Kid-Safe • Non-Recurring One-Time Passes

@@ -6,7 +6,7 @@ export interface LegalSection {
 }
 
 export interface LegalDocument {
-  id: 'privacy' | 'terms' | 'refund';
+  id: 'privacy' | 'terms' | 'refund' | 'contact';
   title: string;
   subtitle: string;
   badge: string;
@@ -14,7 +14,7 @@ export interface LegalDocument {
   sections: LegalSection[];
 }
 
-export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund', LegalDocument> = {
+export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund' | 'contact', LegalDocument> = {
   privacy: {
     id: 'privacy',
     title: 'Privacy Policy',
@@ -91,7 +91,7 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund', LegalDocume
           '• Request a copy of all personal information associated with your account.',
           '• Request the immediate and permanent deletion of your account and all associated cloud data.',
           '• Refuse any further collection of information.',
-          'To exercise these rights, simply email our dedicated privacy team at support@storywalla.com. Requests are processed within 48 business hours.',
+          'To exercise these rights, simply email our dedicated privacy team at support@coloro.in. Requests are processed within 48 business hours.',
         ],
       },
       {
@@ -109,7 +109,7 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund', LegalDocume
           'If you have any questions, concerns, or feedback regarding our privacy practices or your child’s digital safety, please contact us:',
           '• Service Name: Coloro (Storywalla)',
           '• Website: https://kidcolor.storywalla.com',
-          '• Email: support@storywalla.com',
+          '• Email: support@coloro.in',
           '• Response SLA: Within 24–48 business hours',
         ],
       },
@@ -203,7 +203,7 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund', LegalDocume
         title: '8. Governing Law & Dispute Resolution',
         content: [
           'These Terms shall be governed by and construed in accordance with the laws of India. Any disputes arising under these Terms shall be subject to the exclusive jurisdiction of the competent courts in India.',
-          'For any inquiries or dispute resolution, please contact support@storywalla.com.',
+          'For any inquiries or dispute resolution, please contact support@coloro.in.',
         ],
       },
     ],
@@ -269,7 +269,7 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund', LegalDocume
         title: '4. How to Report a Payment Issue',
         content: [
           'If you experience any billing discrepancy, duplicate charge, or failed activation, our team is ready to assist you promptly:',
-          '1. Send an email to support@storywalla.com with the subject: "Payment Issue - [Your Registered Email]".',
+          '1. Send an email to support@coloro.in with the subject: "Payment Issue - [Your Registered Email]".',
           '2. Include your Cashfree Order ID or Payment Reference ID (received via SMS/Email from Cashfree or UPI).',
           '3. Attach a screenshot of the payment receipt showing the date, amount, and reference number.',
           'Our support team will review your case and resolve the issue within 24–48 business hours.',
@@ -283,7 +283,87 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund', LegalDocume
           '• VIP Pass: One-time payment, fixed duration, no auto-renewal, no recurring debits.',
           '• Cancellation: Not applicable as there is no recurring renewal mandate.',
           '• Refund: Non-refundable after instant digital activation; 100% refund for failed/duplicate charges.',
-          '• Support Contact: support@storywalla.com',
+          '• Support Contact: support@coloro.in',
+        ],
+      },
+    ],
+  },
+  contact: {
+    id: 'contact',
+    title: 'Contact Us',
+    subtitle: 'We are here to assist parents, educators, and schools. Reach out to our dedicated support team.',
+    badge: 'Customer Support & Business Inquiries',
+    lastUpdated: 'September 2026',
+    sections: [
+      {
+        id: 'official-support',
+        title: '1. Customer Support & Inquiries',
+        content: [
+          'If you have any questions, encounter any technical difficulty, need billing assistance, or wish to share creative suggestions for new templates and tools, please reach out to us:',
+          '• Official Support Email: support@coloro.in',
+          '• Service Name: Coloro: Magic AI Coloring Book for Kids',
+          '• Response Time SLA: Within 24–48 business hours',
+          '• Support Operating Hours: Monday to Saturday, 9:00 AM – 6:00 PM IST',
+        ],
+      },
+      {
+        id: 'entity-details',
+        title: '2. Operating Entity & Merchant Details',
+        content: [
+          'In accordance with payment gateway standards and consumer protection guidelines, here are our registered operating details:',
+          '• Operating Entity: Storywalla (Operating Coloro)',
+          '• Official Website: https://kidcolor.storywalla.com',
+          '• Operating Country: India',
+          '• Category: Digital Educational Software & Creative Tools for Kids',
+          '• Dedicated Grievance Desk: support@coloro.in',
+        ],
+      },
+      {
+        id: 'products-pricing',
+        title: '3. Products & Services Offered (Pricing in INR)',
+        content: [
+          'Coloro provides digital creative web and mobile coloring tools. All prices are explicitly listed in Indian Rupees (INR) with no hidden fees:',
+        ],
+        subsections: [
+          {
+            subtitle: 'A. Free Forever Starter Tier — ₹0 (INR)',
+            details: [
+              '• 100+ standard coloring book templates (Animals, Alphabet, Numbers, Nature, Vehicles).',
+              '• Full digital crayon and marker palette with sound effects.',
+              '• Daily free AI magic prompt generation preview.',
+              '• 1-Click home printable A4 PDF coloring sheets.',
+              '• 100% ad-free child safe environment.',
+            ],
+          },
+          {
+            subtitle: 'B. VIP Magic Pass - Monthly — ₹99 (INR)',
+            details: [
+              '• 30 Days of unrestricted digital VIP Superpowers.',
+              '• Unlimited Google Gemini AI Prompt Line Art Generator.',
+              '• Unlimited Photo-to-Line-Art sketch conversions for family photos.',
+              '• Special Glitter, Rainbow, and Pattern fills.',
+              '• All 50+ collectible sticker stamps and character faces.',
+              '• Strictly one-time payment: NO recurring debits or auto-renewals.',
+            ],
+          },
+          {
+            subtitle: 'C. VIP Magic Pass - Annual — ₹499 (INR)',
+            details: [
+              '• 365 Days (1 Full Year) of unrestricted VIP access + 15-day free trial on signup.',
+              '• Full access to all current and weekly upcoming educational content drops.',
+              '• Ultra-HD high-resolution PDF print exports with no watermark.',
+              '• Strictly one-time payment: NO recurring debits or auto-renewals.',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'billing-support',
+        title: '4. Payment, Billing & Refund Assistance',
+        content: [
+          'For any transaction-related assistance, failed payments, or duplicate charge inquiries:',
+          '• Please email support@coloro.in with your Cashfree Order ID or Payment Reference ID.',
+          '• Approved refunds for duplicate debits are processed within 24–48 hours and credit back to the original source in 5–7 business days.',
         ],
       },
     ],
