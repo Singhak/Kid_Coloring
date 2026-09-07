@@ -1,7 +1,7 @@
-# Kid Coloring App
+# Coloro - Kids Magic Coloring App
 
 ## Overview
-Kid Coloring is a web-based coloring application designed for children. Built with modern React, TypeScript, Vite, and Firebase, it provides an engaging platform for kids to color images with features like color palettes, image generation (possibly AI-powered), caching for performance, and mobile support via Capacitor. Backend utilities include PHP scripts for processing image paths and queues.
+Coloro is a web and mobile coloring application designed for children. Built with modern React, TypeScript, Vite, and Firebase, it provides an engaging platform for kids to color images with features like AI-powered line art generation, photo-to-sketch coloring pages, vibrant palettes, printable A4 sheets, and mobile support via Capacitor. Backend utilities include PHP scripts for processing image paths and queues.
 
 ## Key Features
 - **Interactive Coloring**: Canvas-based coloring with color sidebar (ColorSidebar.tsx) and toolbar tools (Toolbar.tsx).

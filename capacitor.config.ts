@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.storywalla.kidcolor',
-  appName: 'KidColor',
+  appId: 'com.storywalla.coloro',
+  appName: 'Coloro',
   webDir: 'dist'
 };
 

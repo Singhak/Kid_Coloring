@@ -17,5 +17,14 @@ service cloud.firestore {
         request.resource.data.uid == uid;
       allow update: if isOwner(uid);
     }
+
+    // Orders collection: strictly keyed on orderId to prevent duplicate entries & handle idempotency
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid && 
+        request.resource.data.orderId == orderId;
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
   }
 }
