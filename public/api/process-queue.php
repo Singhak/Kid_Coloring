@@ -132,8 +132,16 @@ function processTask($task) {
         $apiKey = $env['GEMINI_API_KEY'] ?? $env['API_KEY'] ?? $env['GOOGLE_API_KEY'] ?? getenv("GEMINI_API_KEY") ?? getenv("API_KEY") ?? getenv("GOOGLE_API_KEY");
         if (!$apiKey) return;
 
-        $models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
-        $prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.\nThe SVG must consist of multiple closed paths so each part can be filled with color.\nReturn ONLY a JSON object with: { \"viewBox\": \"0 0 500 500\", \"paths\": [ { \"id\": \"part-name\", \"d\": \"...\", \"stroke\": \"#000\", \"strokeWidth\": 3 } ] }";
+        $models = [
+            "gemini-flash-lite-latest",
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash",
+            "gemini-flash-latest",
+            "gemini-3.6-flash",
+            "gemini-3.8-flash"
+        ];
+        $prompt = "You are an expert children's coloring book illustrator. Create a delightful, cute, cartoon vector line-art drawing of: {$subject}.\nRequirements: Children ages 3-8, cute storybook style, bold continuous black outlines (strokeWidth 3-4), 8-25 closed paths with spacious interiors for kids to color. STRICTLY NO solid black fills, NO dark backgrounds, NO shading, NO textures. Every path must end with 'Z'. Return JSON: { \"viewBox\": \"0 0 500 500\", \"paths\": [ { \"id\": \"part-name\", \"d\": \"...\", \"stroke\": \"#000000\", \"strokeWidth\": 3 } ] }";
         
         $data = [
             "contents" => [["parts" => [["text" => $prompt]]]],
@@ -167,7 +175,7 @@ function processTask($task) {
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 40);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "Content-Type: application/json",
                 "Referer: https://coloro.in"
@@ -179,8 +187,24 @@ function processTask($task) {
 
             if ($httpCode === 200 && $response) {
                 $result = json_decode($response, true);
-                $content = $result["candidates"][0]["content"]["parts"][0]["text"] ?? null;
-                if ($content) break;
+                $rawText = null;
+                if (!empty($result["candidates"][0]["content"]["parts"])) {
+                    foreach ($result["candidates"][0]["content"]["parts"] as $part) {
+                        if (!empty($part["text"])) {
+                            $candidateText = trim($part["text"]);
+                            if (strpos($candidateText, '{') !== false) {
+                                $rawText = $candidateText;
+                                break;
+                            } elseif (!$rawText) {
+                                $rawText = $candidateText;
+                            }
+                        }
+                    }
+                }
+                if ($rawText) {
+                    $content = $rawText;
+                    break;
+                }
             }
         }
     }
@@ -202,7 +226,7 @@ function processTask($task) {
             }
             if (count($cacheData) >= 30) array_shift($cacheData);
             $cacheData[] = $newImage;
-            logCronError("Generated new image for subject '$subject' and cached it.", $subject);
+            logApiCall("Generated new image for subject '$subject' and cached it.", ["subject" => $subject]);
             @file_put_contents($cacheFile, json_encode($cacheData, JSON_UNESCAPED_SLASHES), LOCK_EX);
         }
     }

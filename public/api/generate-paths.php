@@ -207,7 +207,7 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
     $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Authorization: Bearer $openRouterApiKey",
         "HTTP-Referer: https://coloro.in",
@@ -236,25 +236,36 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
             }
         }
     } else {
-        logApiError("OpenRouter request failed (HTTP $httpCode): " . substr($response, 0, 300), $subject);
+        logApiError("OpenRouter request failed (HTTP $httpCode): " . substr($response, 0, 300), $subject, $httpCode ?: 500);
     }
 }
 
 // Fallback: If OpenRouter failed or no key, try Gemini automatically
 if (!$finalOutput && $geminiApiKey) {
-    logApiError("OpenRouter unavailable or failed. Falling back to Gemini for subject: $subject", $subject);
+    logApiCall("OpenRouter unavailable or failed. Falling back to Gemini for subject: $subject", ["subject" => $subject], "NOTICE");
 
-    $prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.
-The SVG must consist of multiple distinct closed paths (parts of the body, background, features) so each part can be filled with color.
-The drawing must have clear outlines, suitable for children ages 3-8 to color.
-Return ONLY a valid JSON object with this exact structure:
+    $prompt = "You are an expert children's coloring book illustrator.
+Create a delightful, cute, professional vector line-art drawing of: {$subject}.
+
+CRITICAL STYLE REQUIREMENTS:
+- Target audience: Children ages 3 to 8.
+- Style: Cute, clean, cartoon storybook line art with friendly shapes.
+- Lines: Bold, smooth, continuous black outlines (strokeWidth 3 to 4).
+- Structure: 8 to 25 distinct, closed SVG paths representing individual parts (e.g. body, head, features, background elements, stars/clouds).
+- Coloring friendliness: Every path must be a clean, enclosed shape with a spacious open interior that a child can tap and fill with color.
+- STRICT PROHIBITIONS:
+  * NO solid black fills or dark backgrounds.
+  * NO cross-hatching, shading, gradients, or sketchy pencil textures.
+  * The entire drawing must be pure black outlines on a clean open canvas.
+- Ensure every path is a closed loop ending with 'Z'.
+
+Return ONLY a valid JSON object matching:
 {
   \"viewBox\": \"0 0 500 500\",
   \"paths\": [
-    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\", \"stroke\": \"#000000\", \"strokeWidth\": 3 }
+    { \"id\": \"meaningful-part-name\", \"d\": \"SVG_PATH_DATA\", \"stroke\": \"#000000\", \"strokeWidth\": 3 }
   ]
-}
-Ensure all paths are closed (end with Z). Do not include fill colors.";
+}";
 
     $geminiPayload = [
         "contents" => [["parts" => [["text" => $prompt]]]],
@@ -283,13 +294,22 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
         ]
     ];
 
-    $models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+    $models = [
+        "gemini-flash-lite-latest",
+        "gemini-3.1-flash-lite",
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-flash-latest",
+        "gemini-3.6-flash",
+        "gemini-3.8-flash"
+    ];
+
     foreach ($models as $m) {
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$m}:generateContent?key=" . urlencode($geminiApiKey);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 35);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             "Content-Type: application/json",
             "Referer: https://coloro.in"
@@ -301,7 +321,22 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
 
         if ($code === 200 && $resp) {
             $gResult = json_decode($resp, true);
-            $rawText = $gResult["candidates"][0]["content"]["parts"][0]["text"] ?? null;
+            $rawText = null;
+
+            if (!empty($gResult["candidates"][0]["content"]["parts"])) {
+                foreach ($gResult["candidates"][0]["content"]["parts"] as $part) {
+                    if (!empty($part["text"])) {
+                        $candidateText = trim($part["text"]);
+                        if (strpos($candidateText, '{') !== false) {
+                            $rawText = $candidateText;
+                            break;
+                        } elseif (!$rawText) {
+                            $rawText = $candidateText;
+                        }
+                    }
+                }
+            }
+
             if ($rawText) {
                 $clean = trim($rawText);
                 if (preg_match('/^```(?:json)?\s*(.*?)\s*```$/is', $clean, $matches)) {
@@ -320,9 +355,9 @@ Ensure all paths are closed (end with Z). Do not include fill colors.";
 }
 
 if (!$finalOutput || empty($finalOutput['paths'])) {
-    logApiError("All AI path generation providers failed for subject: $subject", $subject);
+    http_response_code(500);
+    logApiError("All AI path generation providers failed for subject: $subject", $subject, 500);
     if (!$servedFromCache) {
-        http_response_code(500);
         echo json_encode(["error" => "Failed to generate AI coloring paths."]);
     }
     exit;

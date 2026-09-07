@@ -177,17 +177,28 @@ if (!$apiKey) {
     exit;
 }
 
-$prompt = "Generate a simple, bold line art SVG of a {$subject} for a kids' coloring book.
-The SVG must consist of multiple distinct closed paths (parts of the body, background, features) so each part can be filled with color.
-The drawing must have clear outlines, suitable for children ages 3-8 to color.
-Return ONLY a valid JSON object with this exact structure:
+$prompt = "You are an expert children's coloring book illustrator.
+Create a delightful, cute, professional vector line-art drawing of: {$subject}.
+
+CRITICAL STYLE REQUIREMENTS:
+- Target audience: Children ages 3 to 8.
+- Style: Cute, clean, cartoon storybook line art with friendly shapes.
+- Lines: Bold, smooth, continuous black outlines (strokeWidth 3 to 4).
+- Structure: 8 to 25 distinct, closed SVG paths representing individual parts (e.g. body, head, features, background elements, stars/clouds).
+- Coloring friendliness: Every path must be a clean, enclosed shape with a spacious open interior that a child can tap and fill with color.
+- STRICT PROHIBITIONS:
+  * NO solid black fills or dark backgrounds.
+  * NO cross-hatching, shading, gradients, or sketchy pencil textures.
+  * The entire drawing must be pure black outlines on a clean open canvas.
+- Ensure every path is a closed loop ending with 'Z'.
+
+Return ONLY a valid JSON object matching:
 {
   \"viewBox\": \"0 0 500 500\",
   \"paths\": [
-    { \"id\": \"part-name\", \"d\": \"SVG_PATH_DATA\", \"stroke\": \"#000000\", \"strokeWidth\": 3 }
+    { \"id\": \"meaningful-part-name\", \"d\": \"SVG_PATH_DATA\", \"stroke\": \"#000000\", \"strokeWidth\": 3 }
   ]
-}
-Ensure all paths are closed (end with Z). Do not include fill colors.";
+}";
 
 // Prepare request payload targeting Gemini API schema
 $requestData = [
@@ -223,15 +234,15 @@ $requestData = [
     ]
 ];
 
-// Active Gemini models with progressive fallback (latest LLM versions)
+// Active Gemini models with progressive fallback (fastest, production-ready models first)
 $modelsToTry = [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
-    'gemini-2.5-pro',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
-    'gemini-1.5-flash',
-    'gemini-1.5-pro'
+    'gemini-flash-lite-latest',
+    'gemini-3.1-flash-lite',
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+    'gemini-flash-latest',
+    'gemini-3.6-flash',
+    'gemini-3.8-flash'
 ];
 
 $successfulResponse = null;
@@ -244,7 +255,7 @@ foreach ($modelsToTry as $model) {
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 40);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         "Content-Type: application/json",
         "Referer: https://coloro.in"
@@ -264,7 +275,22 @@ foreach ($modelsToTry as $model) {
 
     if ($lastHttpCode === 200 && $response) {
         $result = json_decode($response, true);
-        $rawText = $result["candidates"][0]["content"]["parts"][0]["text"] ?? null;
+        $rawText = null;
+
+        // Search through candidate parts for the JSON string
+        if (!empty($result["candidates"][0]["content"]["parts"])) {
+            foreach ($result["candidates"][0]["content"]["parts"] as $part) {
+                if (!empty($part["text"])) {
+                    $candidateText = trim($part["text"]);
+                    if (strpos($candidateText, '{') !== false) {
+                        $rawText = $candidateText;
+                        break;
+                    } elseif (!$rawText) {
+                        $rawText = $candidateText;
+                    }
+                }
+            }
+        }
 
         if ($rawText) {
             // Strip markdown code fences if present (e.g. ```json ... ```)
@@ -285,14 +311,15 @@ foreach ($modelsToTry as $model) {
         $errorResult = json_decode($response, true);
         $errMsg = $errorResult["error"]["message"] ?? "HTTP $lastHttpCode";
         $lastError = "Model $model failed: $errMsg";
-        logApiError($lastError, $subject);
+        logApiError($lastError, $subject, $lastHttpCode > 0 ? $lastHttpCode : 500);
     }
 }
 
 if (!$successfulResponse) {
-    logApiError("All Gemini models failed for subject: $subject. Last error: $lastError", $subject);
+    $statusToSet = $lastHttpCode > 0 ? $lastHttpCode : 500;
+    http_response_code($statusToSet);
+    logApiError("All Gemini models failed for subject: $subject. Last error: $lastError", $subject, $statusToSet);
     if (!$servedFromCache) {
-        http_response_code($lastHttpCode > 0 ? $lastHttpCode : 500);
         echo json_encode(["error" => $lastError ?: "Failed to generate AI drawing."]);
     }
     exit;

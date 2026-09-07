@@ -124,12 +124,12 @@ export async function generateDynamicAiColoringImage(
   }
 
   // Refined coloring book line-art prompt engineered for clean flood-fillable contours
-  const lineArtEnginePrompt = `clean black and white coloring book page for kids of ${subjectPrompt}, bold black line art outlines, pure white background, no grayscale, no shading, no color, high contrast, clean enclosed coloring areas, sharp vector coloring book style`;
+  const lineArtEnginePrompt = `minimalist cute cartoon coloring page for young children, simple outline drawing of ${subjectPrompt}, bold clean black contour lines on pure solid white paper background, empty open coloring spaces, zero black fills, zero solid dark areas, zero shading, zero texture, zero shadows, no gray, crisp high contrast vector coloring book art`;
 
   const seed = Math.floor(Math.random() * 1000000);
   const encodedPrompt = encodeURIComponent(lineArtEnginePrompt);
   
-  const targetUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1000&height=1000&seed=${seed}&nologo=true&enhance=true`;
+  const targetUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1000&height=1000&seed=${seed}&nologo=true&enhance=false`;
 
   // Pre-load and verify image in browser before returning
   await new Promise<void>((resolve, reject) => {
