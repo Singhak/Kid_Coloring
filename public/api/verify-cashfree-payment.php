@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/logger.php';
+initApiLogging('verify-cashfree-payment.php');
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -31,6 +34,7 @@ $cashfreeSecret = $env['CASHFREE_SECRET_KEY'] ?? $_SERVER['CASHFREE_SECRET_KEY']
 $cashfreeEnv = strtolower($env['CASHFREE_ENV'] ?? $_SERVER['CASHFREE_ENV'] ?? $_SERVER['REDIRECT_CASHFREE_ENV'] ?? (getenv('CASHFREE_ENV') ?: 'sandbox'));
 
 if (!$cashfreeAppId || !$cashfreeSecret) {
+    logApiError("Cashfree API credentials are not configured on the server", [], 500);
     http_response_code(500);
     echo json_encode([
         "error" => "Cashfree API credentials are not configured on the server. Please set CASHFREE_APP_ID and CASHFREE_SECRET_KEY in .htaccess or .env."
@@ -47,6 +51,7 @@ $orderId = trim($input["order_id"] ?? $_GET["order_id"] ?? '');
 $userId = trim($input["userId"] ?? $_GET["userId"] ?? '');
 
 if (!$orderId) {
+    logApiError("order_id is required for verification.", $input, 400);
     http_response_code(400);
     echo json_encode(["error" => "order_id is required for verification."]);
     exit;
@@ -79,9 +84,14 @@ function callCashfreeGet($url, $appId, $secret) {
 $orderRes = callCashfreeGet($baseUrl . "/orders/" . urlencode($orderId), $cashfreeAppId, $cashfreeSecret);
 
 if ($orderRes['httpCode'] !== 200 || empty($orderRes['data'])) {
+    $err = $orderRes['data']['message'] ?? "Order not found on Cashfree.";
+    logApiError("Cashfree order verification fetch failed for $orderId: " . $err, [
+        "order_id" => $orderId,
+        "http_code" => $orderRes['httpCode']
+    ], $orderRes['httpCode'] >= 400 ? $orderRes['httpCode'] : 404);
     http_response_code($orderRes['httpCode'] >= 400 ? $orderRes['httpCode'] : 404);
     echo json_encode([
-        "error" => $orderRes['data']['message'] ?? "Order not found on Cashfree.",
+        "error" => $err,
         "order_id" => $orderId
     ]);
     exit;
@@ -148,6 +158,14 @@ if ($orderStatus === 'PAID' || $successfulPayment !== null) {
     $rawMethod = $successfulPayment['payment_method'] ?? 'cashfree';
     $methodStr = extractMethodString($rawMethod);
     
+    logApiCall("Cashfree payment verified (PAID)", [
+        "order_id" => $orderId,
+        "payment_id" => (string)$paymentId,
+        "amount" => $orderAmount,
+        "plan" => $planType,
+        "method" => $methodStr
+    ]);
+
     echo json_encode([
         "success" => true,
         "isPending" => false,

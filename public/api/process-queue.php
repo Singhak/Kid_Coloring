@@ -4,16 +4,11 @@
  * Handles background AI generation for Hostinger cron jobs.
  */
 
+require_once __DIR__ . '/logger.php';
+initApiLogging('process-queue.php');
+
 $queueDir = __DIR__ . '/queue';
 $queueFile = $queueDir . '/tasks.txt';
-$logFile = __DIR__ . '/api_error.log';
-
-function logCronError($message, $subject = 'unknown') {
-    global $logFile;
-    $timestamp = date("Y-m-d H:i:s");
-    $entry = "[$timestamp] [CRON - Subject: " . strval($subject) . "] " . (is_string($message) ? $message : json_encode($message)) . PHP_EOL;
-    @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
-}
 
 function loadEnv($path = __DIR__ . '/.env') {
     $vars = [];
@@ -68,6 +63,7 @@ while (time() - $startTime < $maxExecutionTime) {
 
         $task = json_decode($taskJson, true);
         if ($task) {
+            logApiCall("CRON: Processing background task", $task);
             processTask($task);
         }
     } else {

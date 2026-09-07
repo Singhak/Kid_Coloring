@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/logger.php';
+initApiLogging('verify-razorpay-payment.php');
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *"); // Adjust for production security
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -11,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    logApiError("Method not allowed. Use POST.", [], 405);
     http_response_code(405);
     echo json_encode(["error" => "Method not allowed"]);
     exit;
@@ -28,6 +32,7 @@ $razorpayKeyId = $env['RAZORPAY_KEY_ID'] ?? $_SERVER['RAZORPAY_KEY_ID'] ?? $_SER
 $razorpayKeySecret = $env['RAZORPAY_KEY_SECRET'] ?? $_SERVER['RAZORPAY_KEY_SECRET'] ?? $_SERVER['REDIRECT_RAZORPAY_KEY_SECRET'] ?? (getenv('RAZORPAY_KEY_SECRET') ?: null);
 
 if (!$razorpayKeyId || !$razorpayKeySecret) {
+    logApiError("Razorpay API keys are not configured on the server", [], 500);
     http_response_code(500);
     echo json_encode(["error" => "Razorpay API keys are not configured on the server. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in .htaccess or .env."]);
     exit;
@@ -40,6 +45,7 @@ $razorpay_signature = $input["razorpay_signature"] ?? null;
 $userId = $input["userId"] ?? null;
 
 if (!$razorpay_order_id || !$razorpay_payment_id || !$razorpay_signature || !$userId) {
+    logApiError("Missing payment details or user ID for Razorpay verification.", $input, 400);
     http_response_code(400);
     echo json_encode(["error" => "Missing payment details or user ID."]);
     exit;
@@ -49,30 +55,19 @@ if (!$razorpay_order_id || !$razorpay_payment_id || !$razorpay_signature || !$us
 $generated_signature = hash_hmac('sha256', $razorpay_order_id . '|' . $razorpay_payment_id, $razorpayKeySecret);
 
 if ($generated_signature === $razorpay_signature) {
-    // Payment is successful and verified
-    // In a real application, you would now update the user's subscription status in your database.
-    // For this example, we'll return success and assume the frontend's Firestore listener will handle the state update.
-    //
-    // IMPORTANT: For production, it is HIGHLY RECOMMENDED to use Firebase Cloud Functions
-    // with the Firebase Admin SDK to securely update Firestore, rather than attempting
-    // direct Firestore updates from PHP with a service account key exposed on a web server.
-    //
-    // Example (conceptual, requires Firebase Admin SDK for PHP setup):
-    // require __DIR__ . '/vendor/autoload.php';
-    // use Google\Cloud\Firestore\FirestoreClient;
-    // $firestore = new FirestoreClient([
-    //     'projectId' => 'your-firebase-project-id',
-    //     'keyFilePath' => '/path/to/your/serviceAccountKey.json'
-    // ]);
-    // $userRef = $firestore->collection('users')->document($userId);
-    // $userRef->update([
-    //     ['path' => 'isSubscribed', 'value' => true],
-    //     ['path' => 'subscriptionStartDate', 'value' => new \Google\Cloud\Core\Timestamp(new \DateTime())]
-    // ]);
+    logApiCall("Razorpay payment verified successfully", [
+        "razorpay_order_id" => $razorpay_order_id,
+        "razorpay_payment_id" => $razorpay_payment_id,
+        "userId" => $userId
+    ]);
 
     echo json_encode(["success" => true, "message" => "Payment verified and subscription activated."]);
-
 } else {
+    logApiError("Razorpay signature mismatch for order: $razorpay_order_id", [
+        "razorpay_order_id" => $razorpay_order_id,
+        "razorpay_payment_id" => $razorpay_payment_id,
+        "userId" => $userId
+    ], 400);
     http_response_code(400);
     echo json_encode(["error" => "Payment verification failed: Signature mismatch."]);
 }

@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/logger.php';
+initApiLogging('create-cashfree-order.php');
+
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -11,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    logApiError("Method not allowed. Received: " . ($_SERVER['REQUEST_METHOD'] ?? 'UNKNOWN'), [], 405);
     http_response_code(405);
     echo json_encode(["error" => "Method not allowed. Use POST."]);
     exit;
@@ -37,6 +41,7 @@ $cashfreeSecret = $env['CASHFREE_SECRET_KEY'] ?? $_SERVER['CASHFREE_SECRET_KEY']
 $cashfreeEnv = strtolower($env['CASHFREE_ENV'] ?? $_SERVER['CASHFREE_ENV'] ?? $_SERVER['REDIRECT_CASHFREE_ENV'] ?? (getenv('CASHFREE_ENV') ?: 'sandbox'));
 
 if (!$cashfreeAppId || !$cashfreeSecret) {
+    logApiError("Cashfree API credentials are not configured on the server", [], 500);
     http_response_code(500);
     echo json_encode([
         "error" => "Cashfree API credentials are not configured on the server. Please set CASHFREE_APP_ID and CASHFREE_SECRET_KEY in .htaccess or .env."
@@ -57,6 +62,7 @@ $customerName = $input["customerName"] ?? 'Coloro Parent';
 $customerPhone = $input["customerPhone"] ?? '9876543210';
 
 if (!$userId) {
+    logApiError("User ID is required to create a payment order.", $input, 400);
     http_response_code(400);
     echo json_encode(["error" => "User ID is required to create a payment order."]);
     exit;
@@ -141,6 +147,10 @@ $curlError = curl_error($ch);
 curl_close($ch);
 
 if ($curlError) {
+    logApiError("Curl request to Cashfree failed: " . $curlError, [
+        "order_id" => $orderId,
+        "userId" => $userId
+    ], 500);
     http_response_code(500);
     echo json_encode(["error" => "Curl request failed: " . $curlError]);
     exit;
@@ -149,13 +159,26 @@ if ($curlError) {
 $result = json_decode($response, true);
 
 if ($httpCode >= 400 || empty($result['payment_session_id'])) {
+    $errMsg = $result["message"] ?? $result["error"] ?? "Failed to create Cashfree order.";
+    logApiError("Cashfree order creation rejected (HTTP $httpCode): " . $errMsg, [
+        "order_id" => $orderId,
+        "userId" => $userId,
+        "details" => $result
+    ], $httpCode ?: 500);
     http_response_code($httpCode ?: 500);
     echo json_encode([
-        "error" => $result["message"] ?? $result["error"] ?? "Failed to create Cashfree order.",
+        "error" => $errMsg,
         "details" => $result
     ]);
     exit;
 }
+
+logApiCall("Cashfree order created successfully", [
+    "order_id" => $result["order_id"],
+    "plan" => $planType,
+    "amount" => $amount,
+    "userId" => $userId
+]);
 
 echo json_encode([
     "success" => true,

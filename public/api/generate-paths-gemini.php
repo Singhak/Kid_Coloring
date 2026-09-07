@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/logger.php';
+initApiLogging('generate-paths-gemini.php');
+
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
@@ -17,18 +20,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Allow POST only
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    logApiError("Method not allowed. Use POST.", [], 405);
     http_response_code(405);
     echo json_encode(["error" => "Method not allowed. Use POST."]);
     exit;
-}
-
-// Helper function for error logging
-function logApiError($message, $subject = 'unknown')
-{
-    $logFile = __DIR__ . '/api_error.log';
-    $timestamp = date("Y-m-d H:i:s");
-    $entry = "[$timestamp] [Gemini - Subject: " . strval($subject) . "] " . (is_string($message) ? $message : json_encode($message)) . PHP_EOL;
-    @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
 }
 
 // Lightweight IP Rate Limiter (Max 25 requests per 60s per IP)
@@ -57,6 +52,7 @@ function checkIpRateLimit($maxRequests = 25, $windowSeconds = 60)
     @file_put_contents($rateFile, json_encode($data), LOCK_EX);
 
     if ($data['count'] > $maxRequests) {
+        logApiError("Rate limit exceeded for IP: " . $ip, ['count' => $data['count']], 429);
         http_response_code(429);
         header('Retry-After: ' . max(1, $windowSeconds - ($now - $data['start'])));
         echo json_encode([
@@ -132,6 +128,7 @@ if (file_exists($cacheFile)) {
         $randomIndex = array_rand($cacheData);
         $selectedImage = $cacheData[$randomIndex];
         if (isset($selectedImage['paths']) && is_array($selectedImage['paths'])) {
+            logApiCall("Coloring page served from cache (Gemini)", ["subject" => $subject, "category" => $category]);
             echo json_encode($selectedImage);
             $servedFromCache = true;
 
@@ -337,8 +334,14 @@ if (!empty($sanitizedPaths)) {
 
     $cacheData[] = $finalOutput;
     @file_put_contents($cacheFile, json_encode($cacheData, JSON_UNESCAPED_SLASHES), LOCK_EX);
-    logApiError("Saved new image to cache for '$subject'. Total cached: " . count($cacheData), $subject);
+    logApiCall("Saved new image to cache", ["subject" => $subject, "total_cached" => count($cacheData)]);
 }
+
+logApiCall("Gemini coloring page generated successfully", [
+    "subject" => $subject,
+    "category" => $category,
+    "paths_count" => count($finalOutput['paths'] ?? [])
+]);
 
 // Return clean JSON
 http_response_code(200);

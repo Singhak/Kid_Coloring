@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/logger.php';
+initApiLogging('cashfree-webhook.php');
+
 header("Content-Type: application/json");
 
 header("Access-Control-Allow-Origin: *");
@@ -13,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Only accept POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    logApiError("Method not allowed. Use POST.", [], 405);
     http_response_code(405);
     echo json_encode(["error" => "Method not allowed. Use POST."]);
     exit;
@@ -39,16 +43,14 @@ $signature = $_SERVER['HTTP_X_WEBHOOK_SIGNATURE'] ?? '';
 $timestamp = $_SERVER['HTTP_X_WEBHOOK_TIMESTAMP'] ?? '';
 
 function logWebhook($message, $data = null) {
-    $logFile = __DIR__ . '/webhook.log';
-    $timestamp = date("Y-m-d H:i:s");
-    $entry = "[$timestamp] $message" . ($data ? " | " . json_encode($data) : "") . PHP_EOL;
-    @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
+    // Write to centralized API call log and maintain compatibility
+    logApiCall("Webhook: " . $message, $data ?: []);
 }
 
 // If Cashfree Secret is set on server, strictly enforce signature authenticity
 if (!empty($cashfreeSecret)) {
     if (empty($signature) || empty($timestamp)) {
-        logWebhook("UNAUTHORIZED: Missing signature or timestamp header");
+        logApiError("UNAUTHORIZED: Missing webhook signature or timestamp header", [], 401);
         http_response_code(401);
         echo json_encode(["error" => "Unauthorized. Missing webhook signature or timestamp header."]);
         exit;
@@ -56,7 +58,9 @@ if (!empty($cashfreeSecret)) {
 
     $expectedSignature = base64_encode(hash_hmac('sha256', $timestamp . $rawBody, $cashfreeSecret, true));
     if (!hash_equals($expectedSignature, $signature)) {
-        logWebhook("UNAUTHORIZED: Invalid webhook signature mismatch");
+        logApiError("UNAUTHORIZED: Invalid webhook signature mismatch", [
+            "timestamp" => $timestamp
+        ], 401);
         http_response_code(401);
         echo json_encode(["error" => "Unauthorized. Invalid webhook signature."]);
         exit;
@@ -72,7 +76,7 @@ $orderId = $orderData['order_id'] ?? null;
 $paymentId = $paymentData['cf_payment_id'] ?? null;
 $paymentStatus = $paymentData['payment_status'] ?? null;
 
-logWebhook("SUCCESS: Event received", [
+logApiCall("SUCCESS: Webhook event processed", [
     "type" => $type,
     "order_id" => $orderId,
     "payment_id" => $paymentId,
