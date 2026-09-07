@@ -1,0 +1,69 @@
+# Robots.txt for Coloro: Magic Coloring Book (https://kidcolor.storywalla.com)
+# Configured for Maximum Search Engine & LLM / AI Chat Bot Discoverability
+
+User-agent: *
+Allow: /
+Disallow: /api/cache/
+Disallow: /api/queue/
+Disallow: /api/*.log
+Disallow: /api/*.env
+
+# --- Google Search & Google AI Overviews ---
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# --- OpenAI ChatGPT & SearchGPT ---
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# --- Anthropic Claude ---
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# --- Perplexity AI Search ---
+User-agent: PerplexityBot
+Allow: /
+
+# --- Apple Intelligence ---
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# --- Microsoft Bing & Copilot ---
+User-agent: Bingbot
+Allow: /
+
+# --- Meta AI ---
+User-agent: Meta-ExternalAgent
+Allow: /
+
+# --- Cohere & Amazon AI ---
+User-agent: cohere-ai
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+# Canonical Sitemap & LLM Discovery Standards
+Sitemap: https://kidcolor.storywalla.com/sitemap.xml
+LLMs-Txt: https://kidcolor.storywalla.com/llms.txt

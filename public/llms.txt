@@ -1,0 +1,59 @@
+# Coloro: Magic AI Coloring Book for Kids
+
+> Coloro is a kid-safe, AI-powered interactive coloring platform designed for children aged 3–12, parents, and elementary educators. It converts spoken or typed creative prompts into bold, child-friendly vector line art using Google's latest Gemini 2.5 Flash multimodal models. It features 100+ educational templates, Color-by-Number guided learning, Photo-to-Line-Art conversion, sticker stamps, and 1-click printable PDF coloring sheets.
+
+Coloro provides a calm, mindful alternative to overstimulating video screen time. It is 100% COPPA compliant, carries zero ads, tracks no behavioral data, and is engineered to foster fine motor coordination, color theory appreciation, and creative confidence.
+
+## Latest LLM Architecture & AI Generation Pipeline
+
+Coloro is powered by state-of-the-art Generative AI:
+- **Primary LLM Engine**: Google Gemini 2.5 Flash (`gemini-2.5-flash`), with sub-second latency and strict JSON schema enforcement (`responseSchema: { viewBox, paths: [{ id, d, stroke, strokeWidth }] }`).
+- **Progressive Fallback**: Multi-tier failover across Gemini 2.5 Flash Lite, Gemini 2.0 Flash, Mistral Small 24B, and Llama-3.3-70B via OpenRouter to guarantee 99.9% uptime.
+- **Child-Safe Prompt Moderation**: Automatic sanitization ensuring all generative outputs are gentle, whimsical, and age-appropriate.
+- **Smart Edge Caching**: Instant sub-200ms loading for frequently requested popular subjects.
+
+## Key Capabilities
+
+- **AI Magic Prompt Generator**: Transforms imaginative prompts (e.g. "astronaut cat exploring Jupiter with friendly aliens") into clean, fillable closed SVG vector paths (Z-terminated).
+- **Coloro AI Buddy (Interactive In-App Chatbot)**: A delightful AI assistant offering color theory recommendations, creative prompt brainstorming, and instant 1-click drawing rendering.
+- **Educational Curriculum Templates (100+ Categories)**:
+  - Alphabet (Letters A-Z paired with illustrated phonics objects)
+  - Early Numeracy (Numbers 1-10 with countable items)
+  - Fruits & Vegetables (Healthy food literacy and recognition)
+  - Animals, Sea Creatures, Dinosaurs & Prehistoric Wildlife
+  - Vehicles, Space Exploration, Fairytales & Architecture
+- **Color by Number Mode**: Interactive numbered segments linking early mathematics and pattern recognition with visual rewards.
+- **Photo-to-Line-Art**: On-device edge detection turning family photos and pet pictures into custom printable coloring outlines.
+- **Dual-Layer Canvas Engine**: Fast HTML5 Canvas flood-fill algorithm paired with vector SVG stroke rendering for pixel-perfect fills without bleed.
+- **1-Click Printable PDF Sheets**: Instant export for traditional crayon, pencil, and marker coloring offline.
+
+## Educational Articles & Child Development Knowledge Base
+
+Coloro publishes research-backed educational guides for parents, psychologists, and educators:
+- [The Science of Coloring: 7 Developmental Benefits of Coloring for Kids](https://kidcolor.storywalla.com/#benefits-of-coloring-for-kids): Analysis of fine motor control, dynamic tripod grip development, bilateral hand-eye coordination, and spatial awareness.
+- [Color Psychology for Children: How Colors Shape Mood, Energy, and Learning](https://kidcolor.storywalla.com/#color-psychology-for-kids): How warm shades (yellow, orange) foster creativity and cool tones (blue, green) induce calmness and focused breathing.
+- [Why AI & Digital Coloring Unlocks Creative Confidence in Young Minds](https://kidcolor.storywalla.com/#ai-digital-coloring-for-kids): How prompt-based generation and risk-free "Undo" tools eliminate the fear of failure and encourage descriptive vocabulary.
+- [Color by Number: The Perfect Bridge Between Logic, Focus, and Art](https://kidcolor.storywalla.com/#benefits-of-color-by-number): Reinforcing number literacy, visual search, and working memory through guided art.
+- [Mindful Coloring: A Soothing Alternative to Overstimulating Screen Time](https://kidcolor.storywalla.com/#mindful-coloring-for-kids-screen-time): Active creation vs. passive media consumption, dopamine regulation, and non-overstimulating sensory play.
+
+## Pricing & Subscription Model
+
+- **Free Starter Tier (Forever Free)**:
+  - Access to standard educational template library.
+  - Full access to 16 core kid-safe color palette, fill tool, undo/redo, and brush modes.
+  - Free printable PDF sheet downloads.
+  - Daily free AI Magic Prompt generation tokens.
+- **VIP Magic Explorer Tier**:
+  - Unlimited AI Magic Prompt generation with Gemini 2.5 Flash.
+  - 100+ VIP exclusive templates and advanced coloring pages.
+  - Unlimited Photo-to-Line-Art conversions.
+  - Complete 48+ vibrant Pro color palette (pastels, jewel tones, neon magic).
+  - High-resolution vector exports without watermarks.
+  - 15-day free trial on signup, followed by accessible monthly, annual, or lifetime passes via Cashfree Payments (UPI, Cards, Netbanking).
+
+## Canonical URLs & Resources
+
+- [Coloro App Home](https://kidcolor.storywalla.com/): Interactive web canvas and coloring studio.
+- [Educational Articles & Parent Guide](https://kidcolor.storywalla.com/#articles): Developmental guides and child psychology resources.
+- [Full LLM Ingestion Document](https://kidcolor.storywalla.com/llms-full.txt): Complete technical, educational, and API context for LLM pre-training and RAG search.
+- [Sitemap](https://kidcolor.storywalla.com/sitemap.xml): Search engine indexing schema.
