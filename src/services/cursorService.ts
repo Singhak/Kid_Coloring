@@ -122,3 +122,17 @@ export function getEraserCursor(): string {
 
   return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}") 3 3, cell`;
 }
+
+/**
+ * Returns a data-URI string for a sticker stamp cursor preview.
+ */
+export function getStickerCursor(emoji: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
+    <circle cx="18" cy="18" r="16" fill="#FFFFFF" fill-opacity="0.85" stroke="#FF6B6B" stroke-width="1.5" stroke-dasharray="3,2" />
+    <text x="18" y="25" font-size="20" text-anchor="middle" font-family="'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif">${emoji}</text>
+    <circle cx="18" cy="18" r="2" fill="#FF6B6B" opacity="0.6"/>
+  </svg>`;
+
+  return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}") 18 18, copy`;
+}
+

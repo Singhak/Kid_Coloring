@@ -37,7 +37,7 @@ const COMPARISON_ROWS = [
       { feature: '📸 Photo to Coloring Page (Turn real photos into coloring art)', free: '❌ Locked', vip: '✅ Unlimited Photos' },
       { feature: '🪄 AI Magic Line Art Generator (Type anything, AI draws it)', free: '1 preview/day', vip: '✅ Unlimited Prompts' },
       { feature: '✨ Special Glitter, Rainbow, & Pattern Fills', free: '❌ Locked', vip: '✅ 5 Special Fills' },
-      { feature: '🌟 Collectible Sticker Stamps (Crowns, Dino, Bows)', free: '3 Basic Stamps', vip: '✅ All 20+ Stamps' },
+      { feature: '🌟 Collectible Sticker Stamps & Faces (Smiley, Cry, Laugh, Dino, Crowns)', free: '25+ Free Stamps', vip: '✅ All 50+ Stamps' },
       { feature: '🎨 Color Palette Selection', free: '12 Standard Colors', vip: '✅ 50+ Pro Pastels & Neons' },
     ]
   },
@@ -222,9 +222,9 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
             <div className="w-11 h-11 rounded-2xl bg-[#FFF0F0] text-[#FF6B6B] flex items-center justify-center font-black">
               <Smile className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-black text-[#2D3436]">20+ Kid Sticker Stamps</h3>
+            <h3 className="text-base font-black text-[#2D3436]">50+ Face Stamps & Stickers</h3>
             <p className="text-xs text-[#636E72] font-medium leading-relaxed">
-              Stamp cute golden crowns, sunglasses, dinosaurs, balloons, and stars directly onto artwork with pop sounds.
+              Stamp expressive smiley, laughing, crying faces, golden crowns, sunglasses, dinosaurs, and stars directly onto artwork with pop sounds.
             </p>
           </div>
 

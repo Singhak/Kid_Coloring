@@ -388,9 +388,9 @@ export const HelpFlowModal: React.FC<HelpFlowModalProps> = ({
       id: 'btn-tool-stamps',
       name: 'Sticker Stamps',
       category: 'Palette & Tools',
-      whatItDoes: 'Opens 20+ collectible stamps (crowns, stars, hearts, dinosaur badges).',
+      whatItDoes: 'Opens 50+ collectible stamps (faces, emotions, crowns, stars, hearts, dinosaur badges).',
       howToUse: 'Tap the Stamp icon in the palette dock, pick a sticker, and tap anywhere on the canvas to stamp it.',
-      kidTip: 'Add crowns to animals, bows to dinosaurs, or sparkles to stars!',
+      kidTip: 'Add smiley faces, laugh/cry reactions, crowns to animals, or sparkles to stars!',
       renderButtonPreview: () => (
         <div className="p-1.5 px-2.5 rounded-xl bg-[#FAF5FF] border border-[#E9D5FF] text-[#7E22CE] text-xs font-black flex items-center gap-1">
           <Smile className="w-3.5 h-3.5 text-[#A855F7]" />
@@ -495,13 +495,13 @@ export const HelpFlowModal: React.FC<HelpFlowModalProps> = ({
     },
     {
       id: 'sticker-stamps',
-      title: 'Fun Sticker Stamps',
-      subtitle: 'Add crowns, stars, bows & cute animals!',
+      title: 'Fun Sticker Stamps & Faces',
+      subtitle: 'Add smiley faces, laugh/cry reactions, crowns & cute animals!',
       badge: 'Step 5 of 6',
       badgeColor: 'bg-[#FAF5FF] text-[#7E22CE] border-[#E9D5FF]',
       accentColor: '#A855F7',
-      description: 'Tap the Stamp icon in the palette dock to open 20+ collectible stickers! Pick a sticker and stamp it anywhere on the canvas to personalize your masterpiece.',
-      parentTip: 'Kids can combine multiple stickers to craft their own imaginative stories!',
+      description: 'Tap the Stamp icon in the palette dock to open 50+ collectible stickers! Pick a smiley, laugh, cry face, or magical icon and stamp it anywhere on the canvas to personalize your masterpiece.',
+      parentTip: 'Kids can combine multiple face expressions and stickers to craft their own imaginative stories!',
       icon: Smile,
       illustration: { type: 'stickers' },
       actionLabel: 'Open Stickers',
@@ -974,11 +974,11 @@ export const HelpFlowModal: React.FC<HelpFlowModalProps> = ({
                       )}
 
                       {currentStep.illustration.type === 'stickers' && (
-                        <div className="flex items-center gap-3 py-2">
-                          {['👑', '⭐', '🦖', '🎀', '🎈', '💖'].map((emoji, i) => (
+                        <div className="flex items-center gap-2 py-2 overflow-x-auto">
+                          {['😊', '😂', '😭', '😍', '👑', '⭐', '🦖', '💖'].map((emoji, i) => (
                             <div
                               key={i}
-                              className="w-10 h-10 rounded-2xl bg-white border-2 border-[#EAE5D4] shadow-sm flex items-center justify-center text-xl transform hover:scale-110 transition-transform cursor-pointer"
+                              className="w-9 h-9 rounded-xl bg-white border-2 border-[#EAE5D4] shadow-xs flex items-center justify-center text-lg transform hover:scale-110 transition-transform cursor-pointer shrink-0"
                             >
                               {emoji}
                             </div>

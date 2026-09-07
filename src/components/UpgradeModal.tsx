@@ -38,7 +38,7 @@ const COMPARISON_FEATURES = [
   { name: '🪄 Unlimited Magic AI Prompt Generator', free: '1 preview', vip: 'Unlimited' },
   { name: '🔢 Color by Number & Phonics Mode', free: false, vip: true },
   { name: '✨ Special Glitter, Neon & Pattern Fills', free: false, vip: true },
-  { name: '🌟 Cute Sticker Stamps (Crowns, Dino...)', free: '3 basic', vip: 'All 20+' },
+  { name: '🌟 Cute Sticker Stamps & Faces (Smiley, Cry, Laugh...)', free: '25+ Free Stamps', vip: 'All 50+ VIP' },
   { name: '🖨️ Printable A4 Sheets (Real Crayons)', free: 'Watermarked', vip: 'Ultra HD Crisp' },
   { name: '🎨 50+ Magic Pro Color Palettes', free: '12 Colors', vip: '50+ Shades' },
   { name: '🛡️ 100% Ad-Free & Child-Safe', free: 'Limited', vip: 'Guaranteed' },
@@ -283,7 +283,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     </div>
                     <div className="flex-1">
                       <span className="block font-black text-xs text-[#2D3436]">Glitter, Rainbow, Patterns & Stamps</span>
-                      <span className="text-[10px] text-[#555]">Polka dots, stars, hearts & 20+ adorable sticker stamps</span>
+                      <span className="text-[10px] text-[#555]">Polka dots, stars, hearts & 50+ face emojis & sticker stamps</span>
                     </div>
                     <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
                   </div>

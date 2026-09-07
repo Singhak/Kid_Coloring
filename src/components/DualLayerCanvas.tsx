@@ -8,7 +8,7 @@ import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { SvgPath } from '../types';
 import { performFloodFill } from '../services/floodFill';
-import { getBrushCursor, getEraserCursor } from '../services/cursorService';
+import { getBrushCursor, getEraserCursor, getStickerCursor } from '../services/cursorService';
 import { StickerItem } from './StickerStampsModal';
 import ColorByNumberOverlay, { NumberTarget } from './ColorByNumberOverlay';
 import { playPop, playFanfare, playChime } from '../services/soundEffects';
@@ -514,7 +514,9 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
   const isEraser = selectedColor === '#FFFFFF' && !selectedSticker;
 
   const cursorStyle = useMemo(() => {
-    if (selectedSticker) return 'copy';
+    if (selectedSticker) {
+      return getStickerCursor(selectedSticker.emoji);
+    }
     if (isEraser) {
       return getEraserCursor();
     }
