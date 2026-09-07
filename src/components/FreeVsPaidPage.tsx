@@ -251,35 +251,39 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
           </div>
 
           <div className="bg-white rounded-3xl border-2 border-[#EBE8DC] shadow-sm overflow-hidden">
-            <div className="grid grid-cols-12 bg-[#FBF9F1] p-3.5 sm:p-4 border-b-2 border-[#EBE8DC] text-xs font-black text-[#444]">
-              <span className="col-span-6 sm:col-span-7 text-sm font-display">Features</span>
-              <span className="col-span-3 sm:col-span-2 text-center text-[#888] font-bold">Free Plan</span>
-              <span className="col-span-3 text-center text-[#FF9F43] font-black flex items-center justify-center gap-1">
-                <Crown className="w-3.5 h-3.5 fill-current" /> VIP Pass
-              </span>
-            </div>
+            <div className="overflow-x-auto min-w-full no-scrollbar">
+              <div className="min-w-[520px]">
+                <div className="grid grid-cols-12 bg-[#FBF9F1] p-3.5 sm:p-4 border-b-2 border-[#EBE8DC] text-xs font-black text-[#444]">
+                  <span className="col-span-6 sm:col-span-7 text-sm font-display">Features</span>
+                  <span className="col-span-3 sm:col-span-2 text-center text-[#888] font-bold">Free Plan</span>
+                  <span className="col-span-3 text-center text-[#FF9F43] font-black flex items-center justify-center gap-1">
+                    <Crown className="w-3.5 h-3.5 fill-current" /> VIP Pass
+                  </span>
+                </div>
 
-            <div className="divide-y divide-[#F0ECE1]">
-              {COMPARISON_ROWS.map((group, gIdx) => (
-                <div key={gIdx} className="bg-white">
-                  <div className="bg-[#FAF9F5] px-4 py-2 text-[11px] font-black text-[#888] uppercase tracking-wider">
-                    {group.category}
-                  </div>
-                  {group.items.map((row, rIdx) => (
-                    <div key={rIdx} className="grid grid-cols-12 p-3 sm:p-4 items-center text-xs hover:bg-[#FFFDF7] transition-colors">
-                      <span className="col-span-6 sm:col-span-7 font-bold text-[#2D3436] pr-2">
-                        {row.feature}
-                      </span>
-                      <span className="col-span-3 sm:col-span-2 text-center text-[11px] text-[#777] font-semibold">
-                        {row.free}
-                      </span>
-                      <span className="col-span-3 text-center text-xs font-black text-[#10B981]">
-                        {row.vip}
-                      </span>
+                <div className="divide-y divide-[#F0ECE1]">
+                  {COMPARISON_ROWS.map((group, gIdx) => (
+                    <div key={gIdx} className="bg-white">
+                      <div className="bg-[#FAF9F5] px-4 py-2 text-[11px] font-black text-[#888] uppercase tracking-wider">
+                        {group.category}
+                      </div>
+                      {group.items.map((row, rIdx) => (
+                        <div key={rIdx} className="grid grid-cols-12 p-3 sm:p-4 items-center text-xs hover:bg-[#FFFDF7] transition-colors">
+                          <span className="col-span-6 sm:col-span-7 font-bold text-[#2D3436] pr-2">
+                            {row.feature}
+                          </span>
+                          <span className="col-span-3 sm:col-span-2 text-center text-[11px] text-[#777] font-semibold">
+                            {row.free}
+                          </span>
+                          <span className="col-span-3 text-center text-xs font-black text-[#10B981]">
+                            {row.vip}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </section>

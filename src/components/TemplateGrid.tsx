@@ -35,25 +35,25 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
-      className="w-full h-full p-4 sm:p-6 overflow-y-auto"
+      className="w-full h-full p-2.5 sm:p-6 overflow-y-auto"
     >
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 px-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-3 sm:mb-5 px-1">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#2D3436] font-display flex items-center gap-2">
+          <h2 className="text-lg sm:text-2xl font-black text-[#2D3436] font-display flex items-center gap-1.5 sm:gap-2">
             <span>{currentCategory?.emoji || '🎨'}</span>
             <span>{currentCategory?.label || 'Drawings'} Collection</span>
-            <span className="text-xs font-bold px-2 py-0.5 bg-black/5 text-[#636E72] rounded-full">
+            <span className="text-[10px] sm:text-xs font-bold px-2 py-0.5 bg-black/5 text-[#636E72] rounded-full">
               {filteredTemplates.length} pages
             </span>
           </h2>
-          <p className="text-xs sm:text-sm text-[#888] font-medium">
+          <p className="text-[11px] sm:text-sm text-[#888] font-medium">
             Pick any magical picture, upload real photos, or ask AI to draw something new!
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-5 pb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5 pb-8">
         {/* Magic AI Generator Card */}
         <button
           onClick={() => {
@@ -67,36 +67,36 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
             generateRandomImage();
           }}
           disabled={isGenerating}
-          className={`flex flex-col items-center justify-center gap-3 p-4 sm:p-5 rounded-3xl border-3 transition-all group/gen relative overflow-hidden cursor-pointer active:scale-95 min-h-[220px] ${
+          className={`col-span-2 sm:col-span-1 flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 transition-all group/gen relative overflow-hidden cursor-pointer active:scale-95 min-h-[90px] sm:min-h-[220px] ${
             isGenerating 
               ? 'opacity-50 cursor-not-allowed border-amber-300 bg-amber-50' 
               : isPro 
-                ? 'border-[#FFD93D] bg-gradient-to-b from-[#FFFDF0] to-[#FFF9DE] hover:shadow-xl hover:-translate-y-1' 
-                : 'border-[#F1C40F] bg-gradient-to-b from-[#FFF9E6] to-[#FFF0C2] hover:shadow-lg'
+                ? 'border-[#FFD93D] bg-gradient-to-r sm:bg-gradient-to-b from-[#FFFDF0] to-[#FFF9DE] hover:shadow-xl hover:-translate-y-1' 
+                : 'border-[#F1C40F] bg-gradient-to-r sm:bg-gradient-to-b from-[#FFF9E6] to-[#FFF0C2] hover:shadow-lg'
           }`}
         >
           <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#FFD93D]/30 rounded-full blur-2xl pointer-events-none" />
           
-          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg group-hover/gen:scale-110 group-hover/gen:rotate-6 transition-transform relative z-10 ${
+          <div className={`w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-md sm:shadow-lg group-hover/gen:scale-110 group-hover/gen:rotate-6 transition-transform relative z-10 shrink-0 ${
             isPro 
               ? 'bg-gradient-to-tr from-[#FF9F43] to-[#FFD93D] text-white' 
               : 'bg-gradient-to-tr from-[#F39C12] to-[#F1C40F] text-white'
           }`}>
-            <Wand2 className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" />
+            <Wand2 className="w-5 h-5 sm:w-8 sm:h-8 drop-shadow-sm" />
           </div>
 
-          <div className="text-center relative z-10">
-            <span className="block font-black text-[#2D3436] text-base sm:text-lg font-display">
+          <div className="text-left sm:text-center relative z-10 flex-1 min-w-0">
+            <span className="block font-black text-[#2D3436] text-sm sm:text-lg font-display truncate">
               ✨ Magic AI Artist
             </span>
-            <span className="text-xs font-bold text-[#9C7A14] mt-0.5 block">
+            <span className="text-[11px] sm:text-xs font-bold text-[#9C7A14] mt-0.5 block truncate">
               {isPro ? 'Generate custom drawing' : 'Unlimited AI Art'}
             </span>
           </div>
 
           {!isPro && (
-            <div className="flex items-center gap-1 bg-[#FFD93D] text-[#7A4B00] px-2.5 py-1 rounded-full text-[11px] font-black shadow-sm mt-1">
-              <Crown className="w-3 h-3 fill-current" />
+            <div className="flex items-center gap-1 bg-[#FFD93D] text-[#7A4B00] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-black shadow-sm shrink-0">
+              <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
               VIP Magic
             </div>
           )}
@@ -109,24 +109,24 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
               playPop();
               onOpenPhotoArt();
             }}
-            className="flex flex-col items-center justify-center gap-3 p-4 sm:p-5 rounded-3xl border-3 border-[#86EFAC] bg-gradient-to-b from-[#F0FDF4] to-[#DCFCE7] hover:shadow-xl hover:-translate-y-1 transition-all group/photo relative overflow-hidden cursor-pointer active:scale-95 min-h-[220px]"
+            className="col-span-2 sm:col-span-1 flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#86EFAC] bg-gradient-to-r sm:bg-gradient-to-b from-[#F0FDF4] to-[#DCFCE7] hover:shadow-xl hover:-translate-y-1 transition-all group/photo relative overflow-hidden cursor-pointer active:scale-95 min-h-[90px] sm:min-h-[220px]"
           >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#16A34A] to-[#4ADE80] text-white flex items-center justify-center shadow-lg group-hover/photo:scale-110 group-hover/photo:rotate-6 transition-transform relative z-10">
-              <Camera className="w-7 h-7 sm:w-8 sm:h-8 drop-shadow-sm" />
+            <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-[#16A34A] to-[#4ADE80] text-white flex items-center justify-center shadow-md sm:shadow-lg group-hover/photo:scale-110 group-hover/photo:rotate-6 transition-transform relative z-10 shrink-0">
+              <Camera className="w-5 h-5 sm:w-8 sm:h-8 drop-shadow-sm" />
             </div>
 
-            <div className="text-center relative z-10">
-              <span className="block font-black text-[#2D3436] text-base sm:text-lg font-display">
+            <div className="text-left sm:text-center relative z-10 flex-1 min-w-0">
+              <span className="block font-black text-[#2D3436] text-sm sm:text-lg font-display truncate">
                 📸 Photo to Coloring
               </span>
-              <span className="text-xs font-bold text-[#15803D] mt-0.5 block">
+              <span className="text-[11px] sm:text-xs font-bold text-[#15803D] mt-0.5 block truncate">
                 Turn pets & photos into art
               </span>
             </div>
 
             {!isPro && (
-              <div className="flex items-center gap-1 bg-[#FFD93D] text-[#7A4B00] px-2.5 py-1 rounded-full text-[11px] font-black shadow-sm mt-1">
-                <Crown className="w-3 h-3 fill-current" />
+              <div className="flex items-center gap-1 bg-[#FFD93D] text-[#7A4B00] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-black shadow-sm shrink-0">
+                <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
                 VIP
               </div>
             )}
@@ -141,7 +141,7 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
               playPop();
               selectTemplate(template);
             }}
-            className="flex flex-col items-center gap-2.5 p-3 sm:p-4 rounded-3xl bg-white border-2 border-[#EBE8DC] hover:border-[#4D96FF] hover:bg-[#F9FCFF] hover:shadow-xl hover:-translate-y-1 transition-all group/card relative text-left cursor-pointer active:scale-95"
+            className="flex flex-col items-center gap-2 sm:gap-2.5 p-2 sm:p-4 rounded-2xl sm:rounded-3xl bg-white border-2 border-[#EBE8DC] hover:border-[#4D96FF] hover:bg-[#F9FCFF] hover:shadow-xl hover:-translate-y-1 transition-all group/card relative text-left cursor-pointer active:scale-95"
           >
             {template.difficulty && (
               <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-sm border border-[#EBE8DC] px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-[#4D96FF] shadow-sm flex items-center gap-1 z-10">

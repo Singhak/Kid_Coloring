@@ -31,6 +31,10 @@ interface DualLayerCanvasProps {
   onClearSticker?: () => void;
   isColorByNumber?: boolean;
   onToggleColorByNumber?: (active: boolean) => void;
+  fillCount?: number;
+  onIncrementFillCount?: () => void;
+  resetTrigger?: number;
+  onTargetsProgress?: (completed: number, total: number) => void;
 }
 
 const INTERNAL_WIDTH = 1000;
@@ -52,15 +56,74 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
   selectedSticker,
   onClearSticker,
   isColorByNumber = false,
-  onToggleColorByNumber
+  onToggleColorByNumber,
+  fillCount: externalFillCount,
+  onIncrementFillCount,
+  resetTrigger = 0,
+  onTargetsProgress
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [canvasDim, setCanvasDim] = useState<number>(0);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const panStartRef = useRef({ x: 0, y: 0 });
   const touchDistanceStartRef = useRef<number | null>(null);
   const touchScaleStartRef = useRef<number>(1);
-  const [fillCount, setFillCount] = useState(0);
+  const [internalFillCount, setInternalFillCount] = useState(0);
+
+  const activeFillCount = externalFillCount !== undefined ? externalFillCount : internalFillCount;
+
+  const handleIncrementFill = useCallback(() => {
+    if (onIncrementFillCount) {
+      onIncrementFillCount();
+    } else {
+      setInternalFillCount((prev) => prev + 1);
+    }
+  }, [onIncrementFillCount]);
+
+  // Reset internal tracking & numbers targets when resetTrigger increments
+  useEffect(() => {
+    if (resetTrigger > 0) {
+      setInternalFillCount(0);
+      setNumberTargets((prev) => prev.map((t) => ({ ...t, isCompleted: false })));
+    }
+  }, [resetTrigger]);
+
+  // Reset fill count when template changes
+  useEffect(() => {
+    setInternalFillCount(0);
+  }, [paths, imageUrl]);
+
+  // Dynamically measure the easel container to maintain a perfect, maximized 1:1 square
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+
+    const measure = () => {
+      const w = wrapper.clientWidth;
+      const h = wrapper.clientHeight;
+      if (w > 0 && h > 0) {
+        // Reserve 8px breathing space so paper borders, drop shadows, and rings never clip
+        const available = Math.floor(Math.min(w, h));
+        const size = Math.max(120, available - 8);
+        setCanvasDim(size);
+      }
+    };
+
+    measure();
+
+    const ro = new ResizeObserver(() => {
+      measure();
+    });
+    ro.observe(wrapper);
+
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
 
   // Number targets for Color by Number mode
   const [numberTargets, setNumberTargets] = useState<NumberTarget[]>([]);
@@ -79,6 +142,14 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
       setNumberTargets(generatedTargets);
     }
   }, [paths, imageUrl, isColorByNumber]);
+
+  // Notify parent of Color by Number targets progress
+  useEffect(() => {
+    if (isColorByNumber && onTargetsProgress) {
+      const completed = numberTargets.filter((t) => t.isCompleted).length;
+      onTargetsProgress(completed, numberTargets.length);
+    }
+  }, [numberTargets, isColorByNumber, onTargetsProgress]);
 
   // Render Line Art from Image URL or SVG paths onto Line Art Canvas
   const renderLineArt = useCallback(() => {
@@ -207,6 +278,8 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     if (!container) return null;
 
     const rect = container.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return null;
+
     const clickX = clientX - rect.left;
     const clickY = clientY - rect.top;
 
@@ -215,6 +288,10 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
 
     const canvasX = (normalizedX / rect.width) * INTERNAL_WIDTH;
     const canvasY = (normalizedY / rect.height) * INTERNAL_HEIGHT;
+
+    if (canvasX < 0 || canvasX >= INTERNAL_WIDTH || canvasY < 0 || canvasY >= INTERNAL_HEIGHT) {
+      return null;
+    }
 
     return { x: canvasX, y: canvasY, normX: normalizedX / rect.width, normY: normalizedY / rect.height };
   }, [pan, scale]);
@@ -252,6 +329,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
 
       const dataUrl = paintCanvas.toDataURL();
       onHistoryPush(dataUrl);
+      handleIncrementFill();
       return;
     }
 
@@ -290,22 +368,20 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
         );
       }
 
-      setFillCount((prev) => {
-        const next = prev + 1;
-        if (next % 8 === 0) {
-          try {
-            confetti({
-              particleCount: 40,
-              spread: 60,
-              origin: { y: 0.7 },
-              colors: ['#FF6B6B', '#FFD93D', '#4D96FF', '#6BCB77']
-            });
-          } catch (e) {}
-        }
-        return next;
-      });
+      handleIncrementFill();
+      const nextCount = activeFillCount + 1;
+      if (nextCount % 8 === 0) {
+        try {
+          confetti({
+            particleCount: 40,
+            spread: 60,
+            origin: { y: 0.7 },
+            colors: ['#FF6B6B', '#FFD93D', '#4D96FF', '#6BCB77']
+          });
+        } catch (e) {}
+      }
     }
-  }, [getCanvasCoordinates, paintCanvasRef, lineArtCanvasRef, selectedColor, selectedSticker, isColorByNumber, onHistoryPush]);
+  }, [getCanvasCoordinates, paintCanvasRef, lineArtCanvasRef, selectedColor, selectedSticker, isColorByNumber, onHistoryPush, handleIncrementFill, activeFillCount]);
 
   // Click on a specific Color by Number badge directly
   const handleTargetBadgeClick = (target: NumberTarget) => {
@@ -345,6 +421,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
       setNumberTargets((prev) =>
         prev.map((t) => (t.id === target.id ? { ...t, isCompleted: true } : t))
       );
+      handleIncrementFill();
     }
   };
 
@@ -447,96 +524,102 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
   const completedTargets = numberTargets.filter((t) => t.isCompleted).length;
 
   return (
-    <motion.div
-      id="tour-canvas-paper"
-      ref={containerRef}
-      key="dual-layer-canvas-container"
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      className="relative rounded-2xl sm:rounded-3xl overflow-hidden sketchbook-paper select-none touch-none border-2 sm:border-3 border-[#EDE6D4] shrink-0"
-      style={{
-        aspectRatio: '1 / 1',
-        maxHeight: '100%',
-        maxWidth: '100%',
-        height: '100%',
-        width: 'auto',
-        cursor: cursorStyle,
-      }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onWheel={handleWheel}
+    <div
+      ref={wrapperRef}
+      className="w-full h-full flex items-center justify-center min-h-0 min-w-0 overflow-hidden relative p-1 sm:p-2"
     >
-      {/* Playful Washi Tape Paper Corner Accents */}
-      <div className="absolute top-1.5 -left-3 w-10 h-3.5 -rotate-45 bg-[#FFD93D]/70 border border-dashed border-amber-300/80 shadow-2xs pointer-events-none z-20" />
-      <div className="absolute top-1.5 -right-3 w-10 h-3.5 rotate-45 bg-[#4D96FF]/45 border border-dashed border-blue-300/80 shadow-2xs pointer-events-none z-20" />
-
-      {/* Sketchbook Top Spiral Binder: Punched Holes & Metallic Coils */}
-      <div className="absolute top-1 left-0 right-0 z-20 flex justify-evenly items-center px-5 sm:px-8 pointer-events-none">
-        {[...Array(11)].map((_, i) => (
-          <div key={i} className="relative flex flex-col items-center">
-            {/* Punched Paper Hole */}
-            <div className="w-2 sm:w-2.5 h-3 rounded-full bg-[#E5DFCF] shadow-inner ring-1 ring-black/10" />
-            {/* Metallic Spiral Coil Loop */}
-            <div className="absolute -top-1 w-2 sm:w-2.5 h-4.5 rounded-full border border-[#BDB7A6] bg-gradient-to-r from-[#DDD7C9] via-white to-[#BFB9A8] shadow-xs" />
-          </div>
-        ))}
-      </div>
-
-      {/* Floating Coloring Progress / Encouragement Badge */}
-      <div className="absolute top-4 right-3 z-20 pointer-events-none">
-        {isColorByNumber ? (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-sm border border-[#FFD93D] shadow-xs text-[11px] font-black text-[#7A4B00]">
-            <span>🔢</span>
-            <span>{completedTargets} / {numberTargets.length} Completed</span>
-          </div>
-        ) : fillCount > 0 ? (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 backdrop-blur-sm border border-[#EBE8DC] shadow-xs text-[10px] sm:text-[11px] font-black text-[#2D3436]">
-            <span>⭐</span>
-            <span>{fillCount} filled</span>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Zoomable & Pannable Viewport Group */}
-      <div
-        className="w-full h-full relative origin-top-left transition-transform duration-75"
+      <motion.div
+        id="tour-canvas-paper"
+        ref={containerRef}
+        key="dual-layer-canvas-container"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.15 }}
+        className="relative rounded-2xl sm:rounded-3xl overflow-hidden sketchbook-paper select-none touch-none border-2 sm:border-3 border-[#EDE6D4] shadow-md flex-shrink-0"
         style={{
-          transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`
+          width: canvasDim > 0 ? `${canvasDim}px` : 'min(calc(100vw - 32px), calc(100dvh - 220px))',
+          height: canvasDim > 0 ? `${canvasDim}px` : 'min(calc(100vw - 32px), calc(100dvh - 220px))',
+          maxWidth: '100%',
+          maxHeight: '100%',
+          aspectRatio: '1 / 1',
+          cursor: cursorStyle,
         }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onWheel={handleWheel}
       >
-        {/* Layer 1: Paint Canvas (User colors, patterns, and sticker stamps) */}
-        <canvas
-          ref={paintCanvasRef}
-          width={INTERNAL_WIDTH}
-          height={INTERNAL_HEIGHT}
-          className="absolute inset-0 w-full h-full block"
-        />
+        {/* Playful Washi Tape Paper Corner Accents */}
+        <div className="absolute top-1.5 -left-3 w-10 h-3.5 -rotate-45 bg-[#FFD93D]/70 border border-dashed border-amber-300/80 shadow-2xs pointer-events-none z-20" />
+        <div className="absolute top-1.5 -right-3 w-10 h-3.5 rotate-45 bg-[#4D96FF]/45 border border-dashed border-blue-300/80 shadow-2xs pointer-events-none z-20" />
 
-        {/* Layer 2: Line Art Canvas (Crisp outlines rendered on top with multiply blend) */}
-        <canvas
-          ref={lineArtCanvasRef}
-          width={INTERNAL_WIDTH}
-          height={INTERNAL_HEIGHT}
-          className="absolute inset-0 w-full h-full block pointer-events-none"
-          style={{ mixBlendMode: 'multiply' }}
-        />
-      </div>
+        {/* Sketchbook Top Spiral Binder: Punched Holes & Metallic Coils */}
+        <div className="absolute top-0.5 sm:top-1 left-0 right-0 z-20 flex justify-evenly items-center px-3 sm:px-8 pointer-events-none">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="relative flex flex-col items-center">
+              {/* Punched Paper Hole */}
+              <div className="w-1.5 sm:w-2.5 h-2.5 sm:h-3 rounded-full bg-[#E5DFCF] shadow-inner ring-1 ring-black/10" />
+              {/* Metallic Spiral Coil Loop */}
+              <div className="absolute -top-0.5 sm:-top-1 w-1.5 sm:w-2.5 h-3.5 sm:h-4.5 rounded-full border border-[#BDB7A6] bg-gradient-to-r from-[#DDD7C9] via-white to-[#BFB9A8] shadow-xs" />
+            </div>
+          ))}
+        </div>
 
-      {/* Color By Number Interactive Overlay */}
-      {isColorByNumber && onToggleColorByNumber && (
-        <ColorByNumberOverlay
-          isActive={isColorByNumber}
-          onToggle={onToggleColorByNumber}
-          targets={numberTargets}
-          onTargetClick={handleTargetBadgeClick}
-          selectedColor={selectedColor}
-        />
-      )}
-    </motion.div>
+        {/* Floating Coloring Progress / Encouragement Badge - placed safely below the purple washi tape */}
+        <div className="absolute top-6 sm:top-7 right-2.5 sm:right-3.5 z-20 pointer-events-none">
+          {isColorByNumber ? (
+            <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/90 backdrop-blur-sm border border-[#FFD93D] shadow-xs text-[10px] sm:text-[11px] font-black text-[#7A4B00]">
+              <span>🔢</span>
+              <span>{completedTargets} / {numberTargets.length}</span>
+            </div>
+          ) : activeFillCount > 0 ? (
+            <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/85 backdrop-blur-sm border border-[#EBE8DC] shadow-xs text-[9px] sm:text-[11px] font-black text-[#2D3436]">
+              <span>⭐</span>
+              <span>{activeFillCount} filled</span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Zoomable & Pannable Viewport Group */}
+        <div
+          className="w-full h-full relative origin-top-left transition-transform duration-75"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`
+          }}
+        >
+          {/* Layer 1: Paint Canvas (User colors, patterns, and sticker stamps) */}
+          <canvas
+            ref={paintCanvasRef}
+            width={INTERNAL_WIDTH}
+            height={INTERNAL_HEIGHT}
+            className="absolute inset-0 w-full h-full block"
+          />
+
+          {/* Layer 2: Line Art Canvas (Crisp outlines rendered on top with multiply blend) */}
+          <canvas
+            ref={lineArtCanvasRef}
+            width={INTERNAL_WIDTH}
+            height={INTERNAL_HEIGHT}
+            className="absolute inset-0 w-full h-full block pointer-events-none"
+            style={{ mixBlendMode: 'multiply' }}
+          />
+        </div>
+
+        {/* Color By Number Interactive Overlay */}
+        {isColorByNumber && onToggleColorByNumber && (
+          <ColorByNumberOverlay
+            isActive={isColorByNumber}
+            onToggle={onToggleColorByNumber}
+            targets={numberTargets}
+            onTargetClick={handleTargetBadgeClick}
+            selectedColor={selectedColor}
+          />
+        )}
+      </motion.div>
+    </div>
   );
 };
 

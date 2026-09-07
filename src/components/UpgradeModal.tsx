@@ -123,7 +123,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-4 border-[#FFF2B2] my-auto z-10 max-h-[95vh] flex flex-col"
+            className="relative w-full max-w-xl bg-white rounded-3xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-3 sm:border-4 border-[#FFF2B2] my-auto z-10 max-h-[90dvh] flex flex-col"
           >
             {/* Close Button */}
             <button
@@ -131,19 +131,19 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                 playClick();
                 setShowUpgradeModal(false);
               }}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-black/5 transition-all z-20 cursor-pointer text-[#888]"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full hover:bg-black/5 transition-all z-20 cursor-pointer text-[#888]"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             {/* Header */}
-            <div className="bg-gradient-to-b from-[#FFF8D6] via-[#FFFDF5] to-white p-6 pb-2 pt-6 text-center relative shrink-0">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFD93D]/30 border border-[#FFD93D] rounded-full text-[#8C5B00] text-xs font-black mb-2">
+            <div className="bg-gradient-to-b from-[#FFF8D6] via-[#FFFDF5] to-white p-4 sm:p-6 pb-2 pt-4 sm:pt-6 text-center relative shrink-0">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFD93D]/30 border border-[#FFD93D] rounded-full text-[#8C5B00] text-xs font-black mb-1.5">
                 <Sparkles className="w-3.5 h-3.5 fill-current" />
                 <span>KIDCOLOR MAGIC VIP PASS</span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-black text-[#2D3436] font-display">
+              <h2 className="text-xl sm:text-3xl font-black text-[#2D3436] font-display">
                 {isSubscribed ? "You're a VIP Explorer! 🌟" : "Unlock Ultimate Creative Superpowers"}
               </h2>
               <p className="text-xs sm:text-sm text-[#636E72] font-semibold mt-1">
@@ -153,7 +153,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
               </p>
 
               {/* View Tab Switcher */}
-              <div className="flex items-center justify-center gap-1 mt-3 p-1 bg-[#F4F1DE]/60 rounded-2xl max-w-xs mx-auto border border-[#E6E2D3]">
+              <div className="flex items-center justify-center gap-1 mt-2.5 sm:mt-3 p-1 bg-[#F4F1DE]/60 rounded-2xl max-w-xs mx-auto border border-[#E6E2D3]">
                 <button
                   type="button"
                   onClick={() => {
@@ -186,10 +186,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
             </div>
 
             {/* Scrollable Body */}
-            <div className="px-6 py-2 overflow-y-auto space-y-4 flex-1">
+            <div className="px-3.5 sm:px-6 py-2 overflow-y-auto space-y-3 sm:space-y-4 flex-1">
               {/* Pricing Plan Selector */}
               {!isSubscribed && (
-                <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-1">
                   {/* Annual Plan (Best Value) */}
                   <button
                     type="button"
@@ -197,21 +197,21 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                       playClick();
                       setSelectedPlan('annual');
                     }}
-                    className={`relative p-3.5 rounded-3xl border-3 text-left transition-all cursor-pointer ${
+                    className={`relative p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 text-left transition-all cursor-pointer ${
                       selectedPlan === 'annual'
                         ? 'border-[#FF9F43] bg-[#FFFBF0] shadow-md -translate-y-0.5'
                         : 'border-[#EBE8DC] bg-white hover:border-[#FFD93D]'
                     }`}
                   >
-                    <div className="absolute -top-3 right-3 bg-gradient-to-r from-[#FF6B6B] to-[#FA8231] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow-xs uppercase">
+                    <div className="absolute -top-2.5 right-3 bg-gradient-to-r from-[#FF6B6B] to-[#FA8231] text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs uppercase">
                       Save 60% • Most Popular
                     </div>
-                    <span className="block font-black text-sm text-[#2D3436]">Annual Pass</span>
-                    <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-xl sm:text-2xl font-black text-[#2D3436]">₹499</span>
-                      <span className="text-xs font-bold text-[#888]">/ year</span>
+                    <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Annual Pass</span>
+                    <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹499</span>
+                      <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ year</span>
                     </div>
-                    <span className="block text-[11px] font-black text-[#10B981] mt-1">
+                    <span className="block text-[10px] sm:text-[11px] font-black text-[#10B981] mt-0.5 sm:mt-1">
                       ✨ 15-Day Free Trial Included
                     </span>
                   </button>
@@ -223,18 +223,18 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                       playClick();
                       setSelectedPlan('monthly');
                     }}
-                    className={`relative p-3.5 rounded-3xl border-3 text-left transition-all cursor-pointer ${
+                    className={`relative p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 text-left transition-all cursor-pointer ${
                       selectedPlan === 'monthly'
                         ? 'border-[#4D96FF] bg-[#F4F9FF] shadow-md -translate-y-0.5'
                         : 'border-[#EBE8DC] bg-white hover:border-[#4D96FF]'
                     }`}
                   >
-                    <span className="block font-black text-sm text-[#2D3436]">Monthly Pass</span>
-                    <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-xl sm:text-2xl font-black text-[#2D3436]">₹99</span>
-                      <span className="text-xs font-bold text-[#888]">/ mo</span>
+                    <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Monthly Pass</span>
+                    <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹99</span>
+                      <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ mo</span>
                     </div>
-                    <span className="block text-[11px] font-semibold text-[#888] mt-1">
+                    <span className="block text-[10px] sm:text-[11px] font-semibold text-[#888] mt-0.5 sm:mt-1">
                       Billed monthly • Cancel anytime
                     </span>
                   </button>
