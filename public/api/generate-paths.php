@@ -130,11 +130,12 @@ $finalOutput = null;
 // Helper: Try OpenRouter
 if ($openRouterApiKey) {
     $activeModels = [
-        "openrouter/free",
+        "google/gemini-2.5-flash:free",
+        "google/gemini-2.0-flash-exp:free",
         "meta-llama/llama-3.3-70b-instruct:free",
         "mistralai/mistral-small-24b-instruct-2501:free",
         "openai/gpt-4o-mini:free",
-        "google/gemini-2.5-flash:free",
+        "openrouter/free",
         "openrouter/auto",
     ];
 
