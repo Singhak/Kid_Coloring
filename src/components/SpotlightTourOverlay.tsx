@@ -29,7 +29,7 @@ interface SpotlightTourOverlayProps {
 const TOUR_STEPS: TourStep[] = [
   {
     targetId: 'tour-nav-brand',
-    title: 'Welcome to KidColor! 🎨',
+    title: 'Welcome to Coloro! 🎨',
     content: 'Switch between our 100+ Drawing Library and your interactive Coloring Canvas anytime with one tap.',
     position: 'bottom',
     actionHint: 'Tap "Library" or "Coloring Canvas" to switch modes.'

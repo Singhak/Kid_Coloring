@@ -151,19 +151,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               playClick();
               setShowTemplates(true);
             }}
-            className="flex items-center gap-1.5 sm:gap-2.5 group cursor-pointer focus:outline-none shrink-0"
+            className="flex items-center gap-1.5 sm:gap-2 group cursor-pointer focus:outline-none shrink-0"
+            title="Coloro: Kids Digital Art Studio"
           >
-            <div className="w-8 h-8 sm:w-11 sm:h-11 bg-gradient-to-tr from-[#FF6B6B] via-[#FFD93D] to-[#4D96FF] rounded-2xl flex items-center justify-center shadow-md transform -rotate-3 group-hover:rotate-6 transition-transform shrink-0">
-              <Palette className="text-white w-4 h-4 sm:w-6 sm:h-6 drop-shadow-sm" />
-            </div>
-            <div className="text-left">
-              <span className="text-lg sm:text-2xl font-black tracking-tight text-[#2D3436] font-display flex items-center">
-                Kid<span className="text-[#FF6B6B]">Color</span>
-                <span className="text-xs font-bold px-2 py-0.5 ml-1.5 bg-[#FFD93D]/30 text-[#E67E22] rounded-full hidden sm:inline-flex items-center whitespace-nowrap">
-                  ✨ Magic Studio
-                </span>
-              </span>
-            </div>
+            <img
+              src="/coloro-web-logo.png"
+              alt="Coloro - Kids Digital Art Studio"
+              className="h-8 sm:h-10 md:h-11 w-auto object-contain drop-shadow-xs group-hover:scale-105 group-active:scale-95 transition-transform duration-200"
+            />
           </button>
 
           {/* Mobile Back to Active Canvas button (Shown when browsing Library on mobile) */}

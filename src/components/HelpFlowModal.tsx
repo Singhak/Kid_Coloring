@@ -609,7 +609,7 @@ export const HelpFlowModal: React.FC<HelpFlowModalProps> = ({
               </div>
               <div>
                 <h2 className="text-lg sm:text-xl font-black text-[#2D3436] font-display flex items-center gap-1.5">
-                  KidColor <span className="text-[#FF6B6B]">Help Flow</span>
+                  Coloro <span className="text-[#FF6B6B]">Help Flow</span>
                   <span className="text-[10px] font-black px-2 py-0.5 bg-[#FF6B6B]/15 text-[#D63031] rounded-full">
                     Studio Guide
                   </span>

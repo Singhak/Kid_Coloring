@@ -85,7 +85,7 @@ const FAQS = [
   },
   {
     q: 'Is it completely safe and ad-free for young children?',
-    a: 'Yes! KidColor is designed with strict child-safety standards. There are zero third-party ads, no external tracking, and purchases are protected behind a parental math challenge gate.'
+    a: 'Yes! Coloro is designed with strict child-safety standards. There are zero third-party ads, no external tracking, and purchases are protected behind a parental math challenge gate.'
   }
 ];
 
@@ -153,7 +153,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
           <h1 className="text-3xl sm:text-5xl font-black text-[#2D3436] tracking-tight font-display">
             Why Thousands of Parents <br />
             <span className="bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] bg-clip-text text-transparent">
-              Upgrade to KidColor VIP
+              Upgrade to Coloro VIP
             </span>
           </h1>
 
@@ -399,7 +399,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
               Frequently Asked Questions
             </h2>
             <p className="text-xs sm:text-sm text-[#888] font-bold">
-              Everything you need to know about KidColor VIP Pass
+              Everything you need to know about Coloro VIP Pass
             </p>
           </div>
 

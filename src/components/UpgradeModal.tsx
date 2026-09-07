@@ -29,7 +29,7 @@ interface UpgradeModalProps {
   trialEndDate: Date | null;
   isSubscribed: boolean;
   handleLogin: () => void;
-  handleSubscribe: () => void;
+  handleSubscribe: (plan?: 'annual' | 'monthly') => void;
   onOpenPricingPage?: () => void;
 }
 
@@ -95,7 +95,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
     if (parseInt(gateAnswer.trim(), 10) === gateNum1 + gateNum2) {
       playPop();
       setShowParentGate(false);
-      handleSubscribe();
+      handleSubscribe(selectedPlan);
     } else {
       setGateError(true);
       playPop(200);
@@ -140,7 +140,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
             <div className="bg-gradient-to-b from-[#FFF8D6] via-[#FFFDF5] to-white p-4 sm:p-6 pb-2 pt-4 sm:pt-6 text-center relative shrink-0">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFD93D]/30 border border-[#FFD93D] rounded-full text-[#8C5B00] text-xs font-black mb-1.5">
                 <Sparkles className="w-3.5 h-3.5 fill-current" />
-                <span>KIDCOLOR MAGIC VIP PASS</span>
+                <span>COLORO MAGIC VIP PASS</span>
               </div>
 
               <h2 className="text-xl sm:text-3xl font-black text-[#2D3436] font-display">
@@ -398,6 +398,10 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     <span className="flex items-center gap-1">
                       <HeartHandshake className="w-3.5 h-3.5 text-[#4D96FF]" /> Cancel Anytime
                     </span>
+                  </div>
+
+                  <div className="mt-2 text-[10px] text-center text-[#8C7A58] bg-[#FFFBF0] py-1 px-3 rounded-full border border-[#FFF2B2]/80 flex items-center justify-center gap-1.5 font-semibold">
+                    <span>🔒 Secured by Cashfree (UPI, GPay, PhonePe, Cards, NetBanking)</span>
                   </div>
 
                   {onOpenPricingPage && (
