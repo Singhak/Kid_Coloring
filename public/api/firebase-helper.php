@@ -48,22 +48,40 @@ const FIRESTORE_NOW = '__FIRESTORE_NOW__';
 /**
  * Load and validate the Firebase Service Account JSON.
  *
- * Search order:
- *   1. $env['FIREBASE_SERVICE_ACCOUNT_JSON'] — path configured in .env
- *   2. getenv('FIREBASE_SERVICE_ACCOUNT_JSON') — server environment variable
- *   3. __DIR__ . '/firebase-service-account.json' — same dir as this file
- *   4. dirname(__DIR__) . '/firebase-service-account.json' — parent of /api
+ * Auto-discovery search order (first valid file wins):
+ *   1. $env['FIREBASE_SERVICE_ACCOUNT_JSON'] path (explicit override in .env)
+ *   2. FIREBASE_SERVICE_ACCOUNT_JSON server environment variable (.htaccess SetEnv)
+ *   3. Same directory as this file:  /public/api/firebase-service-account.json
+ *   4. Parent of /api/:              /public/firebase-service-account.json
+ *   5. Project root (2 levels up):   /firebase-service-account.json  ← local dev
+ *   6. Above public_html (3 levels): /home/user/firebase-service-account.json ← Hostinger
+ *
+ * On Hostinger the typical structure is:
+ *   /home/u123456789/public_html/api/firebase-helper.php  → __DIR__
+ *   /home/u123456789/public_html/                          → dirname(__DIR__)
+ *   /home/u123456789/                                      → dirname(dirname(__DIR__))  ✓ safe
  *
  * @param  array  $env  Parsed .env key-value pairs (may be empty)
  * @return array|null   Parsed service account data, or null if not found/invalid
  */
 function firebaseLoadServiceAccount(array $env = []): ?array
 {
+    $apiDir     = __DIR__;                           // /…/public/api
+    $publicDir  = dirname($apiDir);                  // /…/public
+    $projectDir = dirname($publicDir);               // /…/  (project root — local dev)
+    $homeDir    = dirname($projectDir);              // /home/user/ (Hostinger home dir)
+
     $paths = [
-        $env['FIREBASE_SERVICE_ACCOUNT_JSON']        ?? null,
-        getenv('FIREBASE_SERVICE_ACCOUNT_JSON')       ?: null,
-        __DIR__ . '/firebase-service-account.json',
-        dirname(__DIR__) . '/firebase-service-account.json',
+        // 1. Explicit path from .env or server env var (highest priority)
+        $env['FIREBASE_SERVICE_ACCOUNT_JSON']   ?? null,
+        getenv('FIREBASE_SERVICE_ACCOUNT_JSON') ?: null,
+        // 2. Relative to the PHP files (convenient for dev/testing)
+        $apiDir    . '/firebase-service-account.json',
+        $publicDir . '/firebase-service-account.json',
+        // 3. Project root — where the file lives in local development
+        $projectDir . '/firebase-service-account.json',
+        // 4. Above public_html — safe private location on Hostinger
+        $homeDir . '/firebase-service-account.json',
     ];
 
     foreach ($paths as $path) {

@@ -15,8 +15,9 @@
     Options +FollowSymLinks
 </IfModule>
 
-# Block direct web access to sensitive files (.env, logs, git, config, archives, internal logger)
-<FilesMatch "(^\.env|\.env\..*|\.log$|\.sql$|\.bak$|\.rar$|\.zip$|\.git.*|composer\.(json|lock)|package(-lock)?\.json|\.htaccess$|^logger\.php$)">
+# Block direct web access to sensitive files (.env, logs, git, config, archives, internal logger,
+# and Firebase service account private key JSON)
+<FilesMatch "(^\.env|\.env\..*|\.log$|\.sql$|\.bak$|\.rar$|\.zip$|\.git.*|composer\.(json|lock)|package(-lock)?\.json|\.htaccess$|^logger\.php$|^firebase-helper\.php$|^firebase-service-account\.json$)">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -84,6 +85,14 @@
     # --------------------------------------------------------------------------
     # SetEnv OPENROUTER_API_KEY "your_openrouter_api_key_here"
     # SetEnv GEMINI_API_KEY "your_gemini_api_key_here"
+
+    # --------------------------------------------------------------------------
+    # Firebase Server-side Credentials (PHP backend → Firestore writes)
+    # --------------------------------------------------------------------------
+    # Absolute path to the Service Account JSON file on the server.
+    # On Hostinger it's typically: /home/uXXXXXXXXX/domains/coloro.in/firebase-service-account.json
+    # SetEnv FIREBASE_SERVICE_ACCOUNT_JSON "/home/uXXXXXXXXX/domains/coloro.in/firebase-service-account.json"
+    SetEnv FIREBASE_PROJECT_ID "kidscoloro"
 </IfModule>
 
 # ------------------------------------------------------------------------------
