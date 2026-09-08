@@ -51,17 +51,163 @@ export const COLOR_METADATA: Record<string, ColorInfo> = {
 export const COLORS_LEFT = COLORS.slice(0, 9);
 export const COLORS_RIGHT = COLORS.slice(9);
 
-export const PRO_COLORS = [
-  '#FFD1DC', '#FFB7CE', '#FF91AF', '#FF69B4', '#FF1493', // Pinks
-  '#E6E6FA', '#D8BFD8', '#DDA0DD', '#EE82EE', '#DA70D6', // Purples
-  '#AFEEEE', '#7FFFD4', '#40E0D0', '#48D1CC', '#00CED1', // Teals/Cyans
-  '#F0E68C', '#BDB76B', '#DAA520', '#B8860B', '#8B4513', // Golds/Browns
-  '#98FB98', '#90EE90', '#00FA9A', '#00FF7F', '#3CB371', // Greens
-  '#FFA07A', '#FA8072', '#E9967A', '#F08080', '#CD5C5C', // Salmons/Reds
-  '#F5DEB3', '#DEB887', '#D2B48C', '#BC8F8F', '#A0522D', // Skin tones/Earth
-  '#B0C4DE', '#ADD8E6', '#87CEEB', '#87CEFA', '#00BFFF', // Light blues
-  '#D3D3D3', '#A9A9A9', '#696969', '#808080', '#000000', '#FFFFFF', // Grays/Black/White
+export interface MagicColorItem {
+  hex: string;
+  name: string;
+  emoji: string;
+  category: MagicColorCategory;
+}
+
+export type MagicColorCategory = 
+  | 'all' 
+  | 'pastels' 
+  | 'neons' 
+  | 'ocean' 
+  | 'nature' 
+  | 'sunset' 
+  | 'skin' 
+  | 'berries' 
+  | 'monochrome'
+  | 'patterns';
+
+export const MAGIC_PALETTE_CATEGORIES: { id: MagicColorCategory; label: string; icon: string }[] = [
+  { id: 'all', label: 'All Shades', icon: '🌟' },
+  { id: 'pastels', label: 'Pastels', icon: '🍬' },
+  { id: 'neons', label: 'Neons', icon: '⚡' },
+  { id: 'ocean', label: 'Ocean & Sky', icon: '🌊' },
+  { id: 'nature', label: 'Nature', icon: '🌿' },
+  { id: 'sunset', label: 'Sunset & Warm', icon: '🌅' },
+  { id: 'skin', label: 'Skin & Earth', icon: '🧸' },
+  { id: 'berries', label: 'Royals & Berry', icon: '👑' },
+  { id: 'monochrome', label: 'Monochrome', icon: '🪨' },
+  { id: 'patterns', label: 'Magic Patterns', icon: '✨' },
 ];
+
+export const MAGIC_COLORS: MagicColorItem[] = [
+  // ===================== SWEET PASTELS =====================
+  { hex: '#FFE5EC', name: 'Cotton Candy', emoji: '🍬', category: 'pastels' },
+  { hex: '#FFC2D1', name: 'Sugar Blossom', emoji: '🌸', category: 'pastels' },
+  { hex: '#FFD1DC', name: 'Baby Blush', emoji: '🎀', category: 'pastels' },
+  { hex: '#FFB7CE', name: 'Princess Pink', emoji: '💖', category: 'pastels' },
+  { hex: '#FF91AF', name: 'Cupcake Pink', emoji: '🧁', category: 'pastels' },
+  { hex: '#FFEAA7', name: 'Banana Cream', emoji: '🍌', category: 'pastels' },
+  { hex: '#FEF9E7', name: 'Buttercup Cream', emoji: '🧈', category: 'pastels' },
+  { hex: '#E8F5E9', name: 'Mint Frost', emoji: '🍃', category: 'pastels' },
+  { hex: '#D4EDDA', name: 'Pistachio Mist', emoji: '🍦', category: 'pastels' },
+  { hex: '#E0F7FA', name: 'Soft Cloud Sky', emoji: '☁️', category: 'pastels' },
+  { hex: '#D0E8FF', name: 'Baby Bluebell', emoji: '🩵', category: 'pastels' },
+  { hex: '#E6E6FA', name: 'Lavender Cloud', emoji: '🪻', category: 'pastels' },
+  { hex: '#F3E8FF', name: 'Fairy Lilac', emoji: '🧚', category: 'pastels' },
+  { hex: '#FFE0B2', name: 'Peach Sherbet', emoji: '🍑', category: 'pastels' },
+
+  // ===================== NEONS & BRIGHTS =====================
+  { hex: '#FF007F', name: 'Electric Pink', emoji: '💖', category: 'neons' },
+  { hex: '#FF1493', name: 'Deep Magenta', emoji: '💅', category: 'neons' },
+  { hex: '#FF69B4', name: 'Hot Bubblegum', emoji: '🌺', category: 'neons' },
+  { hex: '#FF3366', name: 'Neon Raspberry', emoji: '🍓', category: 'neons' },
+  { hex: '#FF5E00', name: 'Blazing Orange', emoji: '🔥', category: 'neons' },
+  { hex: '#FFD000', name: 'Laser Lemon', emoji: '🍋', category: 'neons' },
+  { hex: '#CCFF00', name: 'Radioactive Lime', emoji: '🧪', category: 'neons' },
+  { hex: '#00FF66', name: 'Cyber Green', emoji: '⚡', category: 'neons' },
+  { hex: '#00F0FF', name: 'Neon Cyan', emoji: '💎', category: 'neons' },
+  { hex: '#00BFFF', name: 'Deep Electric Blue', emoji: '⚡', category: 'neons' },
+  { hex: '#7928CA', name: 'Ultraviolet', emoji: '👾', category: 'neons' },
+
+  // ===================== OCEAN & SKY =====================
+  { hex: '#B0E0E6', name: 'Powder Ice', emoji: '🧊', category: 'ocean' },
+  { hex: '#AFEEEE', name: 'Pale Turquoise', emoji: '🩵', category: 'ocean' },
+  { hex: '#7FFFD4', name: 'Aquamarine', emoji: '💎', category: 'ocean' },
+  { hex: '#87CEEB', name: 'Sky Breeze', emoji: '🌤️', category: 'ocean' },
+  { hex: '#87CEFA', name: 'Arctic Blue', emoji: '🌬️', category: 'ocean' },
+  { hex: '#ADD8E6', name: 'Baby Sea Blue', emoji: '🫧', category: 'ocean' },
+  { hex: '#B0C4DE', name: 'Light Steel Blue', emoji: '🕊️', category: 'ocean' },
+  { hex: '#00CED1', name: 'Aqua Splash', emoji: '🐬', category: 'ocean' },
+  { hex: '#40E0D0', name: 'Tropical Lagoon', emoji: '🏝️', category: 'ocean' },
+  { hex: '#48D1CC', name: 'Caribbean Teal', emoji: '🪸', category: 'ocean' },
+  { hex: '#20B2AA', name: 'Sea Foam', emoji: '🐠', category: 'ocean' },
+  { hex: '#1E90FF', name: 'Dodger Wave', emoji: '🌊', category: 'ocean' },
+  { hex: '#4169E1', name: 'Royal Sapphire', emoji: '👑', category: 'ocean' },
+  { hex: '#191970', name: 'Midnight Abyss', emoji: '🌌', category: 'ocean' },
+
+  // ===================== FOREST & NATURE =====================
+  { hex: '#A8E6CF', name: 'Fresh Sprout', emoji: '🌱', category: 'nature' },
+  { hex: '#98FB98', name: 'Spring Meadow', emoji: '🍀', category: 'nature' },
+  { hex: '#90EE90', name: 'Crisp Apple', emoji: '🍏', category: 'nature' },
+  { hex: '#00FA9A', name: 'Mint Leaf', emoji: '🌿', category: 'nature' },
+  { hex: '#00FF7F', name: 'Lucky Clover', emoji: '☘️', category: 'nature' },
+  { hex: '#3CB371', name: 'Jungle Vine', emoji: '🌴', category: 'nature' },
+  { hex: '#2E8B57', name: 'Sea Fern', emoji: '🌲', category: 'nature' },
+  { hex: '#228B22', name: 'Forest Pine', emoji: '🌳', category: 'nature' },
+  { hex: '#556B2F', name: 'Olive Moss', emoji: '🫒', category: 'nature' },
+  { hex: '#8FBC8F', name: 'Soft Sage', emoji: '🍃', category: 'nature' },
+  { hex: '#BDB76B', name: 'Autumn Foliage', emoji: '🍂', category: 'nature' },
+  { hex: '#006400', name: 'Deep Woodland', emoji: '🌲', category: 'nature' },
+
+  // ===================== SUNSET & WARM =====================
+  { hex: '#FF4D4D', name: 'Candy Apple', emoji: '🍎', category: 'sunset' },
+  { hex: '#E63946', name: 'Crimson Glow', emoji: '❤️', category: 'sunset' },
+  { hex: '#CD5C5C', name: 'Coral Red', emoji: '🍁', category: 'sunset' },
+  { hex: '#F08080', name: 'Soft Coral', emoji: '🪸', category: 'sunset' },
+  { hex: '#FA8072', name: 'Salmon Splash', emoji: '🐟', category: 'sunset' },
+  { hex: '#E9967A', name: 'Warm Terracotta Glow', emoji: '🧱', category: 'sunset' },
+  { hex: '#FFA07A', name: 'Light Peach', emoji: '🍑', category: 'sunset' },
+  { hex: '#FF7F50', name: 'Sunset Coral', emoji: '🌅', category: 'sunset' },
+  { hex: '#FF8C00', name: 'Tangerine Sun', emoji: '🍊', category: 'sunset' },
+  { hex: '#FFA500', name: 'Sunrise Amber', emoji: '☀️', category: 'sunset' },
+  { hex: '#FFD700', name: 'Golden Sparkle', emoji: '✨', category: 'sunset' },
+  { hex: '#F0E68C', name: 'Khaki Yellow', emoji: '🌾', category: 'sunset' },
+  { hex: '#DAA520', name: 'Honey Gold', emoji: '🍯', category: 'sunset' },
+
+  // ===================== SKIN & EARTH TONES =====================
+  { hex: '#FFF0E5', name: 'Fair Ivory', emoji: '🤍', category: 'skin' },
+  { hex: '#FFE0BD', name: 'Peachy Glow', emoji: '🍑', category: 'skin' },
+  { hex: '#FCD5B5', name: 'Warm Biscuit', emoji: '🍪', category: 'skin' },
+  { hex: '#F5DEB3', name: 'Warm Almond', emoji: '🌾', category: 'skin' },
+  { hex: '#DEB887', name: 'Golden Sand', emoji: '🏖️', category: 'skin' },
+  { hex: '#D2B48C', name: 'Warm Tan', emoji: '🪵', category: 'skin' },
+  { hex: '#C68642', name: 'Honey Amber', emoji: '🍯', category: 'skin' },
+  { hex: '#BC8F8F', name: 'Rosewood Clay', emoji: '🏺', category: 'skin' },
+  { hex: '#A0522D', name: 'Roasted Chestnut', emoji: '🌰', category: 'skin' },
+  { hex: '#8B4513', name: 'Chocolate Teddy', emoji: '🧸', category: 'skin' },
+  { hex: '#5C3317', name: 'Dark Mocha', emoji: '🍫', category: 'skin' },
+  { hex: '#3B2219', name: 'Rich Espresso', emoji: '☕', category: 'skin' },
+
+  // ===================== ROYALS & BERRIES =====================
+  { hex: '#D8BFD8', name: 'Thistle Blossom', emoji: '🪻', category: 'berries' },
+  { hex: '#DDA0DD', name: 'Sweet Plum', emoji: '🫐', category: 'berries' },
+  { hex: '#EE82EE', name: 'Violet Petal', emoji: '🌸', category: 'berries' },
+  { hex: '#DA70D6', name: 'Orchid Bloom', emoji: '🌺', category: 'berries' },
+  { hex: '#BA55D3', name: 'Medium Orchid', emoji: '🍇', category: 'berries' },
+  { hex: '#9932CC', name: 'Dark Orchid', emoji: '🔮', category: 'berries' },
+  { hex: '#8A2BE2', name: 'Blue Violet', emoji: '💜', category: 'berries' },
+  { hex: '#4B0082', name: 'Royal Indigo', emoji: '🌌', category: 'berries' },
+  { hex: '#4A0E4E', name: 'Blackcurrant', emoji: '🍇', category: 'berries' },
+
+  // ===================== MONOCHROME & METALS =====================
+  { hex: '#F8F9FA', name: 'Pearl White', emoji: '🦪', category: 'monochrome' },
+  { hex: '#E5E7EB', name: 'Mist White', emoji: '🌫️', category: 'monochrome' },
+  { hex: '#A9A9A9', name: 'Slate Gray', emoji: '🪨', category: 'monochrome' },
+  { hex: '#696969', name: 'Dim Pebble', emoji: '🩶', category: 'monochrome' },
+  { hex: '#374151', name: 'Charcoal Night', emoji: '🌑', category: 'monochrome' },
+  { hex: '#1F2937', name: 'Shadow Obsidian', emoji: '🖤', category: 'monochrome' },
+  { hex: '#B8860B', name: 'Antique Bronze', emoji: '🥉', category: 'monochrome' },
+  { hex: '#C5A059', name: 'Champagne Gold', emoji: '🥂', category: 'monochrome' },
+];
+
+// Array of all pro hex colors (for backwards compatibility and flat iteration)
+export const PRO_COLORS: string[] = MAGIC_COLORS.map((c) => c.hex);
+
+// Populate COLOR_METADATA with every magic color (both upper and lower case)
+MAGIC_COLORS.forEach((item) => {
+  const upper = item.hex.toUpperCase();
+  const lower = item.hex.toLowerCase();
+  if (!COLOR_METADATA[upper]) {
+    COLOR_METADATA[upper] = { name: item.name, emoji: item.emoji };
+  }
+  if (!COLOR_METADATA[lower]) {
+    COLOR_METADATA[lower] = { name: item.name, emoji: item.emoji };
+  }
+});
 
 export const CATEGORIES: Category[] = [
   { id: 'random', label: 'All Magic', icon: Sparkles, color: '#FFD93D', emoji: '✨' },
