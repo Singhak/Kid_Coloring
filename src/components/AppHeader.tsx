@@ -346,6 +346,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               {onToggleColorByNumber && (
                 <button
                   onClick={() => {
+                    if (!isPro) {
+                      playChime();
+                      setShowUpgradeModal(true);
+                      return;
+                    }
                     playClick();
                     onToggleColorByNumber();
                   }}
@@ -354,11 +359,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
                       : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
                   }`}
-                  title="Toggle Educational Color-by-Number Learning Mode"
+                  title={isPro ? "Toggle Educational Color-by-Number Learning Mode" : "VIP Superpower: Color-by-Number Mode"}
                 >
                   <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
                   <span className="hidden md:inline">Numbers</span>
-                  <span className="text-[10px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+                  {!isPro ? (
+                    <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
+                      <Crown className="w-2.5 h-2.5 fill-current" />
+                      <span>VIP</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+                  )}
                 </button>
               )}
 
@@ -771,6 +783,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {onToggleColorByNumber && (
             <button
               onClick={() => {
+                if (!isPro) {
+                  playChime();
+                  setShowUpgradeModal(true);
+                  return;
+                }
                 playClick();
                 onToggleColorByNumber();
               }}
@@ -779,11 +796,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
                   : 'bg-white text-[#636E72] border border-[#EBE8DC]'
               }`}
-              title="Toggle Color-by-Number Learning Mode"
+              title={isPro ? "Toggle Color-by-Number Learning Mode" : "VIP Superpower: Color-by-Number Mode"}
             >
               <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
               <span>123</span>
-              <span className="text-[9px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+              {!isPro ? (
+                <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[8px] font-black px-1 py-0.2 rounded-full shadow-2xs">
+                  <Crown className="w-2 h-2 fill-current" />
+                </span>
+              ) : (
+                <span className="text-[9px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+              )}
             </button>
           )}
 

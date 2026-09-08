@@ -39,6 +39,7 @@ export interface Template {
   }[];
   imageUrl?: string;
   previewSvg?: string;
+  isVip?: boolean;
 }
 
 export interface ViewportTransform {
