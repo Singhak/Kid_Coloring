@@ -303,6 +303,8 @@ export const recordOrderSuccessInFirestore = async (
   const endDate = new Date(now.getTime() + durationMs);
 
   // 1. Idempotency Check: try to read existing order — skip gracefully if denied
+  // NOTE: The PHP backend (service account) is the authoritative writer for orders.
+  // Client only reads here to detect if the order was already processed server-side.
   try {
     const orderSnap = await getDoc(orderRef);
     if (orderSnap.exists() && orderSnap.data()?.status === 'paid') {
@@ -315,31 +317,13 @@ export const recordOrderSuccessInFirestore = async (
       };
     }
   } catch (readErr: any) {
-    // Firestore may deny read if doc doesn't exist yet under certain rules —
-    // safe to skip idempotency check and proceed to write
+    // Firestore rules may deny the read — safe to skip and proceed to user update
     console.warn('recordOrderSuccessInFirestore: getDoc skipped:', readErr?.message);
   }
 
-  // 2. Atomically write order document keyed strictly on order_id
-  await setDoc(
-    orderRef,
-    {
-      orderId,
-      userId,
-      gateway: 'cashfree',
-      planType: effectivePlan,
-      amount: effectiveAmount,
-      currency: 'INR',
-      status: 'paid',
-      paymentId: paymentDetails?.payment_id || `${orderId}_cf`,
-      paymentMethod: (typeof paymentDetails?.payment_method === 'string' ? paymentDetails.payment_method : 'cashfree'),
-      subscriptionStartDate: serverTimestamp(),
-      subscriptionEndDate: Timestamp.fromDate(endDate),
-      createdAt: serverTimestamp(),
-      processedAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  // 2. Order document is written by the PHP backend (service account) which bypasses
+  // Firestore security rules. Clients are blocked from writing status:'paid' by rules,
+  // so we do NOT attempt to write the order document here.
 
   // 3. Update User Profile with VIP Subscription
   const userRef = doc(db, 'users', userId);

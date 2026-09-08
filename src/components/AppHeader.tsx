@@ -215,8 +215,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 </button>
               </div>
 
-              {/* Why VIP Button */}
-              {onOpenPricingPage && (
+              {/* Why VIP Button — only for non-subscribers */}
+              {onOpenPricingPage && !isSubscribed && (
                 <button
                   onClick={() => {
                     playClick();
@@ -492,7 +492,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   <div className="p-3 bg-[#FAF8EF] rounded-2xl mb-2">
                     <p className="text-sm font-black text-[#2D3436] truncate">{user.displayName || 'Little Artist'}</p>
                     <p className="text-xs text-[#888] truncate">{user.email}</p>
-                    {isTrialActive && (
+                    {isTrialActive && !isSubscribed && (
                       <div className="mt-2 px-2.5 py-1 bg-[#FFF2B2] text-[#8C5B00] text-[11px] font-black rounded-lg flex items-center gap-1">
                         <Sparkles className="w-3 h-3 text-[#FF9F43] shrink-0" />
                         <span>15-Day Trial: {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} left</span>
@@ -500,7 +500,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     )}
                     {isSubscribed && (
                       <span className="inline-block mt-2 px-2 py-0.5 bg-[#D4EDDA] text-[#155724] text-[11px] font-bold rounded-lg">
-                        👑 Magic Explorer Active
+                        👑 Magic VIP Active
                       </span>
                     )}
                   </div>
