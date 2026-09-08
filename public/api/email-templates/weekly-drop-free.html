@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New Weekly Drawing Dropped on Coloro! 🌟</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Nunito','Segoe UI',Arial,sans-serif;background:#FAF8F5;color:#2D3436}
+    .wrap{max-width:600px;margin:0 auto;padding:24px 16px;background:#FAF8F5}
+
+    /* ── Header ── */
+    .header{background:linear-gradient(135deg,#6C5CE7 0%,#a29bfe 50%,#74b9ff 100%);border-radius:28px 28px 0 0;padding:48px 32px 40px;text-align:center;position:relative;overflow:hidden}
+    .header::before{content:'🎨';position:absolute;top:16px;left:24px;font-size:28px;opacity:.6}
+    .header::after{content:'⭐';position:absolute;bottom:16px;right:24px;font-size:28px;opacity:.6}
+
+    .header-badge{display:inline-block;background:rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;padding:5px 18px;border-radius:100px;border:1.5px solid rgba(255,255,255,.4);margin-bottom:14px}
+    .header h1{color:#fff;font-size:30px;font-weight:900;line-height:1.25;text-shadow:0 2px 10px rgba(0,0,0,.15);margin-bottom:8px}
+    .header p{color:rgba(255,255,255,.95);font-size:16px;font-weight:700}
+
+    /* ── Body ── */
+    .body{background:#fff;padding:36px 32px;border-left:1px solid #EBE8DC;border-right:1px solid #EBE8DC}
+    .greeting{font-size:19px;font-weight:800;margin-bottom:14px;color:#2D3436}
+    .intro{font-size:15px;font-weight:600;color:#555;line-height:1.8;margin-bottom:28px}
+
+    /* ── Teaser Showcase Card ── */
+    .teaser-card{background:linear-gradient(135deg,#F8F4FF,#EEF2FF);border:2px solid #C4B5FD;border-radius:22px;padding:28px 24px;text-align:center;margin-bottom:30px;box-shadow:0 6px 20px rgba(196,181,253,.25)}
+    .teaser-badge{display:inline-block;background:#6C5CE7;color:#fff;font-size:11px;font-weight:900;padding:4px 14px;border-radius:100px;margin-bottom:14px;letter-spacing:1px}
+    .teaser-icon{font-size:56px;margin-bottom:12px;display:block}
+    .teaser-title{font-size:24px;font-weight:900;color:#2D3436;margin-bottom:8px}
+    .teaser-desc{font-size:15px;font-weight:600;color:#5E35B1;line-height:1.6;margin-bottom:18px}
+
+    /* Countdown Pill */
+    .countdown-pill{display:inline-block;background:rgba(255,165,2,.15);border:1px solid #FFA502;color:#C0392B;font-size:12px;font-weight:800;padding:6px 18px;border-radius:100px}
+
+    /* Trial Perks Box */
+    .trial-perks{background:#FAF9F5;border:1.5px dashed #EBE8DC;border-radius:18px;padding:20px;margin-bottom:28px;text-align:left}
+    .trial-perks-title{font-size:14px;font-weight:900;color:#2D3436;margin-bottom:10px;text-align:center}
+    .trial-item{font-size:13px;font-weight:700;color:#555;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+
+    /* CTA Button */
+    .cta-wrap{text-align:center;margin:28px 0 16px}
+    .cta-btn{display:inline-block;background:gradient(135deg,#FF6B6B 0%,#FA8231 50%,#FFD93D 100%);background:linear-gradient(135deg,#FF6B6B 0%,#FA8231 100%);color:#fff!important;text-decoration:none;font-size:17px;font-weight:900;padding:16px 40px;border-radius:100px;box-shadow:0 8px 24px rgba(255,107,107,.4);letter-spacing:.3px}
+    .guarantee{font-size:12px;color:#888;font-weight:700;margin-top:10px;text-align:center}
+
+    /* Footer */
+    .footer{background:#F7F5EC;border:1px solid #EBE8DC;border-top:none;border-radius:0 0 28px 28px;padding:24px 32px;text-align:center;font-size:12px;color:#999;line-height:1.8}
+    .footer a{color:#636E72;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">🚀 New Weekly Drop • Week #{{WEEK_NUMBER}}</div>
+      <h1>A New Drawing Just Landed! 🌟</h1>
+      <p>Explore this week's featured art release on Coloro.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Hi {{NAME}}! 👋</p>
+      <p class="intro">
+        Our illustrators have just finished this week's brand new coloring page! VIP members are already coloring it right now with full phonics guidance, AI tools, and unlimited A4 printing.
+      </p>
+
+      <!-- Teaser Card -->
+      <div class="teaser-card">
+        <span class="teaser-badge">🔒 VIP PRIORITY EARLY ACCESS</span>
+        <span class="teaser-icon">✨</span>
+        <h2 class="teaser-title">{{DRAWING_NAME}}</h2>
+        <p class="teaser-desc">{{DRAWING_DESC}}</p>
+        <span class="countdown-pill">⏳ Unlocks for Free users in {{DAYS_UNTIL_FREE}} days — Or Unlock Today With VIP</span>
+      </div>
+
+      <!-- Trial Perks Box -->
+      <div class="trial-perks">
+        <div class="trial-perks-title">What your child gets with the 15-Day Free Trial:</div>
+        <div class="trial-item">✅ <strong>Instant Access:</strong> Color &amp; print this week's drop today</div>
+        <div class="trial-item">✅ <strong>Full 26 Letters &amp; 10 Numbers:</strong> Complete educational library</div>
+        <div class="trial-item">✅ <strong>Photo to Coloring:</strong> Turn photos of pets &amp; kids into line art</div>
+        <div class="trial-item">✅ <strong>Unlimited A4 Sheets:</strong> Print crisp outlines for home crayons</div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-wrap">
+        <a href="{{TRIAL_URL}}" class="cta-btn">Unlock Now with 15-Day Free Trial 🚀</a>
+        <div class="guarantee">100% Kid-Safe • No Charge If Cancelled Before Trial Ends</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>You received this because you have a free artist account on <a href="{{APP_URL}}">Coloro.in</a>.</p>
+      <p>Keep creating! • <a href="{{UNSUBSCRIBE_URL}}">Unsubscribe from weekly drops</a></p>
+    </div>
+  </div>
+</body>
+</html>

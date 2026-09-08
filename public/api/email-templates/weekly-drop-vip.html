@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your New VIP Drawing Dropped: {{DRAWING_NAME}}! 🎨</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Nunito','Segoe UI',Arial,sans-serif;background:#FAF8F5;color:#2D3436}
+    .wrap{max-width:600px;margin:0 auto;padding:24px 16px;background:#FAF8F5}
+
+    /* ── Header ── */
+    .header{background:linear-gradient(135deg,#FF4757 0%,#FF9F43 50%,#FFD93D 100%);border-radius:28px 28px 0 0;padding:48px 32px 40px;text-align:center;position:relative;overflow:hidden}
+    .header::before{content:'✨';position:absolute;top:16px;left:24px;font-size:28px;opacity:.6}
+    .header::after{content:'🚀';position:absolute;bottom:16px;right:24px;font-size:28px;opacity:.6}
+
+    .header-badge{display:inline-block;background:rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;padding:5px 18px;border-radius:100px;border:1.5px solid rgba(255,255,255,.4);margin-bottom:14px}
+    .header h1{color:#fff;font-size:30px;font-weight:900;line-height:1.25;text-shadow:0 2px 10px rgba(0,0,0,.15);margin-bottom:8px}
+    .header p{color:rgba(255,255,255,.95);font-size:16px;font-weight:700}
+
+    /* ── Body ── */
+    .body{background:#fff;padding:36px 32px;border-left:1px solid #EBE8DC;border-right:1px solid #EBE8DC}
+    .greeting{font-size:19px;font-weight:800;margin-bottom:14px;color:#2D3436}
+    .intro{font-size:15px;font-weight:600;color:#555;line-height:1.8;margin-bottom:28px}
+
+    /* ── Drawing Showcase Card ── */
+    .drop-card{background:linear-gradient(135deg,#FFFDF0,#FFF8DE);border:2px solid #FFD93D;border-radius:22px;padding:28px 24px;text-align:center;margin-bottom:30px;box-shadow:0 6px 20px rgba(255,217,61,.18)}
+    .drop-badge{display:inline-block;background:#FF4757;color:#fff;font-size:12px;font-weight:900;padding:4px 14px;border-radius:100px;margin-bottom:14px;letter-spacing:1px}
+    .drop-icon{font-size:56px;margin-bottom:12px;display:block}
+    .drop-title{font-size:24px;font-weight:900;color:#2D3436;margin-bottom:8px}
+    .drop-desc{font-size:15px;font-weight:600;color:#7A4B00;line-height:1.6;margin-bottom:18px}
+
+    /* VIP Perks Pill */
+    .vip-perk-pill{display:inline-block;background:rgba(46,213,115,.15);border:1px solid #2ED573;color:#1B7A3E;font-size:12px;font-weight:800;padding:6px 16px;border-radius:100px}
+
+    /* Feature Grid */
+    .perks-grid{display:table;width:100%;margin-bottom:28px}
+    .perk-col{display:table-cell;width:33.33%;text-align:center;padding:12px 8px;vertical-align:top}
+    .perk-box{background:#FAF9F5;border:1px solid #EDEAE0;border-radius:14px;padding:14px 10px}
+    .perk-icon{font-size:24px;margin-bottom:6px;display:block}
+    .perk-title{font-size:12px;font-weight:800;color:#2D3436}
+    .perk-sub{font-size:11px;color:#888;font-weight:600;margin-top:2px}
+
+    /* CTA Button */
+    .cta-wrap{text-align:center;margin:32px 0 24px}
+    .cta-btn{display:inline-block;background:linear-gradient(135deg,#FF6B6B 0%,#FA8231 100%);color:#fff!important;text-decoration:none;font-size:17px;font-weight:900;padding:16px 44px;border-radius:100px;box-shadow:0 8px 24px rgba(255,107,107,.4);letter-spacing:.3px}
+
+    /* Footer */
+    .footer{background:#F7F5EC;border:1px solid #EBE8DC;border-top:none;border-radius:0 0 28px 28px;padding:24px 32px;text-align:center;font-size:12px;color:#999;line-height:1.8}
+    .footer a{color:#636E72;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">⭐ VIP Priority Drop • Week #{{WEEK_NUMBER}}</div>
+      <h1>Fresh Drawing Ready! 🎨</h1>
+      <p>Your child has early VIP priority access to this week's new art sheet.</p>
+    </div>
+
+    <!-- Body -->
+    <div class="body">
+      <p class="greeting">Hi {{NAME}}! 👋</p>
+      <p class="intro">
+        Every Monday, our design team drops a brand-new, educational vector coloring page exclusively for our VIP artists. This week's adventure is live right now in your Coloro Studio!
+      </p>
+
+      <!-- Drawing Showcase -->
+      <div class="drop-card">
+        <span class="drop-badge">🔥 NEW THIS WEEK</span>
+        <span class="drop-icon">🎨</span>
+        <h2 class="drop-title">{{DRAWING_NAME}}</h2>
+        <p class="drop-desc">{{DRAWING_DESC}}</p>
+        <span class="vip-perk-pill">✨ Included with your VIP Pass • Unlimited Printing & Digital Coloring</span>
+      </div>
+
+      <!-- Perks reminder -->
+      <div class="perks-grid">
+        <div class="perk-col">
+          <div class="perk-box">
+            <span class="perk-icon">📱</span>
+            <div class="perk-title">Digital Magic</div>
+            <div class="perk-sub">Glitter & flood fill</div>
+          </div>
+        </div>
+        <div class="perk-col">
+          <div class="perk-box">
+            <span class="perk-icon">🖨️</span>
+            <div class="perk-title">A4 Real Crayons</div>
+            <div class="perk-sub">1-Click crisp print</div>
+          </div>
+        </div>
+        <div class="perk-col">
+          <div class="perk-box">
+            <span class="perk-icon">🔢</span>
+            <div class="perk-title">Color by Number</div>
+            <div class="perk-sub">Guided learning</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-wrap">
+        <a href="{{APP_URL}}" class="cta-btn">Open Studio &amp; Color Now 🚀</a>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>You received this because you are an active VIP member on <a href="{{APP_URL}}">Coloro.in</a>.</p>
+      <p>Have fun coloring! • <a href="{{UNSUBSCRIBE_URL}}">Unsubscribe from weekly drops</a></p>
+    </div>
+  </div>
+</body>
+</html>
