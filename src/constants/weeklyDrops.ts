@@ -211,6 +211,114 @@ export const WEEKLY_DROPS: WeeklyDropInfo[] = [
         { id: 'car-stripe', d: 'M 300,580 L 760,580', strokeWidth: 5 }
       ]
     }
+  },
+  {
+    weekNumber: 7,
+    theme: 'Coral Reef Kingdom',
+    tagline: 'Friendly Dolphin & Starfish Palace',
+    description: 'Swim with happy ocean creatures! Color a joyful dolphin leaping over a colorful coral palace surrounded by floating bubbles and sea stars.',
+    template: {
+      id: 'drop-wk7-coral-dolphin',
+      name: 'Friendly Coral Dolphin',
+      category: 'animal',
+      difficulty: 'Medium',
+      isVip: true,
+      viewBox: '0 0 1000 1000',
+      paths: [
+        { id: 'dol-body', d: 'M 220,540 C 260,340 480,240 700,280 C 820,310 880,380 880,440 C 820,440 740,400 660,420 C 480,460 380,620 220,540 Z', strokeWidth: 7 },
+        { id: 'dol-snout', d: 'M 880,440 C 940,460 940,500 880,510 C 820,520 780,480 780,460 Z', strokeWidth: 6 },
+        { id: 'dol-fin-dorsal', d: 'M 540,260 C 580,180 640,160 670,180 C 650,230 630,265 600,270 Z', strokeWidth: 6 },
+        { id: 'dol-flipper', d: 'M 520,460 C 560,560 620,580 640,550 C 620,500 580,460 550,450 Z', strokeWidth: 6 },
+        { id: 'dol-fluke', d: 'M 220,540 C 140,500 100,440 100,420 C 140,460 180,500 210,530 C 180,560 140,600 100,640 C 100,620 140,560 220,540 Z', strokeWidth: 6 },
+        { id: 'dol-eye', d: 'M 760,420 m -10,0 a 10,10 0 1,0 20,0 a 10,10 0 1,0 -20,0 Z', strokeWidth: 4 },
+        { id: 'sea-wave-1', d: 'M 80,750 C 240,680 400,820 560,750 C 720,680 860,800 960,740', strokeWidth: 6 },
+        { id: 'sea-coral-l', d: 'M 150,960 L 170,820 C 200,800 240,840 220,960 Z', strokeWidth: 5 },
+        { id: 'sea-coral-r', d: 'M 780,960 L 800,800 C 840,780 880,820 860,960 Z', strokeWidth: 5 },
+        { id: 'sea-star', d: 'M 480,880 L 500,830 L 520,880 L 570,890 L 530,920 L 545,970 L 500,940 L 455,970 L 470,920 L 430,890 Z', strokeWidth: 5 }
+      ]
+    }
+  },
+  {
+    weekNumber: 8,
+    theme: 'Neon City Cyber World',
+    tagline: 'Cyber Robot & Flying Hovercars',
+    description: 'Explore the neon future! Color a friendly smiling robot explorer strolling through towering futuristic buildings and flying sky vehicles.',
+    template: {
+      id: 'drop-wk8-cyber-robot',
+      name: 'Neon City Cyber Robot',
+      category: 'object',
+      difficulty: 'Medium',
+      isVip: true,
+      viewBox: '0 0 1000 1000',
+      paths: [
+        { id: 'bot-head', d: 'M 350,220 L 650,220 L 650,440 L 350,440 Z', strokeWidth: 7 },
+        { id: 'bot-antenna', d: 'M 500,220 L 500,120 M 500,120 m -20,0 a 20,20 0 1,0 40,0 a 20,20 0 1,0 -40,0 Z', strokeWidth: 6 },
+        { id: 'bot-eye-l', d: 'M 430,320 m -30,0 a 30,30 0 1,0 60,0 a 30,30 0 1,0 -60,0 Z', strokeWidth: 5 },
+        { id: 'bot-eye-r', d: 'M 570,320 m -30,0 a 30,30 0 1,0 60,0 a 30,30 0 1,0 -60,0 Z', strokeWidth: 5 },
+        { id: 'bot-mouth', d: 'M 420,390 L 580,390 L 580,415 L 420,415 Z', strokeWidth: 4 },
+        { id: 'bot-neck', d: 'M 460,440 L 540,440 L 540,480 L 460,480 Z', strokeWidth: 6 },
+        { id: 'bot-body', d: 'M 320,480 L 680,480 L 650,780 L 350,780 Z', strokeWidth: 7 },
+        { id: 'bot-dial-box', d: 'M 400,540 L 600,540 L 600,680 L 400,680 Z', strokeWidth: 5 },
+        { id: 'bot-meter', d: 'M 430,610 A 70,70 0 0 1 570,610', strokeWidth: 5 },
+        { id: 'bot-arm-l', d: 'M 320,520 L 220,600 L 250,680', strokeWidth: 6 },
+        { id: 'bot-arm-r', d: 'M 680,520 L 780,600 L 750,680', strokeWidth: 6 },
+        { id: 'bot-leg-l', d: 'M 400,780 L 400,920 L 340,920 L 340,960 L 450,960 L 450,780 Z', strokeWidth: 6 },
+        { id: 'bot-leg-r', d: 'M 600,780 L 600,920 L 550,920 L 550,960 L 660,960 L 660,780 Z', strokeWidth: 6 }
+      ]
+    }
+  },
+  {
+    weekNumber: 9,
+    theme: 'Crystal Cavern Fantasy',
+    tagline: 'Friendly Dragon & Crystal Cave',
+    description: 'Enter the mystical glowing cavern! Color a cute baby dragon perched atop giant sparkling amethyst crystals and glowing mushrooms.',
+    template: {
+      id: 'drop-wk9-crystal-dragon',
+      name: 'Crystal Cavern Baby Dragon',
+      category: 'animal',
+      difficulty: 'Medium',
+      isVip: true,
+      viewBox: '0 0 1000 1000',
+      paths: [
+        { id: 'drg-head', d: 'M 420,240 C 420,150 580,150 620,220 C 660,290 600,380 500,380 C 430,380 410,310 420,240 Z', strokeWidth: 7 },
+        { id: 'drg-snout', d: 'M 580,240 C 680,250 720,320 620,360 Z', strokeWidth: 6 },
+        { id: 'drg-horn-l', d: 'M 460,180 L 420,90 L 490,160 Z', strokeWidth: 6 },
+        { id: 'drg-horn-r', d: 'M 550,180 L 580,90 L 570,165 Z', strokeWidth: 6 },
+        { id: 'drg-eye', d: 'M 520,260 m -16,0 a 16,16 0 1,0 32,0 a 16,16 0 1,0 -32,0 Z', strokeWidth: 5 },
+        { id: 'drg-body', d: 'M 440,380 C 340,460 320,680 440,780 C 580,800 660,700 620,540 C 590,440 520,380 440,380 Z', strokeWidth: 7 },
+        { id: 'drg-tummy', d: 'M 520,440 C 580,480 600,640 540,740 C 480,720 460,560 520,440 Z', strokeWidth: 5 },
+        { id: 'drg-wing-l', d: 'M 420,440 C 260,340 180,440 220,560 C 280,560 360,520 420,500 Z', strokeWidth: 6 },
+        { id: 'drg-tail', d: 'M 420,780 C 320,820 250,890 200,940 C 260,940 360,900 440,840 Z', strokeWidth: 6 },
+        { id: 'crys-1', d: 'M 650,960 L 700,720 L 760,760 L 780,960 Z', strokeWidth: 6 },
+        { id: 'crys-2', d: 'M 740,960 L 820,660 L 880,720 L 860,960 Z', strokeWidth: 6 }
+      ]
+    }
+  },
+  {
+    weekNumber: 10,
+    theme: 'Skybound Airship Expedition',
+    tagline: 'Steampunk Airship in the Clouds',
+    description: 'Soar across the sunny skies! Color a grand golden zeppelin airship with spinning propellers floating over fluffy puffy clouds and sunbeams.',
+    template: {
+      id: 'drop-wk10-sky-airship',
+      name: 'Skybound Zeppelin Airship',
+      category: 'vehicles',
+      difficulty: 'Medium',
+      isVip: true,
+      viewBox: '0 0 1000 1000',
+      paths: [
+        { id: 'air-hull', d: 'M 150,420 C 150,260 850,260 850,420 C 850,580 150,580 150,420 Z', strokeWidth: 8 },
+        { id: 'air-stripe-1', d: 'M 180,420 L 820,420', strokeWidth: 5 },
+        { id: 'air-stripe-2', d: 'M 240,340 C 440,320 580,320 760,340', strokeWidth: 4 },
+        { id: 'air-stripe-3', d: 'M 240,500 C 440,520 580,520 760,500', strokeWidth: 4 },
+        { id: 'air-fin-top', d: 'M 160,350 L 80,300 L 120,400 Z', strokeWidth: 6 },
+        { id: 'air-fin-bot', d: 'M 160,490 L 80,540 L 120,440 Z', strokeWidth: 6 },
+        { id: 'air-cabin', d: 'M 400,580 L 620,580 L 600,680 L 420,680 Z', strokeWidth: 6 },
+        { id: 'air-prop', d: 'M 360,610 L 330,570 L 330,650 Z', strokeWidth: 5 },
+        { id: 'air-cloud-1', d: 'M 120,820 C 120,740 220,720 260,770 C 300,720 400,740 400,820 Z', strokeWidth: 6 },
+        { id: 'air-cloud-2', d: 'M 600,840 C 600,760 700,740 740,790 C 780,740 880,760 880,840 Z', strokeWidth: 6 }
+      ]
+    }
   }
 ];
 

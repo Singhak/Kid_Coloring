@@ -635,7 +635,7 @@ export const EDUCATIONAL_TEMPLATES: Template[] = [
   },
 
   // ==========================================
-  // 3. FRUITS
+  // 3. FRUITS (11 Items: 7 Free, 4 VIP)
   // ==========================================
   {
     id: 'fruit-watermelon',
@@ -682,9 +682,155 @@ export const EDUCATIONAL_TEMPLATES: Template[] = [
       { id: 'ban-tip', d: 'M 790,730 L 840,780 L 800,800 Z', strokeWidth: 5 }
     ]
   },
+  {
+    id: 'fruit-apple',
+    name: 'Crisp Red Apple',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'apl-body', d: 'M 500,300 C 440,240 320,240 260,340 C 160,500 200,740 340,880 C 420,960 480,940 500,900 C 520,940 580,960 660,880 C 800,740 840,500 740,340 C 680,240 560,240 500,300 Z', strokeWidth: 7 },
+      { id: 'apl-stem', d: 'M 500,300 C 510,220 540,160 590,130 L 570,120 C 520,150 490,210 480,300 Z', strokeWidth: 6 },
+      { id: 'apl-leaf', d: 'M 510,230 C 580,180 680,200 700,250 C 650,270 560,260 510,230 Z', strokeWidth: 6 },
+      { id: 'apl-leaf-vein', d: 'M 520,235 Q 600,245 680,250', strokeWidth: 4 },
+      { id: 'apl-shine', d: 'M 350,380 C 310,430 300,530 330,590 C 320,530 330,440 370,400 Z', strokeWidth: 4 },
+      { id: 'apl-eye-l', d: 'M 420,540 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'apl-eye-r', d: 'M 580,540 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'apl-smile', d: 'M 460,600 Q 500,640 540,600', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'fruit-grapes',
+    name: 'Sweet Purple Grapes',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'grp-stem', d: 'M 500,100 C 490,160 520,220 500,260 L 520,260 C 540,210 510,160 520,100 Z', strokeWidth: 6 },
+      { id: 'grp-leaf-l', d: 'M 490,200 C 380,150 330,220 370,270 C 420,300 480,250 490,200 Z', strokeWidth: 6 },
+      { id: 'grp-leaf-r', d: 'M 520,190 C 620,130 680,200 640,260 C 590,300 540,240 520,190 Z', strokeWidth: 6 },
+      { id: 'grp-1', d: 'M 400,320 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-2', d: 'M 520,310 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-3', d: 'M 640,330 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-4', d: 'M 360,430 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-5', d: 'M 480,420 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-6', d: 'M 600,430 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-7', d: 'M 420,540 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-8', d: 'M 540,540 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-9', d: 'M 480,650 m -60,0 a 60,60 0 1,0 120,0 a 60,60 0 1,0 -120,0 Z', strokeWidth: 5 },
+      { id: 'grp-10', d: 'M 480,750 m -50,0 a 50,50 0 1,0 100,0 a 50,50 0 1,0 -100,0 Z', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'fruit-pineapple',
+    name: 'Tropical Pineapple',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'pin-crown-c', d: 'M 500,100 L 460,340 L 540,340 Z', strokeWidth: 6 },
+      { id: 'pin-crown-l', d: 'M 480,330 C 440,240 360,180 280,180 C 350,250 420,330 460,350 Z', strokeWidth: 6 },
+      { id: 'pin-crown-r', d: 'M 520,330 C 560,240 640,180 720,180 C 650,250 580,330 540,350 Z', strokeWidth: 6 },
+      { id: 'pin-body', d: 'M 500,340 C 340,340 300,500 300,640 C 300,820 380,920 500,920 C 620,920 700,820 700,640 C 700,500 660,340 500,340 Z', strokeWidth: 8 },
+      { id: 'pin-grid-1', d: 'M 320,540 L 640,800', strokeWidth: 5 },
+      { id: 'pin-grid-2', d: 'M 360,420 L 680,680', strokeWidth: 5 },
+      { id: 'pin-grid-3', d: 'M 680,540 L 360,800', strokeWidth: 5 },
+      { id: 'pin-grid-4', d: 'M 640,420 L 320,680', strokeWidth: 5 },
+      { id: 'pin-eye-l', d: 'M 420,580 m -14,0 a 14,14 0 1,0 28,0 a 14,14 0 1,0 -28,0 Z', strokeWidth: 4 },
+      { id: 'pin-eye-r', d: 'M 580,580 m -14,0 a 14,14 0 1,0 28,0 a 14,14 0 1,0 -28,0 Z', strokeWidth: 4 },
+      { id: 'pin-smile', d: 'M 460,650 Q 500,700 540,650', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'fruit-mango',
+    name: 'Golden Sweet Mango',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'mng-body', d: 'M 480,240 C 300,240 240,420 250,580 C 270,780 440,920 620,880 C 780,840 820,620 780,460 C 740,320 620,240 480,240 Z', strokeWidth: 8 },
+      { id: 'mng-stem', d: 'M 480,240 L 460,140 L 500,140 L 505,245 Z', strokeWidth: 6 },
+      { id: 'mng-leaf-1', d: 'M 460,180 C 360,150 280,180 260,240 C 320,240 410,220 460,180 Z', strokeWidth: 5 },
+      { id: 'mng-leaf-2', d: 'M 500,170 C 600,120 700,140 720,200 C 650,210 560,200 500,170 Z', strokeWidth: 5 },
+      { id: 'mng-cheeks-l', d: 'M 380,580 m -15,0 a 15,15 0 1,0 30,0 a 15,15 0 1,0 -30,0 Z', strokeWidth: 3 },
+      { id: 'mng-cheeks-r', d: 'M 620,560 m -15,0 a 15,15 0 1,0 30,0 a 15,15 0 1,0 -30,0 Z', strokeWidth: 3 },
+      { id: 'mng-smile', d: 'M 460,620 Q 510,660 550,610', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'fruit-cherries',
+    name: 'Twin Red Cherries',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'chr-leaf', d: 'M 500,200 C 580,140 680,160 700,220 C 630,240 540,230 500,200 Z', strokeWidth: 6 },
+      { id: 'chr-stem-l', d: 'M 500,200 Q 400,350 330,500', strokeWidth: 6 },
+      { id: 'chr-stem-r', d: 'M 500,200 Q 600,350 670,500', strokeWidth: 6 },
+      { id: 'chr-body-l', d: 'M 330,500 m -140,0 a 140,140 0 1,0 280,0 a 140,140 0 1,0 -280,0 Z', strokeWidth: 7 },
+      { id: 'chr-shine-l', d: 'M 260,430 C 230,470 230,520 250,560 C 240,520 240,470 270,440 Z', strokeWidth: 4 },
+      { id: 'chr-body-r', d: 'M 670,540 m -140,0 a 140,140 0 1,0 280,0 a 140,140 0 1,0 -280,0 Z', strokeWidth: 7 },
+      { id: 'chr-shine-r', d: 'M 600,470 C 570,510 570,560 590,600 C 580,560 580,510 610,480 Z', strokeWidth: 4 }
+    ]
+  },
+  {
+    id: 'fruit-orange',
+    name: 'Sunny Orange & Slice',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'org-whole', d: 'M 380,240 m -180,0 a 180,180 0 1,0 360,0 a 180,180 0 1,0 -360,0 Z', strokeWidth: 7 },
+      { id: 'org-leaf', d: 'M 380,240 C 370,120 440,80 480,120 C 470,170 420,220 380,240 Z', strokeWidth: 6 },
+      { id: 'org-slice-rind', d: 'M 220,680 C 280,880 720,880 780,680 Z', strokeWidth: 7 },
+      { id: 'org-slice-inner', d: 'M 260,680 C 310,840 690,840 740,680 Z', strokeWidth: 5 },
+      { id: 'org-seg-1', d: 'M 290,670 C 310,750 360,780 400,780 L 480,670 Z', strokeWidth: 5 },
+      { id: 'org-seg-2', d: 'M 430,780 C 470,810 530,810 570,780 L 500,670 Z', strokeWidth: 5 },
+      { id: 'org-seg-3', d: 'M 600,780 C 640,750 690,750 710,670 L 520,670 Z', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'fruit-peach',
+    name: 'Juicy Fuzzy Peach',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'pch-body', d: 'M 500,320 C 420,240 260,260 220,440 C 180,620 320,840 500,920 C 680,840 820,620 780,440 C 740,260 580,240 500,320 Z', strokeWidth: 8 },
+      { id: 'pch-cleft', d: 'M 500,320 Q 480,550 500,880', strokeWidth: 5 },
+      { id: 'pch-stem', d: 'M 500,320 L 500,200 L 520,200 L 515,320 Z', strokeWidth: 6 },
+      { id: 'pch-leaf-1', d: 'M 510,240 C 600,180 680,200 700,260 C 620,280 540,270 510,240 Z', strokeWidth: 6 },
+      { id: 'pch-leaf-2', d: 'M 490,260 C 400,210 330,240 310,290 C 380,310 460,290 490,260 Z', strokeWidth: 6 },
+      { id: 'pch-cheek-l', d: 'M 340,560 m -20,0 a 20,20 0 1,0 40,0 a 20,20 0 1,0 -40,0 Z', strokeWidth: 4 },
+      { id: 'pch-cheek-r', d: 'M 660,560 m -20,0 a 20,20 0 1,0 40,0 a 20,20 0 1,0 -40,0 Z', strokeWidth: 4 }
+    ]
+  },
+  {
+    id: 'fruit-avocado',
+    name: 'Creamy Avocado',
+    category: 'fruits',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'avo-skin', d: 'M 500,160 C 380,160 260,340 240,560 C 220,780 340,920 500,920 C 660,920 780,780 760,560 C 740,340 620,160 500,160 Z', strokeWidth: 8 },
+      { id: 'avo-flesh', d: 'M 500,220 C 400,220 300,380 290,560 C 280,740 370,860 500,860 C 630,860 720,740 710,560 C 700,380 600,220 500,220 Z', strokeWidth: 6 },
+      { id: 'avo-pit', d: 'M 500,640 m -110,0 a 110,120 0 1,0 220,0 a 110,120 0 1,0 -220,0 Z', strokeWidth: 7 },
+      { id: 'avo-eye-l', d: 'M 430,420 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'avo-eye-r', d: 'M 570,420 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'avo-smile', d: 'M 460,470 Q 500,510 540,470', strokeWidth: 5 }
+    ]
+  },
 
   // ==========================================
-  // 4. VEGETABLES
+  // 4. VEGETABLES (11 Items: 7 Free, 4 VIP)
   // ==========================================
   {
     id: 'veg-carrot',
@@ -726,9 +872,132 @@ export const EDUCATIONAL_TEMPLATES: Template[] = [
       { id: 'tom-stem', d: 'M 490,330 L 480,200 L 520,200 L 510,330 Z', strokeWidth: 5 }
     ]
   },
+  {
+    id: 'veg-corn',
+    name: 'Sweet Corn on the Cob',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'crn-cob', d: 'M 420,280 C 420,200 580,200 580,280 L 580,820 C 580,880 420,880 420,820 Z', strokeWidth: 7 },
+      { id: 'crn-husk-l', d: 'M 420,540 C 300,480 260,650 380,860 C 400,780 420,680 420,540 Z', strokeWidth: 6 },
+      { id: 'crn-husk-r', d: 'M 580,540 C 700,480 740,650 620,860 C 600,780 580,680 580,540 Z', strokeWidth: 6 },
+      { id: 'crn-line-1', d: 'M 420,420 L 580,420 M 420,540 L 580,540 M 420,660 L 580,660', strokeWidth: 5 },
+      { id: 'crn-silk', d: 'M 460,200 C 460,140 500,100 540,120', strokeWidth: 4 }
+    ]
+  },
+  {
+    id: 'veg-broccoli',
+    name: 'Happy Broccoli Floret',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'broc-stalk', d: 'M 420,600 L 380,900 L 620,900 L 580,600 Z', strokeWidth: 7 },
+      { id: 'broc-floret-main', d: 'M 350,600 C 220,600 200,450 280,360 C 260,260 380,180 500,180 C 620,180 740,260 720,360 C 800,450 780,600 650,600 Z', strokeWidth: 8 },
+      { id: 'broc-eye-l', d: 'M 440,720 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'broc-eye-r', d: 'M 560,720 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'broc-smile', d: 'M 460,780 Q 500,820 540,780', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'veg-eggplant',
+    name: 'Glossy Purple Eggplant',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'egg-body', d: 'M 460,320 C 340,360 280,560 300,740 C 330,920 670,920 700,740 C 720,560 660,360 540,320 Z', strokeWidth: 8 },
+      { id: 'egg-cap', d: 'M 440,320 L 400,260 L 470,270 L 500,210 L 530,270 L 600,260 L 560,320 Z', strokeWidth: 6 },
+      { id: 'egg-stem', d: 'M 500,210 C 490,140 540,110 560,130', strokeWidth: 6 },
+      { id: 'egg-shine', d: 'M 380,500 C 350,560 350,660 380,720', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'veg-peas',
+    name: 'Sweet Green Peas in Pod',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'pea-pod-outer', d: 'M 150,650 C 300,850 700,850 850,350 C 700,550 300,550 150,650 Z', strokeWidth: 8 },
+      { id: 'pea-1', d: 'M 280,630 m -50,0 a 50,50 0 1,0 100,0 a 50,50 0 1,0 -100,0 Z', strokeWidth: 6 },
+      { id: 'pea-2', d: 'M 420,600 m -50,0 a 50,50 0 1,0 100,0 a 50,50 0 1,0 -100,0 Z', strokeWidth: 6 },
+      { id: 'pea-3', d: 'M 560,550 m -50,0 a 50,50 0 1,0 100,0 a 50,50 0 1,0 -100,0 Z', strokeWidth: 6 },
+      { id: 'pea-4', d: 'M 700,480 m -50,0 a 50,50 0 1,0 100,0 a 50,50 0 1,0 -100,0 Z', strokeWidth: 6 },
+      { id: 'pea-stem', d: 'M 150,650 C 100,680 80,640 100,600', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'veg-bell-pepper',
+    name: 'Crisp Bell Pepper',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'pep-body-mid', d: 'M 500,320 C 440,320 420,540 420,750 C 420,860 500,880 500,880 C 500,880 580,860 580,750 C 580,540 560,320 500,320 Z', strokeWidth: 7 },
+      { id: 'pep-body-l', d: 'M 440,330 C 320,350 250,500 260,700 C 270,840 400,880 440,860 Z', strokeWidth: 7 },
+      { id: 'pep-body-r', d: 'M 560,330 C 680,350 750,500 740,700 C 730,840 600,880 560,860 Z', strokeWidth: 7 },
+      { id: 'pep-stem', d: 'M 480,320 L 460,180 C 520,170 550,210 530,320 Z', strokeWidth: 6 }
+    ]
+  },
+  {
+    id: 'veg-mushroom',
+    name: 'Polka Dot Forest Mushroom',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'msh-cap', d: 'M 150,560 C 150,240 850,240 850,560 Z', strokeWidth: 8 },
+      { id: 'msh-stem', d: 'M 380,560 L 350,900 L 650,900 L 620,560 Z', strokeWidth: 7 },
+      { id: 'msh-dot-1', d: 'M 350,380 m -35,0 a 35,35 0 1,0 70,0 a 35,35 0 1,0 -70,0 Z', strokeWidth: 5 },
+      { id: 'msh-dot-2', d: 'M 500,320 m -40,0 a 40,40 0 1,0 80,0 a 40,40 0 1,0 -80,0 Z', strokeWidth: 5 },
+      { id: 'msh-dot-3', d: 'M 650,380 m -35,0 a 35,35 0 1,0 70,0 a 35,35 0 1,0 -70,0 Z', strokeWidth: 5 },
+      { id: 'msh-eye-l', d: 'M 440,680 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'msh-eye-r', d: 'M 560,680 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'msh-smile', d: 'M 460,740 Q 500,775 540,740', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'veg-radish',
+    name: 'Crunchy Garden Radish',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'rad-body', d: 'M 500,420 C 340,420 280,580 340,740 C 400,880 500,940 500,940 C 500,940 600,880 660,740 C 720,580 660,420 500,420 Z', strokeWidth: 8 },
+      { id: 'rad-root', d: 'M 500,940 C 500,980 480,1000 510,1020', strokeWidth: 5 },
+      { id: 'rad-leaf-c', d: 'M 500,420 C 480,220 540,140 500,100 C 460,140 480,280 480,420 Z', strokeWidth: 6 },
+      { id: 'rad-leaf-l', d: 'M 460,420 C 380,280 300,240 240,260 C 280,340 380,380 460,420 Z', strokeWidth: 6 },
+      { id: 'rad-leaf-r', d: 'M 540,420 C 620,280 700,240 760,260 C 720,340 620,380 540,420 Z', strokeWidth: 6 }
+    ]
+  },
+  {
+    id: 'veg-potato',
+    name: 'Golden Spud Potato',
+    category: 'vegetables',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'pot-body', d: 'M 350,300 C 520,240 700,280 760,420 C 820,560 800,740 680,840 C 540,920 340,880 260,740 C 180,580 220,360 350,300 Z', strokeWidth: 8 },
+      { id: 'pot-eye-l', d: 'M 420,500 m -14,0 a 14,14 0 1,0 28,0 a 14,14 0 1,0 -28,0 Z', strokeWidth: 4 },
+      { id: 'pot-eye-r', d: 'M 580,500 m -14,0 a 14,14 0 1,0 28,0 a 14,14 0 1,0 -28,0 Z', strokeWidth: 4 },
+      { id: 'pot-smile', d: 'M 460,580 Q 500,640 540,580', strokeWidth: 5 },
+      { id: 'pot-spot-1', d: 'M 340,420 m -10,0 a 10,6 0 1,0 20,0 a 10,6 0 1,0 -20,0 Z', strokeWidth: 3 },
+      { id: 'pot-spot-2', d: 'M 660,650 m -12,0 a 12,7 0 1,0 24,0 a 12,7 0 1,0 -24,0 Z', strokeWidth: 3 }
+    ]
+  },
 
   // ==========================================
-  // 5. ANIMALS
+  // 5. ANIMALS (Expansion)
   // ==========================================
   {
     id: 'anim-panda',
@@ -756,9 +1025,73 @@ export const EDUCATIONAL_TEMPLATES: Template[] = [
       { id: 'gir-neck', d: 'M 460,340 L 420,850 L 580,850 L 540,340 Z', strokeWidth: 7 }
     ]
   },
+  {
+    id: 'anim-bunny',
+    name: 'Fluffy Bunny Rabbit',
+    category: 'animal',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'bun-ear-l', d: 'M 400,320 C 340,150 380,80 420,80 C 460,80 450,180 440,320 Z', strokeWidth: 6 },
+      { id: 'bun-ear-r', d: 'M 600,320 C 660,150 620,80 580,80 C 540,80 550,180 560,320 Z', strokeWidth: 6 },
+      { id: 'bun-head', d: 'M 500,420 m -160,0 a 160,150 0 1,0 320,0 a 160,150 0 1,0 -320,0 Z', strokeWidth: 7 },
+      { id: 'bun-body', d: 'M 340,540 C 260,660 280,880 500,880 C 720,880 740,660 660,540 Z', strokeWidth: 7 },
+      { id: 'bun-eye-l', d: 'M 430,400 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'bun-eye-r', d: 'M 570,400 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z', strokeWidth: 4 },
+      { id: 'bun-nose', d: 'M 500,440 L 485,420 L 515,420 Z', strokeWidth: 4 }
+    ]
+  },
+  {
+    id: 'anim-koala',
+    name: 'Sleepy Little Koala',
+    category: 'animal',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'koa-ear-l', d: 'M 320,320 m -80,0 a 80,80 0 1,0 160,0 a 80,80 0 1,0 -160,0 Z', strokeWidth: 6 },
+      { id: 'koa-ear-r', d: 'M 680,320 m -80,0 a 80,80 0 1,0 160,0 a 80,80 0 1,0 -160,0 Z', strokeWidth: 6 },
+      { id: 'koa-head', d: 'M 500,460 m -180,0 a 180,160 0 1,0 360,0 a 180,160 0 1,0 -360,0 Z', strokeWidth: 7 },
+      { id: 'koa-nose', d: 'M 500,460 m -40,0 a 40,60 0 1,0 80,0 a 40,60 0 1,0 -80,0 Z', strokeWidth: 6 },
+      { id: 'koa-body', d: 'M 350,600 C 280,720 300,900 500,900 C 700,900 720,720 650,600 Z', strokeWidth: 7 }
+    ]
+  },
+  {
+    id: 'anim-peacock',
+    name: 'Royal Crowned Peacock',
+    category: 'animal',
+    difficulty: 'Medium',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'pea-fan-outer', d: 'M 150,680 C 150,220 850,220 850,680 Z', strokeWidth: 8 },
+      { id: 'pea-eye-1', d: 'M 280,440 m -35,0 a 35,35 0 1,0 70,0 a 35,35 0 1,0 -70,0 Z', strokeWidth: 5 },
+      { id: 'pea-eye-2', d: 'M 500,320 m -35,0 a 35,35 0 1,0 70,0 a 35,35 0 1,0 -70,0 Z', strokeWidth: 5 },
+      { id: 'pea-eye-3', d: 'M 720,440 m -35,0 a 35,35 0 1,0 70,0 a 35,35 0 1,0 -70,0 Z', strokeWidth: 5 },
+      { id: 'pea-body', d: 'M 500,540 C 440,540 440,780 500,880 C 560,780 560,540 500,540 Z', strokeWidth: 7 },
+      { id: 'pea-head', d: 'M 500,480 m -45,0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0 Z', strokeWidth: 6 },
+      { id: 'pea-crest', d: 'M 500,435 L 480,380 M 500,435 L 500,370 M 500,435 L 520,380', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'anim-dolphin',
+    name: 'Ocean Dolphin Splash',
+    category: 'animal',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'dolph-body', d: 'M 200,580 C 260,360 480,280 720,340 C 820,380 860,460 840,490 C 780,490 700,440 620,450 C 460,480 360,650 200,580 Z', strokeWidth: 7 },
+      { id: 'dolph-fin', d: 'M 500,310 C 540,220 600,210 630,230 C 600,290 570,320 540,325 Z', strokeWidth: 6 },
+      { id: 'dolph-flipper', d: 'M 480,490 C 520,590 580,600 600,570 C 580,520 540,480 500,480 Z', strokeWidth: 6 },
+      { id: 'dolph-tail', d: 'M 200,580 C 120,540 80,480 80,460 C 120,500 170,540 190,570 C 170,600 120,640 80,680 C 80,660 120,600 200,580 Z', strokeWidth: 6 },
+      { id: 'dolph-waves', d: 'M 100,780 C 260,720 420,840 580,780 C 740,720 860,820 960,760', strokeWidth: 7 }
+    ]
+  },
 
   // ==========================================
-  // 6. OBJECTS & TOYS
+  // 6. OBJECTS & TOYS (11 Items: 7 Free, 4 VIP)
   // ==========================================
   {
     id: 'obj-teddy-bear',
@@ -797,5 +1130,147 @@ export const EDUCATIONAL_TEMPLATES: Template[] = [
       { id: 'gift-box-lid', d: 'M 200,320 L 800,320 L 800,420 L 200,420 Z', strokeWidth: 7 },
       { id: 'ribbon-vert', d: 'M 460,320 L 540,320 L 540,880 L 460,880 Z', strokeWidth: 6 }
     ]
+  },
+  {
+    id: 'obj-robot',
+    name: 'Friendly Toy Robot',
+    category: 'object',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'rob-head', d: 'M 350,220 L 650,220 L 650,420 L 350,420 Z', strokeWidth: 7 },
+      { id: 'rob-antenna', d: 'M 500,220 L 500,140 M 500,140 m -18,0 a 18,18 0 1,0 36,0 a 18,18 0 1,0 -36,0 Z', strokeWidth: 6 },
+      { id: 'rob-eye-l', d: 'M 420,300 m -25,0 a 25,25 0 1,0 50,0 a 25,25 0 1,0 -50,0 Z', strokeWidth: 5 },
+      { id: 'rob-eye-r', d: 'M 580,300 m -25,0 a 25,25 0 1,0 50,0 a 25,25 0 1,0 -50,0 Z', strokeWidth: 5 },
+      { id: 'rob-mouth', d: 'M 420,370 L 580,370 L 580,390 L 420,390 Z', strokeWidth: 4 },
+      { id: 'rob-body', d: 'M 320,460 L 680,460 L 660,760 L 340,760 Z', strokeWidth: 7 },
+      { id: 'rob-dial', d: 'M 420,540 L 580,540 L 580,660 L 420,660 Z', strokeWidth: 5 },
+      { id: 'rob-arm-l', d: 'M 320,500 L 220,560 L 240,640', strokeWidth: 6 },
+      { id: 'rob-arm-r', d: 'M 680,500 L 780,560 L 760,640', strokeWidth: 6 },
+      { id: 'rob-treads', d: 'M 320,760 L 680,760 L 700,880 L 300,880 Z', strokeWidth: 7 }
+    ]
+  },
+  {
+    id: 'obj-alarm-clock',
+    name: 'Retro Alarm Clock',
+    category: 'object',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'clk-body', d: 'M 500,540 m -260,0 a 260,260 0 1,0 520,0 a 260,260 0 1,0 -520,0 Z', strokeWidth: 8 },
+      { id: 'clk-bell-l', d: 'M 280,320 C 220,240 320,160 380,240 Z', strokeWidth: 7 },
+      { id: 'clk-bell-r', d: 'M 720,320 C 780,240 680,160 620,240 Z', strokeWidth: 7 },
+      { id: 'clk-hammer', d: 'M 460,240 L 540,240 L 520,180 L 480,180 Z', strokeWidth: 6 },
+      { id: 'clk-inner', d: 'M 500,540 m -200,0 a 200,200 0 1,0 400,0 a 200,200 0 1,0 -400,0 Z', strokeWidth: 5 },
+      { id: 'clk-hand-hr', d: 'M 500,540 L 500,400', strokeWidth: 7 },
+      { id: 'clk-hand-min', d: 'M 500,540 L 620,540', strokeWidth: 5 },
+      { id: 'clk-leg-l', d: 'M 340,760 L 280,860', strokeWidth: 7 },
+      { id: 'clk-leg-r', d: 'M 660,760 L 720,860', strokeWidth: 7 }
+    ]
+  },
+  {
+    id: 'obj-balloons',
+    name: 'Floating Party Balloons',
+    category: 'object',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'bln-1', d: 'M 500,320 m -150,0 a 150,180 0 1,0 300,0 a 150,180 0 1,0 -300,0 Z', strokeWidth: 7 },
+      { id: 'bln-1-knot', d: 'M 480,500 L 520,500 L 500,520 Z', strokeWidth: 5 },
+      { id: 'bln-2', d: 'M 300,440 m -130,0 a 130,160 0 1,0 260,0 a 130,160 0 1,0 -260,0 Z', strokeWidth: 7 },
+      { id: 'bln-2-knot', d: 'M 285,600 L 315,600 L 300,620 Z', strokeWidth: 5 },
+      { id: 'bln-3', d: 'M 700,440 m -130,0 a 130,160 0 1,0 260,0 a 130,160 0 1,0 -260,0 Z', strokeWidth: 7 },
+      { id: 'bln-3-knot', d: 'M 685,600 L 715,600 L 700,620 Z', strokeWidth: 5 },
+      { id: 'bln-str-1', d: 'M 500,520 Q 520,700 500,900', strokeWidth: 5 },
+      { id: 'bln-str-2', d: 'M 300,620 Q 400,750 500,900', strokeWidth: 5 },
+      { id: 'bln-str-3', d: 'M 700,620 Q 600,750 500,900', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'obj-drum',
+    name: 'Marching Toy Drum',
+    category: 'object',
+    difficulty: 'Easy',
+    isVip: false,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'drm-top', d: 'M 500,340 m -320,0 a 320,120 0 1,0 640,0 a 320,120 0 1,0 -640,0 Z', strokeWidth: 8 },
+      { id: 'drm-body', d: 'M 180,340 L 180,700 C 180,820 820,820 820,700 L 820,340 Z', strokeWidth: 8 },
+      { id: 'drm-bot-rim', d: 'M 180,700 C 180,820 820,820 820,700', strokeWidth: 7 },
+      { id: 'drm-zigzag', d: 'M 180,340 L 340,740 L 500,420 L 660,740 L 820,340', strokeWidth: 6 },
+      { id: 'drm-stick-1', d: 'M 240,180 L 460,340 M 240,180 m -18,0 a 18,18 0 1,0 36,0 a 18,18 0 1,0 -36,0 Z', strokeWidth: 6 },
+      { id: 'drm-stick-2', d: 'M 760,180 L 540,340 M 760,180 m -18,0 a 18,18 0 1,0 36,0 a 18,18 0 1,0 -36,0 Z', strokeWidth: 6 }
+    ]
+  },
+  {
+    id: 'obj-ice-cream',
+    name: 'Sweet Ice Cream Sundae',
+    category: 'object',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'sund-glass', d: 'M 250,520 L 750,520 L 620,780 L 620,880 L 720,880 L 720,940 L 280,940 L 280,880 L 380,880 L 380,780 Z', strokeWidth: 8 },
+      { id: 'sund-scoop-l', d: 'M 360,520 C 260,520 260,360 360,360 C 460,360 460,520 360,520 Z', strokeWidth: 7 },
+      { id: 'sund-scoop-r', d: 'M 640,520 C 540,520 540,360 640,360 C 740,360 740,520 640,520 Z', strokeWidth: 7 },
+      { id: 'sund-scoop-c', d: 'M 500,420 C 400,420 400,240 500,240 C 600,240 600,420 500,420 Z', strokeWidth: 7 },
+      { id: 'sund-cherry', d: 'M 500,200 m -40,0 a 40,40 0 1,0 80,0 a 40,40 0 1,0 -80,0 Z', strokeWidth: 6 },
+      { id: 'sund-stem', d: 'M 500,160 C 500,100 560,80 580,100', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'obj-magic-wand',
+    name: 'Magic Wand & Starlight',
+    category: 'object',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'wnd-star', d: 'M 350,150 L 380,240 L 470,240 L 400,290 L 420,380 L 350,330 L 280,380 L 300,290 L 230,240 L 320,240 Z', strokeWidth: 8 },
+      { id: 'wnd-shaft', d: 'M 330,350 L 760,860 L 800,830 L 370,320 Z', strokeWidth: 7 },
+      { id: 'wnd-trail-1', d: 'M 380,380 C 450,420 520,380 580,440 C 640,500 700,480 750,540', strokeWidth: 5 },
+      { id: 'wnd-sparkle-1', d: 'M 620,260 L 630,290 L 660,290 L 635,310 L 645,340 L 620,320 L 595,340 L 605,310 L 580,290 L 610,290 Z', strokeWidth: 4 },
+      { id: 'wnd-sparkle-2', d: 'M 220,460 L 230,490 L 260,490 L 235,510 L 245,540 L 220,520 L 195,540 L 205,510 L 180,490 L 210,490 Z', strokeWidth: 4 }
+    ]
+  },
+  {
+    id: 'obj-treasure-chest',
+    name: 'Pirate Treasure Chest',
+    category: 'object',
+    difficulty: 'Medium',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 't-chest-lid', d: 'M 180,450 C 180,260 820,260 820,450 Z', strokeWidth: 8 },
+      { id: 't-chest-base', d: 'M 200,450 L 800,450 L 760,840 L 240,840 Z', strokeWidth: 8 },
+      { id: 't-band-l', d: 'M 340,300 L 340,840', strokeWidth: 6 },
+      { id: 't-band-r', d: 'M 660,300 L 660,840', strokeWidth: 6 },
+      { id: 't-keyhole-plate', d: 'M 450,420 L 550,420 L 550,520 L 450,520 Z', strokeWidth: 6 },
+      { id: 't-keyhole', d: 'M 500,450 m -12,0 a 12,12 0 1,0 24,0 a 12,12 0 1,0 -24,0 Z M 495,462 L 505,462 L 508,495 L 492,495 Z', strokeWidth: 4 },
+      { id: 't-coin-1', d: 'M 400,440 m -30,0 a 30,30 0 1,0 60,0 a 30,30 0 1,0 -60,0 Z', strokeWidth: 5 },
+      { id: 't-coin-2', d: 'M 600,440 m -30,0 a 30,30 0 1,0 60,0 a 30,30 0 1,0 -60,0 Z', strokeWidth: 5 }
+    ]
+  },
+  {
+    id: 'obj-teapot',
+    name: 'Cozy Teapot & Cup',
+    category: 'object',
+    difficulty: 'Easy',
+    isVip: true,
+    viewBox: '0 0 1000 1000',
+    paths: [
+      { id: 'tp-body', d: 'M 420,440 m -180,0 a 180,180 0 1,0 360,0 a 180,180 0 1,0 -360,0 Z', strokeWidth: 8 },
+      { id: 'tp-lid', d: 'M 350,280 C 350,220 490,220 490,280 Z', strokeWidth: 6 },
+      { id: 'tp-knob', d: 'M 420,200 m -18,0 a 18,18 0 1,0 36,0 a 18,18 0 1,0 -36,0 Z', strokeWidth: 5 },
+      { id: 'tp-spout', d: 'M 250,400 C 140,360 100,280 140,280 C 180,280 200,420 250,460 Z', strokeWidth: 7 },
+      { id: 'tp-handle', d: 'M 590,340 C 720,340 720,540 590,540', strokeWidth: 8 },
+      { id: 'tp-cup', d: 'M 660,620 L 860,620 L 820,780 L 700,780 Z', strokeWidth: 7 },
+      { id: 'tp-cup-handle', d: 'M 840,660 C 900,660 900,740 820,740', strokeWidth: 5 },
+      { id: 'tp-saucer', d: 'M 640,780 L 880,780 L 860,820 L 660,820 Z', strokeWidth: 6 }
+    ]
   }
 ];
+

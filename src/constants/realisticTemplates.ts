@@ -11,6 +11,7 @@ export const REALISTIC_TEMPLATES: Template[] = [
     name: 'Majestic Safari Lion',
     category: 'animal',
     difficulty: 'Detailed',
+    isVip: true,
     viewBox: '0 0 1000 1000',
     paths: [
       // Outer Mane Clusters
@@ -58,6 +59,7 @@ export const REALISTIC_TEMPLATES: Template[] = [
     name: 'Playful Golden Puppy',
     category: 'animal',
     difficulty: 'Medium',
+    isVip: true,
     viewBox: '0 0 1000 1000',
     paths: [
       // Left Flop Ear
@@ -98,6 +100,7 @@ export const REALISTIC_TEMPLATES: Template[] = [
     name: 'Supersonic GT Racecar',
     category: 'vehicles',
     difficulty: 'Detailed',
+    isVip: true,
     viewBox: '0 0 1000 1000',
     paths: [
       // Aero Roof & Windshield
@@ -136,6 +139,7 @@ export const REALISTIC_TEMPLATES: Template[] = [
     name: 'Enchanted Kingdom Castle',
     category: 'nature',
     difficulty: 'Detailed',
+    isVip: true,
     viewBox: '0 0 1000 1000',
     paths: [
       // Mountains in Background
@@ -176,8 +180,9 @@ export const REALISTIC_TEMPLATES: Template[] = [
   {
     id: 'realistic-butterfly',
     name: 'Monarch Butterfly & Blooms',
-    category: 'plant',
+    category: 'nature',
     difficulty: 'Detailed',
+    isVip: true,
     viewBox: '0 0 1000 1000',
     paths: [
       // Butterfly Body
@@ -222,6 +227,7 @@ export const REALISTIC_TEMPLATES: Template[] = [
     name: 'Majestic Jungle T-Rex',
     category: 'animal',
     difficulty: 'Detailed',
+    isVip: true,
     viewBox: '0 0 1000 1000',
     paths: [
       // Giant Head & Snout
@@ -260,6 +266,7 @@ export const REALISTIC_TEMPLATES: Template[] = [
     name: 'Astronaut in Deep Space',
     category: 'space',
     difficulty: 'Detailed',
+    isVip: true,
     viewBox: '0 0 1000 1000',
     paths: [
       // Helmet Bubble Outer

@@ -11,6 +11,7 @@ import {
 import { Category, Template } from './types';
 import { REALISTIC_TEMPLATES } from './constants/realisticTemplates';
 import { EDUCATIONAL_TEMPLATES } from './constants/educationalTemplates';
+import { THEMATIC_TEMPLATES } from './constants/thematicTemplates';
 import { getAllWeeklyDropTemplates } from './constants/weeklyDrops';
 
 export const COLORS = [
@@ -242,6 +243,7 @@ export const STATIC_TEMPLATES: Template[] = [
   ...getAllWeeklyDropTemplates(),
   ...EDUCATIONAL_TEMPLATES,
   ...REALISTIC_TEMPLATES,
+  ...THEMATIC_TEMPLATES,
   {
     name: 'Happy House',
     category: 'nature',
@@ -257,7 +259,7 @@ export const STATIC_TEMPLATES: Template[] = [
   },
   {
     name: 'Magic Flower',
-    category: 'plant',
+    category: 'nature',
     viewBox: '0 0 500 500',
     paths: [
       { id: 'stem', d: 'M 245,350 L 245,480 L 255,480 L 255,350 Z', stroke: '#000', strokeWidth: 5 },
@@ -318,7 +320,7 @@ export const STATIC_TEMPLATES: Template[] = [
   },
   {
     name: 'Cactus',
-    category: 'plant',
+    category: 'nature',
     viewBox: '0 0 500 500',
     paths: [
       { id: 'pot', d: 'M 200,400 L 300,400 L 320,480 L 180,480 Z', stroke: '#000', strokeWidth: 5 },
@@ -407,7 +409,7 @@ export const STATIC_TEMPLATES: Template[] = [
   },
   {
     name: 'Sunflower',
-    category: 'plant',
+    category: 'nature',
     viewBox: '0 0 500 500',
     paths: [
       { id: 'stem', d: 'M 245,300 L 245,480 L 255,480 L 255,300 Z', stroke: '#000', strokeWidth: 5 },
@@ -420,7 +422,7 @@ export const STATIC_TEMPLATES: Template[] = [
   },
   {
     name: 'Tree',
-    category: 'plant',
+    category: 'nature',
     viewBox: '0 0 500 500',
     paths: [
       { id: 'trunk', d: 'M 230,480 L 270,480 L 260,300 L 240,300 Z', stroke: '#000', strokeWidth: 5 },
@@ -483,7 +485,7 @@ export const STATIC_TEMPLATES: Template[] = [
   },
   {
     name: 'Mushroom',
-    category: 'plant',
+    category: 'nature',
     viewBox: '0 0 500 500',
     paths: [
       { id: 'stem', d: 'M 220,300 L 280,300 L 270,450 L 230,450 Z', stroke: '#000', strokeWidth: 5 },
@@ -604,7 +606,7 @@ export const STATIC_TEMPLATES: Template[] = [
   },
   {
     name: 'Rose',
-    category: 'plant',
+    category: 'nature',
     viewBox: '0 0 500 500',
     paths: [
       { id: 'stem', d: 'M 250,250 L 250,480', stroke: '#000', strokeWidth: 5 },
@@ -662,7 +664,7 @@ export const STATIC_TEMPLATES: Template[] = [
   },
   {
     name: 'Palm Tree',
-    category: 'plant',
+    category: 'nature',
     viewBox: '0 0 500 500',
     paths: [
       { id: 'trunk', d: 'M 240,480 Q 230,350 250,250 L 260,250 Q 270,350 260,480 Z', stroke: '#000', strokeWidth: 5 },
@@ -675,6 +677,7 @@ export const STATIC_TEMPLATES: Template[] = [
   {
     name: 'Submarine',
     category: 'vehicles',
+    isVip: true,
     viewBox: '0 0 500 500',
     paths: [
       { id: 'body', d: 'M 100,250 C 100,150 400,150 400,250 C 400,350 100,350 100,250 Z', stroke: '#000', strokeWidth: 5 },
