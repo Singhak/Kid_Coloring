@@ -169,97 +169,136 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
         ctx.drawImage(img, 0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT);
 
         try {
-          // Binarize / clean line art to guarantee crisp, clean flood fill boundaries
           const imgData = ctx.getImageData(0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT);
           const data = imgData.data;
           const totalPixels = INTERNAL_WIDTH * INTERNAL_HEIGHT;
 
-          // 1. Detect background polarity by sampling border pixels
-          let borderDarkCount = 0;
-          let borderSamples = 0;
-          for (let x = 0; x < INTERNAL_WIDTH; x += 25) {
-            let idx = x * 4; // top border
-            let lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-            if (lum < 128) borderDarkCount++;
-            borderSamples++;
-
-            idx = ((INTERNAL_HEIGHT - 1) * INTERNAL_WIDTH + x) * 4; // bottom border
-            lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-            if (lum < 128) borderDarkCount++;
-            borderSamples++;
-          }
-          for (let y = 0; y < INTERNAL_HEIGHT; y += 25) {
-            let idx = (y * INTERNAL_WIDTH) * 4; // left border
-            let lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-            if (lum < 128) borderDarkCount++;
-            borderSamples++;
-
-            idx = (y * INTERNAL_WIDTH + (INTERNAL_WIDTH - 1)) * 4; // right border
-            lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
-            if (lum < 128) borderDarkCount++;
-            borderSamples++;
-          }
-
-          const isDarkBackground = borderDarkCount / borderSamples > 0.45;
-
-          // 2. Classify pixels: outlines should be crisp dark lines; everything else is white/fillable
-          let darkCount = 0;
-          const isLineArray = new Uint8Array(totalPixels);
-
-          for (let p = 0; p < totalPixels; p++) {
+          // ── Detect if this is already binarized line art (from photoToLineArt) ──
+          // Sample 400 pixels evenly across the image. If the vast majority of sampled
+          // pixels are near-pure white or near-pure black, the image is pre-binarized
+          // and we skip the expensive re-detection to preserve thick, closed outlines.
+          const sampleStep = Math.max(1, Math.floor(totalPixels / 400));
+          let biModalCount = 0;
+          let sampleCount = 0;
+          for (let p = 0; p < totalPixels; p += sampleStep) {
             const i = p * 4;
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-
-            // If image had dark background/space, invert logic so bright lines become black outlines
-            const isLine = isDarkBackground
-              ? luminance > 115 && luminance < 245
-              : luminance < 115;
-
-            if (isLine) {
-              isLineArray[p] = 1;
-              darkCount++;
-            }
+            const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            if (lum < 60 || lum > 200) biModalCount++;
+            sampleCount++;
           }
+          const isAlreadyBinarized = sampleCount > 0 && (biModalCount / sampleCount) > 0.85;
 
-          // If too much of the canvas is dark (> 30%), fall back to high-contrast edge outline
-          const darkRatio = darkCount / totalPixels;
-          const useEdgeFallback = darkRatio > 0.30 || darkRatio < 0.02;
-
-          for (let p = 0; p < totalPixels; p++) {
-            const i = p * 4;
-            let isOutline = false;
-
-            if (useEdgeFallback) {
-              const x = p % INTERNAL_WIDTH;
-              const y = Math.floor(p / INTERNAL_WIDTH);
-              if (x < INTERNAL_WIDTH - 1 && y < INTERNAL_HEIGHT - 1) {
-                const rightIdx = (p + 1) * 4;
-                const downIdx = (p + INTERNAL_WIDTH) * 4;
-                const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-                const lumRight = 0.299 * data[rightIdx] + 0.587 * data[rightIdx + 1] + 0.114 * data[rightIdx + 2];
-                const lumDown = 0.299 * data[downIdx] + 0.587 * data[downIdx + 1] + 0.114 * data[downIdx + 2];
-                const diff = Math.abs(lum - lumRight) + Math.abs(lum - lumDown);
-                isOutline = diff > 40;
+          if (isAlreadyBinarized) {
+            // ── Fast path for pre-binarized photo line art ────────────────────
+            // Simple luminance split: dark pixels → opaque black boundary,
+            // light pixels → transparent (so paint layer shows through).
+            // Threshold 128 preserves the thick dilated lines from photoToLineArt.
+            for (let p = 0; p < totalPixels; p++) {
+              const i = p * 4;
+              const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+              if (lum < 128) {
+                // Keep as solid black boundary
+                data[i]     = 0;
+                data[i + 1] = 0;
+                data[i + 2] = 0;
+                data[i + 3] = 255;
+              } else {
+                // Make transparent so underlying paint canvas shows through
+                data[i]     = 255;
+                data[i + 1] = 255;
+                data[i + 2] = 255;
+                data[i + 3] = 0;
               }
-            } else {
-              isOutline = isLineArray[p] === 1;
+            }
+          } else {
+            // ── Full binarization for AI-generated or photographic images ─────
+            // 1. Detect background polarity by sampling border pixels
+            let borderDarkCount = 0;
+            let borderSamples = 0;
+            for (let x = 0; x < INTERNAL_WIDTH; x += 25) {
+              let idx = x * 4; // top border
+              let lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+              if (lum < 128) borderDarkCount++;
+              borderSamples++;
+
+              idx = ((INTERNAL_HEIGHT - 1) * INTERNAL_WIDTH + x) * 4; // bottom border
+              lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+              if (lum < 128) borderDarkCount++;
+              borderSamples++;
+            }
+            for (let y = 0; y < INTERNAL_HEIGHT; y += 25) {
+              let idx = (y * INTERNAL_WIDTH) * 4; // left border
+              let lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+              if (lum < 128) borderDarkCount++;
+              borderSamples++;
+
+              idx = (y * INTERNAL_WIDTH + (INTERNAL_WIDTH - 1)) * 4; // right border
+              lum = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+              if (lum < 128) borderDarkCount++;
+              borderSamples++;
             }
 
-            if (isOutline) {
-              data[i] = 20;
-              data[i + 1] = 20;
-              data[i + 2] = 20;
-              data[i + 3] = 255;
-            } else {
-              data[i] = 255;
-              data[i + 1] = 255;
-              data[i + 2] = 255;
-              data[i + 3] = 0;
+            const isDarkBackground = borderDarkCount / borderSamples > 0.45;
+
+            // 2. Classify pixels: outlines are dark lines; background is white/fillable
+            let darkCount = 0;
+            const isLineArray = new Uint8Array(totalPixels);
+
+            for (let p = 0; p < totalPixels; p++) {
+              const i = p * 4;
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+
+              const isLine = isDarkBackground
+                ? luminance > 115 && luminance < 245
+                : luminance < 115;
+
+              if (isLine) {
+                isLineArray[p] = 1;
+                darkCount++;
+              }
+            }
+
+            // 3. If too much of the canvas is dark (> 30%), fall back to edge detection
+            const darkRatio = darkCount / totalPixels;
+            const useEdgeFallback = darkRatio > 0.30 || darkRatio < 0.02;
+
+            for (let p = 0; p < totalPixels; p++) {
+              const i = p * 4;
+              let isOutline = false;
+
+              if (useEdgeFallback) {
+                const x = p % INTERNAL_WIDTH;
+                const y = Math.floor(p / INTERNAL_WIDTH);
+                if (x < INTERNAL_WIDTH - 1 && y < INTERNAL_HEIGHT - 1) {
+                  const rightIdx = (p + 1) * 4;
+                  const downIdx = (p + INTERNAL_WIDTH) * 4;
+                  const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                  const lumRight = 0.299 * data[rightIdx] + 0.587 * data[rightIdx + 1] + 0.114 * data[rightIdx + 2];
+                  const lumDown = 0.299 * data[downIdx] + 0.587 * data[downIdx + 1] + 0.114 * data[downIdx + 2];
+                  const diff = Math.abs(lum - lumRight) + Math.abs(lum - lumDown);
+                  isOutline = diff > 40;
+                }
+              } else {
+                isOutline = isLineArray[p] === 1;
+              }
+
+              if (isOutline) {
+                data[i]     = 20;
+                data[i + 1] = 20;
+                data[i + 2] = 20;
+                data[i + 3] = 255;
+              } else {
+                data[i]     = 255;
+                data[i + 1] = 255;
+                data[i + 2] = 255;
+                data[i + 3] = 0;
+              }
             }
           }
+
           ctx.putImageData(imgData, 0, 0);
         } catch (e) {
           console.warn('Canvas pixel processing skipped (CORS/tainted):', e);
