@@ -22,7 +22,35 @@ $envPaths = [
 $env = [];
 foreach ($envPaths as $path) {
     if (file_exists($path)) {
-        $parsed = parse_ini_file($path);
+        // Use INI_SCANNER_RAW to handle '=' inside values; suppress warnings
+        $parsed = @parse_ini_file($path, false, INI_SCANNER_RAW);
+        if ($parsed === false) {
+            // Fallback: manual line-by-line parser for non-standard .env files
+            $parsed = [];
+            $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '' || $line[0] === '#') continue;
+                $eqPos = strpos($line, '=');
+                if ($eqPos === false) continue;
+                $key = trim(substr($line, 0, $eqPos));
+                $val = trim(substr($line, $eqPos + 1));
+                if ($val !== '' && $val[0] !== '"' && $val[0] !== "'") {
+                    $commentPos = strpos($val, ' #');
+                    if ($commentPos !== false) {
+                        $val = trim(substr($val, 0, $commentPos));
+                    }
+                }
+                if (strlen($val) >= 2 &&
+                    (($val[0] === '"' && $val[-1] === '"') ||
+                     ($val[0] === "'" && $val[-1] === "'"))) {
+                    $val = substr($val, 1, -1);
+                }
+                if ($key !== '') {
+                    $parsed[$key] = $val;
+                }
+            }
+        }
         if ($parsed) {
             $env = array_merge($env, $parsed);
         }
