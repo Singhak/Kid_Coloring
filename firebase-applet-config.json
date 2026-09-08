@@ -1,9 +1,9 @@
 {
-  "projectId": "kidcoloro",
-  "apiKey": "AIzaSyDucVx_r-uDv2dWmRrz4RpqxmHTsVqfkk0",
-  "authDomain": "kidcoloro.firebaseapp.com",
-  "storageBucket": "kidcoloro.firebasestorage.app",
-  "messagingSenderId": "116019135258",
-  "appId": "1:116019135258:web:9dbff93c8744e05b0c22a3",
-  "measurementId": "G-F269ZC5968"
+  "apiKey": "AIzaSyBqABB_uJXR246Y4h9on6fUILNvlubEOj4",
+  "authDomain": "kidscoloro.firebaseapp.com",
+  "projectId": "kidscoloro",
+  "storageBucket": "kidscoloro.firebasestorage.app",
+  "messagingSenderId": "432082646713",
+  "appId": "1:432082646713:web:af03c2fbc70a323fa70d68",
+  "measurementId": "G-8GB7BGWWTL"
 }
