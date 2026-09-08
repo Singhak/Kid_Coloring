@@ -12,13 +12,17 @@
  *
  * Required .env vars:
  *   FIREBASE_PROJECT_ID
- *   FIREBASE_SERVICE_ACCOUNT_JSON (path to service account JSON)
- *   MAIL_FROM_ADDRESS   (e.g. noreply@coloro.in)
- *   MAIL_FROM_NAME      (e.g. Coloro Team)
- *   APP_URL             (e.g. https://coloro.in)
+ *   FIREBASE_SERVICE_ACCOUNT_JSON
+ *   APP_URL                (e.g. https://coloro.in)
  *
- * Email delivery: Uses PHP mail() by default.
- * For production, swap sendReminderEmail() to use SMTP (PHPMailer/SendGrid/etc.)
+ * Hostinger SMTP .env vars:
+ *   SMTP_HOST              smtp.hostinger.com
+ *   SMTP_PORT              465  (SSL) or 587 (TLS/STARTTLS)
+ *   SMTP_ENCRYPTION        ssl  or tls
+ *   SMTP_USERNAME          noreply@coloro.in  (your Hostinger email)
+ *   SMTP_PASSWORD          your_email_password
+ *   MAIL_FROM_ADDRESS      noreply@coloro.in
+ *   MAIL_FROM_NAME         Coloro Team
  */
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
@@ -462,8 +466,15 @@ function buildEmail(string $templatePath, array $vars): string
 }
 
 /**
- * Send HTML email via PHP mail().
- * For production, replace with PHPMailer + SMTP or an API like SendGrid/Mailgun.
+ * Send HTML email via Hostinger SMTP using PHP native stream sockets.
+ * No external libraries required. Supports SSL (port 465) and STARTTLS (port 587).
+ *
+ * Reads config from global $env array:
+ *   SMTP_HOST        — smtp.hostinger.com
+ *   SMTP_PORT        — 465 (SSL) | 587 (TLS/STARTTLS)
+ *   SMTP_ENCRYPTION  — ssl | tls
+ *   SMTP_USERNAME    — your Hostinger email address
+ *   SMTP_PASSWORD    — your Hostinger email password
  *
  * @return bool true on success
  */
@@ -475,21 +486,34 @@ function sendReminderEmail(
     string $fromEmail,
     string $fromName
 ): bool {
+    global $env;
+
+    $smtpHost       = $env['SMTP_HOST']       ?? 'smtp.hostinger.com';
+    $smtpPort       = (int)($env['SMTP_PORT'] ?? 465);
+    $smtpEncryption = strtolower($env['SMTP_ENCRYPTION'] ?? 'ssl'); // 'ssl' or 'tls'
+    $smtpUser       = $env['SMTP_USERNAME']   ?? $fromEmail;
+    $smtpPass       = $env['SMTP_PASSWORD']   ?? '';
+
+    // Build multipart MIME message
     $boundary = md5(uniqid('coloro_', true));
     $plain    = strip_tags(preg_replace('/<style[^>]*>.*?<\/style>/si', '', $html));
     $plain    = wordwrap(trim(preg_replace('/\s+/', ' ', $plain)), 76, "\r\n", false);
 
-    $headers  = implode("\r\n", [
+    $toHeader   = $toName ? "{$toName} <{$to}>" : $to;
+    $fromHeader = $fromName ? "{$fromName} <{$fromEmail}>" : $fromEmail;
+    $date       = date('r'); // RFC 2822
+
+    $message = implode("\r\n", [
+        "Date: {$date}",
+        "To: {$toHeader}",
+        "From: {$fromHeader}",
+        "Reply-To: {$fromEmail}",
+        "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=",
         "MIME-Version: 1.0",
         "Content-Type: multipart/alternative; boundary=\"{$boundary}\"",
-        "From: {$fromName} <{$fromEmail}>",
-        "Reply-To: {$fromEmail}",
-        "X-Mailer: Coloro-PHP-Mailer/1.0",
-        "X-Priority: 1 (Highest)",
-        "X-MSMail-Priority: High",
-    ]);
-
-    $body = implode("\r\n", [
+        "X-Mailer: Coloro-SMTP-Mailer/2.0",
+        "X-Priority: 1",
+        "",
         "--{$boundary}",
         "Content-Type: text/plain; charset=UTF-8",
         "Content-Transfer-Encoding: quoted-printable",
@@ -505,9 +529,129 @@ function sendReminderEmail(
         "--{$boundary}--",
     ]);
 
-    $toHeader = $toName ? "{$toName} <{$to}>" : $to;
+    try {
+        // ── 1. Open socket ──────────────────────────────────────────────────
+        if ($smtpEncryption === 'ssl') {
+            // Port 465 — implicit SSL (connect directly over SSL)
+            $socketAddress = "ssl://{$smtpHost}:{$smtpPort}";
+        } else {
+            // Port 587 — plain first, then STARTTLS upgrade
+            $socketAddress = "tcp://{$smtpHost}:{$smtpPort}";
+        }
 
-    return mail($toHeader, $subject, $body, $headers);
+        $ctx = stream_context_create([
+            'ssl' => [
+                'verify_peer'       => true,
+                'verify_peer_name'  => true,
+                'allow_self_signed' => false,
+            ]
+        ]);
+
+        $socket = stream_socket_client(
+            $socketAddress,
+            $errNo,
+            $errStr,
+            15,
+            STREAM_CLIENT_CONNECT,
+            $ctx
+        );
+
+        if (!$socket) {
+            throw new RuntimeException("SMTP connect failed ({$socketAddress}): {$errStr} [{$errNo}]");
+        }
+
+        stream_set_timeout($socket, 15);
+
+        // ── Helper: send command and read response ──────────────────────────
+        $smtpSend = function(string $cmd) use ($socket): string {
+            fwrite($socket, $cmd . "\r\n");
+            $response = '';
+            while ($line = fgets($socket, 512)) {
+                $response .= $line;
+                // Multi-line responses have '-' after the code (e.g. "250-"); single line has ' '
+                if (strlen($line) >= 4 && $line[3] === ' ') break;
+            }
+            return $response;
+        };
+
+        // ── 2. SMTP handshake ───────────────────────────────────────────────
+        $greeting = fgets($socket, 512); // 220 greeting
+        if (!str_starts_with(trim($greeting), '220')) {
+            throw new RuntimeException("SMTP: unexpected greeting: {$greeting}");
+        }
+
+        $ehlo = $smtpSend('EHLO ' . gethostname());
+        if (!str_starts_with($ehlo, '250')) {
+            throw new RuntimeException("SMTP EHLO rejected: {$ehlo}");
+        }
+
+        // ── 3. STARTTLS upgrade (port 587 / tls mode only) ──────────────────
+        if ($smtpEncryption === 'tls') {
+            $startTls = $smtpSend('STARTTLS');
+            if (!str_starts_with($startTls, '220')) {
+                throw new RuntimeException("SMTP STARTTLS rejected: {$startTls}");
+            }
+            // Upgrade the socket to TLS
+            stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            // Re-send EHLO after TLS upgrade
+            $smtpSend('EHLO ' . gethostname());
+        }
+
+        // ── 4. AUTH LOGIN ───────────────────────────────────────────────────
+        $authCmd  = $smtpSend('AUTH LOGIN');
+        if (!str_starts_with($authCmd, '334')) {
+            throw new RuntimeException("SMTP AUTH LOGIN failed: {$authCmd}");
+        }
+
+        $userResp = $smtpSend(base64_encode($smtpUser));
+        if (!str_starts_with($userResp, '334')) {
+            throw new RuntimeException("SMTP username rejected: {$userResp}");
+        }
+
+        $passResp = $smtpSend(base64_encode($smtpPass));
+        if (!str_starts_with($passResp, '235')) {
+            throw new RuntimeException("SMTP password rejected (check credentials): {$passResp}");
+        }
+
+        // ── 5. Send envelope ────────────────────────────────────────────────
+        $mailFrom = $smtpSend("MAIL FROM:<{$fromEmail}>");
+        if (!str_starts_with($mailFrom, '250')) {
+            throw new RuntimeException("SMTP MAIL FROM rejected: {$mailFrom}");
+        }
+
+        $rcptTo = $smtpSend("RCPT TO:<{$to}>");
+        if (!str_starts_with($rcptTo, '250')) {
+            throw new RuntimeException("SMTP RCPT TO rejected: {$rcptTo}");
+        }
+
+        // ── 6. Send message body ────────────────────────────────────────────
+        $dataCmd = $smtpSend('DATA');
+        if (!str_starts_with($dataCmd, '354')) {
+            throw new RuntimeException("SMTP DATA command rejected: {$dataCmd}");
+        }
+
+        fwrite($socket, $message . "\r\n.\r\n"); // end with CRLF.CRLF
+        $dataEnd = '';
+        while ($line = fgets($socket, 512)) {
+            $dataEnd .= $line;
+            if (strlen($line) >= 4 && $line[3] === ' ') break;
+        }
+
+        if (!str_starts_with($dataEnd, '250')) {
+            throw new RuntimeException("SMTP message rejected: {$dataEnd}");
+        }
+
+        // ── 7. Quit ─────────────────────────────────────────────────────────
+        $smtpSend('QUIT');
+        fclose($socket);
+
+        return true;
+
+    } catch (Throwable $e) {
+        logCron('ERROR', "SMTP error sending to {$to}: " . $e->getMessage());
+        if (isset($socket) && is_resource($socket)) fclose($socket);
+        return false;
+    }
 }
 
 /**
