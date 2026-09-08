@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>We Miss You at Coloro! 🎨</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Nunito','Segoe UI',Arial,sans-serif;background:#F0F7FF;color:#2D3436}
+    .wrap{max-width:600px;margin:0 auto;padding:24px 16px;background:#F0F7FF}
+
+    /* ── Header — soft blue/purple gradient ── */
+    .header{background:linear-gradient(135deg,#6C5CE7 0%,#a29bfe 50%,#74b9ff 100%);border-radius:28px 28px 0 0;padding:48px 32px 40px;text-align:center;position:relative;overflow:hidden}
+    .header::before{content:'🌈';position:absolute;top:14px;left:22px;font-size:30px;opacity:.55}
+    .header::after{content:'⭐';position:absolute;bottom:14px;right:22px;font-size:26px;opacity:.55}
+
+    /* Floating art canvas illustration */
+    .canvas-illustration{
+      width:120px;height:90px;
+      background:#fff;
+      border-radius:16px;
+      box-shadow:0 8px 28px rgba(0,0,0,.2);
+      margin:0 auto 20px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:52px;
+      position:relative;
+      border:3px solid rgba(255,255,255,.6)
+    }
+    .canvas-illustration::after{
+      content:'';position:absolute;
+      bottom:-8px;left:50%;transform:translateX(-50%);
+      width:80px;height:10px;
+      background:rgba(0,0,0,.12);
+      border-radius:50%;
+      filter:blur(4px)
+    }
+
+    .header-badge{display:inline-block;background:rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;padding:5px 18px;border-radius:100px;border:1.5px solid rgba(255,255,255,.4);margin-bottom:14px}
+    .header h1{color:#fff;font-size:30px;font-weight:900;line-height:1.25;text-shadow:0 2px 10px rgba(0,0,0,.15);margin-bottom:8px}
+    .header p{color:rgba(255,255,255,.92);font-size:15px;font-weight:600;line-height:1.5}
+
+    /* ── Body ── */
+    .body{background:#fff;padding:36px 32px;border-left:1px solid #C9D8FF;border-right:1px solid #C9D8FF}
+    .greeting{font-size:19px;font-weight:800;margin-bottom:14px;color:#2D3436}
+    .intro{font-size:15px;font-weight:600;color:#555;line-height:1.8;margin-bottom:28px}
+
+    /* ── Emotion Card ── */
+    .emotion-card{background:linear-gradient(135deg,#F8F4FF,#EEF2FF);border:2px solid #C4B5FD;border-radius:22px;padding:28px 24px;text-align:center;margin-bottom:30px;position:relative}
+    .emotion-emojis{font-size:42px;margin-bottom:12px;display:block;letter-spacing:6px}
+    .emotion-title{font-size:22px;font-weight:900;color:#4C1D95;margin-bottom:8px}
+    .emotion-subtitle{font-size:14px;font-weight:700;color:#7C3AED;line-height:1.6}
+
+    /* Days badge */
+    .days-gone{display:inline-block;background:linear-gradient(135deg,#EF4444,#F97316);color:#fff;font-size:14px;font-weight:900;padding:8px 22px;border-radius:100px;margin-top:16px;box-shadow:0 4px 14px rgba(239,68,68,.35)}
+
+    /* ── What's waiting section ── */
+    .sec-title{font-size:16px;font-weight:900;color:#2D3436;margin-bottom:16px}
+
+    .waiting-grid{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+    .waiting-item{flex:1;min-width:120px;background:#F9F7FF;border:1.5px solid #DDD6FE;border-radius:16px;padding:16px 12px;text-align:center}
+    .waiting-item .wi-icon{font-size:32px;display:block;margin-bottom:8px}
+    .waiting-item .wi-label{font-size:12px;font-weight:800;color:#4C1D95}
+
+    /* ── Inspiration section ── */
+    .divider{height:1px;background:linear-gradient(90deg,transparent,#C4B5FD,transparent);margin:28px 0}
+
+    .inspiration-box{background:linear-gradient(135deg,#FFF8DC,#FFF3CD);border:2px solid #FFD93D;border-radius:20px;padding:24px;margin-bottom:28px}
+    .inspiration-title{font-size:15px;font-weight:900;color:#8C5B00;margin-bottom:14px}
+    .activity-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid #FFE8A0}
+    .activity-row:last-child{border-bottom:none}
+    .activity-icon{font-size:24px;width:36px;text-align:center;flex-shrink:0}
+    .activity-text strong{display:block;font-size:13px;font-weight:800;color:#2D3436}
+    .activity-text span{font-size:11px;font-weight:600;color:#8C6A00}
+
+    /* ── CTA ── */
+    .cta-wrap{text-align:center;margin:30px 0}
+    .cta-label{font-size:13px;font-weight:800;color:#6C5CE7;margin-bottom:14px}
+    .cta{display:inline-block;background:linear-gradient(135deg,#6C5CE7,#a29bfe);color:#fff!important;text-decoration:none;font-size:18px;font-weight:900;padding:20px 54px;border-radius:100px;box-shadow:0 8px 28px rgba(108,92,231,.45)}
+    .cta-note{margin-top:10px;font-size:12px;font-weight:600;color:#aaa}
+
+    /* ── Coloring tip card ── */
+    .tip-card{background:#F0FFF4;border:2px solid #86EFAC;border-radius:18px;padding:20px;margin-bottom:28px;display:flex;gap:14px;align-items:flex-start}
+    .tip-icon{font-size:32px;flex-shrink:0}
+    .tip-content strong{display:block;font-size:14px;font-weight:900;color:#15803D;margin-bottom:4px}
+    .tip-content span{font-size:13px;font-weight:600;color:#166534;line-height:1.6}
+
+    /* ── Social proof ── */
+    .quote-box{background:#F9F7EF;border-left:4px solid #a29bfe;border-radius:0 16px 16px 0;padding:18px 20px;margin:0 0 28px}
+    .quote-text{font-size:14px;font-weight:700;color:#555;line-height:1.7;font-style:italic;margin-bottom:8px}
+    .quote-author{font-size:12px;font-weight:800;color:#6C5CE7}
+
+    /* ── Footer ── */
+    .footer{background:#2D3436;border-radius:0 0 28px 28px;padding:28px 32px;text-align:center}
+    .footer-brand{font-size:22px;font-weight:900;color:#a29bfe;margin-bottom:10px}
+    .footer a{color:#aaa;text-decoration:none;font-size:12px;font-weight:600;margin:0 8px}
+    .footer-legal{font-size:11px;color:#666;line-height:1.7;margin-top:12px}
+
+    @media(max-width:480px){
+      .header{padding:30px 18px 26px}.header h1{font-size:23px}
+      .body{padding:24px 16px}
+      .waiting-grid{flex-direction:column}.waiting-item{min-width:unset}
+      .cta{padding:16px 30px;font-size:15px}
+      .tip-card{flex-direction:column;gap:8px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ══ HEADER ══ -->
+  <div class="header">
+    <div class="canvas-illustration">🎨</div>
+    <div class="header-badge">💜 Missing You</div>
+    <h1>Your Canvas Misses<br>Your Little Artist! 🖌️</h1>
+    <p>It's been 7 days — come back and create something magical ✨</p>
+  </div>
+
+  <!-- ══ BODY ══ -->
+  <div class="body">
+
+    <p class="greeting">Hi {{PARENT_NAME}} 👋</p>
+    <p class="intro">
+      We haven't seen <strong>{{CHILD_NAME}}</strong> on Coloro for a while — 
+      your last visit was on <strong>{{LAST_SEEN_DATE}}</strong>.<br><br>
+      A blank canvas is waiting patiently, bursting with colors just for your child.
+      We truly miss seeing their creativity shine! 🌈
+    </p>
+
+    <!-- Emotion Card -->
+    <div class="emotion-card">
+      <span class="emotion-emojis">🎨 😢 🖍️</span>
+      <div class="emotion-title">Your coloring canvas feels lonely!</div>
+      <div class="emotion-subtitle">All those beautiful colors are sitting idle,<br>waiting for your little artist to bring them to life.</div>
+      <div class="days-gone">⏰ 7 days without coloring</div>
+    </div>
+
+    <!-- What's waiting -->
+    <p class="sec-title">🌟 Here's what's waiting for {{CHILD_NAME}}:</p>
+    <div class="waiting-grid">
+      <div class="waiting-item">
+        <span class="wi-icon">🦁</span>
+        <div class="wi-label">New Animal Pages</div>
+      </div>
+      <div class="waiting-item">
+        <span class="wi-icon">🏰</span>
+        <div class="wi-label">Fantasy Worlds</div>
+      </div>
+      <div class="waiting-item">
+        <span class="wi-icon">🚀</span>
+        <div class="wi-label">Space Adventures</div>
+      </div>
+      <div class="waiting-item">
+        <span class="wi-icon">🌸</span>
+        <div class="wi-label">Nature & Flowers</div>
+      </div>
+    </div>
+
+    <!-- Coloring Tip -->
+    <div class="tip-card">
+      <div class="tip-icon">💡</div>
+      <div class="tip-content">
+        <strong>Did you know? 🧠</strong>
+        <span>Just 15 minutes of creative coloring a day improves a child's focus, fine motor skills, and emotional well-being. Even a quick session makes a big difference!</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Today's Inspiration -->
+    <div class="inspiration-box">
+      <div class="inspiration-title">🎯 Try one of these today:</div>
+      <div class="activity-row">
+        <div class="activity-icon">🤖</div>
+        <div class="activity-text">
+          <strong>Ask the Magic AI for a custom page!</strong>
+          <span>Type "unicorn in a forest" — see magic happen in seconds</span>
+        </div>
+      </div>
+      <div class="activity-row">
+        <div class="activity-icon">📸</div>
+        <div class="activity-text">
+          <strong>Turn a family photo into a coloring page!</strong>
+          <span>Upload any photo — your child can color your home or pet!</span>
+        </div>
+      </div>
+      <div class="activity-row">
+        <div class="activity-icon">🖨️</div>
+        <div class="activity-text">
+          <strong>Print & color together!</strong>
+          <span>Download a HD sheet and color it offline as a family activity</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+      <p class="cta-label">✨ Just one click to start creating!</p>
+      <a href="{{APP_URL}}" class="cta">🎨 Start Coloring Now!</a>
+      <p class="cta-note">Free to use · No download needed · Works on any device</p>
+    </div>
+
+    <!-- Testimonial -->
+    <div class="quote-box">
+      <p class="quote-text">"We make Coloro part of our evening routine now. My son asks for it every day after school — it keeps him calm and focused. So glad we discovered it!"</p>
+      <div class="quote-author">— Meera S., Parent from Chennai ⭐⭐⭐⭐⭐</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="font-size:13px;font-weight:600;color:#888;text-align:center;line-height:1.75">
+      Have feedback or questions? We'd love to hear from you!<br>
+      Reply to this email or visit <a href="{{APP_URL}}" style="color:#6C5CE7;font-weight:800;text-decoration:none">coloro.in</a>
+    </p>
+
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <div class="footer">
+    <div class="footer-brand">🎨 Coloro</div>
+    <div>
+      <a href="{{APP_URL}}/#privacy">Privacy</a>
+      <a href="{{APP_URL}}/#terms">Terms</a>
+      <a href="{{APP_URL}}/#contact">Contact</a>
+    </div>
+    <p class="footer-legal">
+      You received this because you have a Coloro account and haven't visited in 7 days.<br>
+      Coloro Kids Art Studio · India<br>
+      <a href="{{UNSUBSCRIBE_URL}}" style="color:#555">Unsubscribe from activity reminders</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Coloro VIP Expires in 7 Days 🌟</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Nunito','Segoe UI',Arial,sans-serif;background:#FFF8E7;color:#2D3436}
+    .wrap{max-width:600px;margin:0 auto;padding:24px 16px;background:#FFF8E7}
+
+    /* Header */
+    .header{background:linear-gradient(135deg,#FF9F43 0%,#FFD93D 55%,#FFA552 100%);border-radius:28px 28px 0 0;padding:44px 32px 36px;text-align:center;position:relative;overflow:hidden}
+    .header::before{content:'🌟';position:absolute;top:12px;left:20px;font-size:32px;opacity:.5}
+    .header::after{content:'🎨';position:absolute;bottom:12px;right:20px;font-size:28px;opacity:.5}
+    .header-icon{font-size:68px;display:block;margin-bottom:12px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.15))}
+    .header-badge{display:inline-block;background:rgba(255,255,255,.28);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;padding:5px 18px;border-radius:100px;border:1.5px solid rgba(255,255,255,.45);margin-bottom:14px}
+    .header h1{color:#fff;font-size:30px;font-weight:900;line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.18);margin-bottom:8px}
+    .header p{color:rgba(255,255,255,.92);font-size:15px;font-weight:600}
+
+    /* Body */
+    .body{background:#fff;padding:36px 32px;border-left:1px solid #FFE5A0;border-right:1px solid #FFE5A0}
+    .greeting{font-size:18px;font-weight:800;margin-bottom:14px}
+    .intro{font-size:15px;font-weight:600;color:#555;line-height:1.75;margin-bottom:28px}
+
+    /* Countdown */
+    .cd-box{background:linear-gradient(135deg,#FFF3CD,#FFEAA7);border:2.5px solid #FFD93D;border-radius:22px;padding:30px 24px;text-align:center;margin-bottom:30px}
+    .cd-boxes{display:flex;justify-content:center;gap:12px;align-items:flex-end}
+    .cd-cell{text-align:center}
+    .cd-num{background:#fff;border:2px solid #FFD93D;border-radius:14px;font-size:52px;font-weight:900;color:#FF9F43;width:90px;height:90px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(255,159,67,.25)}
+    .cd-lbl{font-size:11px;font-weight:900;color:#8C5B00;text-transform:uppercase;letter-spacing:1px;margin-top:6px}
+    .cd-sep{font-size:40px;font-weight:900;color:#FFD93D;padding-bottom:24px}
+    .cd-caption{font-size:14px;font-weight:700;color:#8C5B00;margin-top:18px}
+
+    /* Benefits */
+    .sec-title{font-size:16px;font-weight:900;margin-bottom:16px}
+    .benefit{display:flex;align-items:flex-start;gap:14px;padding:13px 0;border-bottom:1px solid #F0EDE0}
+    .benefit:last-child{border-bottom:none}
+    .b-icon{font-size:26px;width:36px;text-align:center;flex-shrink:0;margin-top:1px}
+    .b-text strong{display:block;font-size:14px;font-weight:800;color:#2D3436}
+    .b-text span{font-size:12px;font-weight:600;color:#888}
+
+    /* Plans */
+    .divider{height:1px;background:linear-gradient(90deg,transparent,#EBE8DC,transparent);margin:28px 0}
+    .plan{border-radius:18px;padding:20px 22px;margin-bottom:12px;position:relative}
+    .plan.annual{background:linear-gradient(135deg,#FFF9E6,#FFF3CD);border:2.5px solid #FFD93D}
+    .plan.monthly{background:#F9F7EF;border:2px solid #EBE8DC}
+    .plan-badge{position:absolute;top:13px;right:13px;background:linear-gradient(135deg,#FF9F43,#FFD93D);color:#7A4B00;font-size:10px;font-weight:900;letter-spacing:1px;text-transform:uppercase;padding:3px 10px;border-radius:100px}
+    .plan-name{font-size:16px;font-weight:900;margin-bottom:4px}
+    .plan-price{font-size:28px;font-weight:900;color:#FF9F43}
+    .plan-price small{font-size:14px;font-weight:600;color:#999}
+    .plan-desc{font-size:12px;font-weight:600;color:#777;margin-top:5px}
+
+    /* CTA */
+    .cta-wrap{text-align:center;margin:30px 0}
+    .cta{display:inline-block;background:linear-gradient(135deg,#FF9F43,#EE5253);color:#fff!important;text-decoration:none;font-size:18px;font-weight:900;padding:18px 52px;border-radius:100px;box-shadow:0 8px 24px rgba(238,82,83,.38)}
+    .cta-note{margin-top:10px;font-size:12px;font-weight:600;color:#aaa}
+
+    /* Trust */
+    .trust{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+    .trust span{font-size:12px;font-weight:700;color:#777}
+
+    /* Footer */
+    .footer{background:#2D3436;border-radius:0 0 28px 28px;padding:28px 32px;text-align:center}
+    .footer-brand{font-size:22px;font-weight:900;color:#FFD93D;margin-bottom:10px}
+    .footer a{color:#aaa;text-decoration:none;font-size:12px;font-weight:600;margin:0 8px}
+    .footer-legal{font-size:11px;color:#666;line-height:1.7;margin-top:12px}
+
+    @media(max-width:480px){
+      .header{padding:28px 16px 22px}.header h1{font-size:22px}
+      .body{padding:24px 16px}.cd-num{font-size:38px;width:68px;height:68px}
+      .cta{padding:16px 28px;font-size:15px}.trust{gap:12px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="header-icon">⏳</span>
+    <div class="header-badge">📬 Friendly Reminder</div>
+    <h1>Your VIP Magic Expires<br>in Just 7 Days!</h1>
+    <p>Give your little artist another year of superpowers 🎨</p>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <p class="greeting">Hi {{PARENT_NAME}} 👋</p>
+    <p class="intro">
+      Heads up! Your <strong>Coloro Magic VIP Pass ({{PLAN_TYPE}} plan)</strong> is set to expire
+      on <strong>{{EXPIRY_DATE}}</strong>.<br><br>
+      You still have time to renew smoothly — no interruptions to your child's creative journey! 🌈
+    </p>
+
+    <!-- Countdown -->
+    <div class="cd-box">
+      <div class="cd-boxes">
+        <div class="cd-cell">
+          <div class="cd-num">0</div>
+          <div class="cd-lbl">Weeks</div>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-cell">
+          <div class="cd-num">7</div>
+          <div class="cd-lbl">Days</div>
+        </div>
+        <div class="cd-sep">:</div>
+        <div class="cd-cell">
+          <div class="cd-num">00</div>
+          <div class="cd-lbl">Hours</div>
+        </div>
+      </div>
+      <div class="cd-caption">⏰ Renew now to avoid any gap in access</div>
+    </div>
+
+    <!-- What they lose -->
+    <p class="sec-title">✨ Your VIP Superpowers — keep them forever:</p>
+    <div style="margin-bottom:28px">
+      <div class="benefit">
+        <div class="b-icon">🤖</div>
+        <div class="b-text"><strong>Magic AI Coloring Pages</strong><span>Generate unlimited custom pages with AI prompts</span></div>
+      </div>
+      <div class="benefit">
+        <div class="b-icon">📸</div>
+        <div class="b-text"><strong>Photo to Art Converter</strong><span>Turn any real photo into a coloring page instantly</span></div>
+      </div>
+      <div class="benefit">
+        <div class="b-icon">🖨️</div>
+        <div class="b-text"><strong>HD Printable Sheets</strong><span>Download &amp; print gallery-quality coloring pages</span></div>
+      </div>
+      <div class="benefit">
+        <div class="b-icon">✨</div>
+        <div class="b-text"><strong>Glitter &amp; Special FX Colors</strong><span>Exclusive VIP-only palettes &amp; shimmer effects</span></div>
+      </div>
+      <div class="benefit">
+        <div class="b-icon">💬</div>
+        <div class="b-text"><strong>AI Buddy Chatbot</strong><span>Creative ideas &amp; learning companion for kids</span></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Plans -->
+    <p class="sec-title">🏆 Pick Your Renewal Plan:</p>
+
+    <div class="plan annual">
+      <div class="plan-badge">⭐ BEST VALUE</div>
+      <div class="plan-name">👑 Annual Magic Pass</div>
+      <div class="plan-price">₹499 <small>/ year</small></div>
+      <div class="plan-desc">✅ Save ₹689 vs monthly &nbsp;·&nbsp; 365 days + 15-Day Trial Bonus &nbsp;·&nbsp; One-time payment</div>
+    </div>
+
+    <div class="plan monthly">
+      <div class="plan-name">🌙 Monthly Magic Pass</div>
+      <div class="plan-price">₹99 <small>/ month</small></div>
+      <div class="plan-desc">✅ Pay monthly, cancel anytime &nbsp;·&nbsp; Great flexibility</div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+      <a href="{{RENEW_URL}}" class="cta">👑 Renew My VIP Pass Now</a>
+      <p class="cta-note">🔒 Secure via Cashfree &nbsp;·&nbsp; Instant activation &nbsp;·&nbsp; No auto-debit ever</p>
+    </div>
+
+    <!-- Trust -->
+    <div class="trust">
+      <span>🔒 Secure Payment</span>
+      <span>⚡ Instant Access</span>
+      <span>🇮🇳 Made in India</span>
+      <span>💰 No Auto-Debit</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <p style="font-size:13px;font-weight:600;color:#888;text-align:center;line-height:1.75">
+      Have questions? We'd love to help!<br>
+      Reply to this email or visit <a href="https://coloro.in" style="color:#FF9F43;font-weight:800;text-decoration:none">coloro.in</a>
+    </p>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-brand">🎨 Coloro</div>
+    <div>
+      <a href="https://coloro.in/#privacy">Privacy</a>
+      <a href="https://coloro.in/#terms">Terms</a>
+      <a href="https://coloro.in/#refund">Refund Policy</a>
+      <a href="https://coloro.in/#contact">Contact</a>
+    </div>
+    <p class="footer-legal">
+      You received this because your Coloro VIP subscription is expiring soon.<br>
+      Coloro Kids Art Studio · India<br>
+      <a href="{{UNSUBSCRIBE_URL}}" style="color:#555">Unsubscribe from renewal reminders</a>
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
