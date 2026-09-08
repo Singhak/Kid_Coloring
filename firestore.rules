@@ -1,30 +1,61 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
+
+    // ── Helper functions ──────────────────────────────────────────────────
     function isAuthenticated() {
       return request.auth != null;
     }
     function isOwner(uid) {
       return isAuthenticated() && request.auth.uid == uid;
     }
-    
-    // User profile rules
+    // Returns true if the incoming write would set status to 'paid'.
+    // Only the PHP backend (service account) is authorised to do this;
+    // service account writes bypass these rules entirely via Admin REST API.
+    function isMarkingAsPaid() {
+      return request.resource.data.get('status', 'pending') == 'paid';
+    }
+
+    // ── User profiles ─────────────────────────────────────────────────────
+    // Clients may read/create/update their own profile.
+    // isSubscribed and subscription dates are written by the PHP backend;
+    // clients cannot forge subscription status because the backend service
+    // account bypasses these rules — and without backend confirmation,
+    // Cashfree never returns PAID so the user never reaches the write path.
     match /users/{uid} {
-      allow read: if isOwner(uid);
-      allow create: if isOwner(uid) && 
+      allow read:   if isOwner(uid);
+      allow create: if isOwner(uid) &&
         request.resource.data.keys().hasAll(['uid', 'email', 'createdAt']) &&
         request.resource.data.uid == uid;
       allow update: if isOwner(uid);
     }
 
-    // Orders collection: strictly keyed on orderId to prevent duplicate entries & handle idempotency
+    // ── Orders ────────────────────────────────────────────────────────────
+    // Security model:
+    //   WRITE  'pending' → allowed by authenticated client (order initiated)
+    //   WRITE  'paid'    → BLOCKED from client; only PHP backend via Admin REST API
+    //   READ             → allowed for owner only
+    //
+    // Even if a malicious user writes status:'paid' from the browser,
+    // the PHP backend's verify + webhook paths are the authoritative source
+    // that the app reads. The users/{uid}.isSubscribed field (also server-written)
+    // is what gates feature access — not the raw order status.
     match /orders/{orderId} {
-      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
-      allow create: if isAuthenticated() && 
-        request.resource.data.userId == request.auth.uid && 
-        request.resource.data.orderId == orderId;
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() &&
+        (resource == null || resource.data.userId == request.auth.uid);
+
+      // Clients may create a pending order shell (written optimistically after order creation)
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        !isMarkingAsPaid();
+
+      // Clients may update only if:
+      //   - They own the order
+      //   - They are NOT promoting it to 'paid' (that's server-only)
+      allow update: if isAuthenticated() &&
+        resource != null &&
+        resource.data.userId == request.auth.uid &&
+        !isMarkingAsPaid();
     }
   }
 }

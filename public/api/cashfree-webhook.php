@@ -94,25 +94,118 @@ if (!empty($cashfreeSecret) && !empty($timestamp) && !empty($signature)) {
     $signatureValid = false;
 }
 
-$payload = json_decode($rawBody, true);
-$type = $payload['type'] ?? '';
-$orderData = $payload['data']['order'] ?? [];
-$paymentData = $payload['data']['payment'] ?? [];
+$payload      = json_decode($rawBody, true);
+$type         = $payload['type'] ?? '';
+$orderData    = $payload['data']['order']   ?? [];
+$paymentData  = $payload['data']['payment'] ?? [];
 
-$orderId = $orderData['order_id'] ?? null;
-$paymentId = $paymentData['cf_payment_id'] ?? null;
-$paymentStatus = $paymentData['payment_status'] ?? null;
+// Order fields
+$orderId       = $orderData['order_id']       ?? null;
+$orderAmount   = floatval($orderData['order_amount']   ?? 0);
+$orderCurrency = $orderData['order_currency'] ?? 'INR';
+$orderTags     = $orderData['order_tags']     ?? [];
+
+// Resolve userId and planType from tags written at order-creation time
+// These are set server-side so they are trusted (not user-supplied)
+$tagUserId   = $orderTags['user_id']   ?? null;
+$tagPlanType = $orderTags['plan_type'] ?? null;
+
+// Payment fields
+$paymentId     = $paymentData['cf_payment_id']   ?? null;
+$paymentStatus = strtoupper($paymentData['payment_status'] ?? '');
+$rawMethod     = $paymentData['payment_method']   ?? 'cashfree';
+
+// Derive plan from tags → orderId prefix → amount (in that priority order)
+$planType = $tagPlanType;
+if (!$planType) {
+    if (stripos((string)$orderId, 'mon') !== false || $orderAmount < 200) {
+        $planType = 'monthly';
+    } else {
+        $planType = 'annual';
+    }
+}
 
 if ($signatureValid && $orderId) {
-    logApiCall("SUCCESS: Webhook event processed", [
-        "type" => $type,
-        "order_id" => $orderId,
-        "payment_id" => $paymentId,
-        "payment_status" => $paymentStatus
+    logApiCall("Webhook: Event received", [
+        "type"           => $type,
+        "order_id"       => $orderId,
+        "payment_id"     => $paymentId,
+        "payment_status" => $paymentStatus,
+        "userId"         => $tagUserId,
+        "plan"           => $planType,
     ]);
+
+    // ── Firestore: Write PAID order on SUCCESS (secondary/fallback path) ─────
+    // The verify endpoint is the PRIMARY write path (called by frontend after checkout).
+    // This webhook is the FALLBACK that guarantees the DB is updated even if:
+    //   ─ The user closes the browser before the verify call completes
+    //   ─ UPI/bank authorisation completes minutes after checkout (async)
+    //   ─ The verify endpoint had a transient Firestore error
+    //
+    // Safety properties:
+    //   ─ firestoreRecordPayment() reads before writing — skips if already 'paid'
+    //   ─ Both paths write identical data keyed on orderId (merge:true)
+    //   ─ No double-charge risk — Cashfree bills once per order regardless
+    if ($paymentStatus === 'SUCCESS' && $tagUserId) {
+        try {
+            require_once __DIR__ . '/firebase-helper.php';
+            $sa = firebaseLoadServiceAccount($env);
+            if ($sa) {
+                $fbProjectId = $env['FIREBASE_PROJECT_ID'] ?? 'kidcoloro';
+                $fbToken     = firebaseGetAccessToken($sa);
+
+                $fbResult = firestoreRecordPayment(
+                    projectId:     $fbProjectId,
+                    orderId:       $orderId,
+                    userId:        $tagUserId,
+                    planType:      $planType,
+                    amount:        $orderAmount,
+                    currency:      $orderCurrency,
+                    paymentId:     (string)$paymentId,
+                    paymentMethod: normalisePaymentMethod($rawMethod),
+                    source:        'webhook',   // audit: written by Cashfree webhook
+                    token:         $fbToken
+                );
+
+                if ($fbResult['alreadyProcessed']) {
+                    logApiCall('Firestore: Webhook — order already paid (idempotent skip)', [
+                        'order_id' => $orderId,
+                    ], 'INFO');
+                } else {
+                    logApiCall('Firestore: Webhook — paid order + user profile written', [
+                        'order_id'            => $orderId,
+                        'plan'                => $planType,
+                        'subscriptionEndDate' => $fbResult['subscriptionEndDate'],
+                    ]);
+                }
+            } else {
+                logApiCall(
+                    'Firestore: Service account not configured — webhook write skipped. ' .
+                    'Add FIREBASE_SERVICE_ACCOUNT_JSON to .env',
+                    ['order_id' => $orderId],
+                    'WARN'
+                );
+            }
+        } catch (Throwable $fbErr) {
+            // IMPORTANT: still return HTTP 200 so Cashfree does not flood-retry the webhook.
+            // The error is logged for manual investigation if needed.
+            logApiError('Firestore: Webhook write failed (non-fatal) — ' . $fbErr->getMessage(), [
+                'order_id' => $orderId,
+                'userId'   => $tagUserId,
+            ]);
+        }
+    } elseif ($paymentStatus === 'SUCCESS' && !$tagUserId) {
+        logApiError('Firestore: Webhook SUCCESS but userId missing from order tags — manual review needed', [
+            'order_id'     => $orderId,
+            'payment_id'   => $paymentId,
+            'payment_status' => $paymentStatus,
+        ]);
+    }
+    // ── End Firestore ───────────────────────────────────────────────
+
 } else {
     logApiCall("Webhook: Received but skipped processing (invalid signature or test ping)", [
-        "type" => $type,
+        "type"            => $type,
         "signature_valid" => $signatureValid
     ]);
 }

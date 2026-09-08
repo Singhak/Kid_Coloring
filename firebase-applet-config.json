@@ -1,10 +1,9 @@
 {
-  "projectId": "nearby-1096",
-  "appId": "1:912207058376:web:dd6a9649c88319e6381cfd",
-  "apiKey": "AIzaSyAhMkLAgAy36PkJNlERmsyjtRUkxXIMIEo",
-  "authDomain": "nearby-1096.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-db0f614b-c757-40c0-9498-4dab4a922eb1",
-  "storageBucket": "nearby-1096.firebasestorage.app",
-  "messagingSenderId": "912207058376",
-  "measurementId": ""
+  "projectId": "kidcoloro",
+  "apiKey": "AIzaSyDucVx_r-uDv2dWmRrz4RpqxmHTsVqfkk0",
+  "authDomain": "kidcoloro.firebaseapp.com",
+  "storageBucket": "kidcoloro.firebasestorage.app",
+  "messagingSenderId": "116019135258",
+  "appId": "1:116019135258:web:9dbff93c8744e05b0c22a3",
+  "measurementId": "G-F269ZC5968"
 }

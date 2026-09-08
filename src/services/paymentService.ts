@@ -294,24 +294,30 @@ export const recordOrderSuccessInFirestore = async (
   const effectiveAmount = effectivePlan === 'annual' ? 499.00 : 99.00;
 
   const orderRef = doc(db, 'orders', orderId);
-  const orderSnap = await getDoc(orderRef);
 
   // Calculate subscription duration
   const now = new Date();
-  const durationMs = effectivePlan === 'annual' 
-    ? 365 * 24 * 60 * 60 * 1000 
+  const durationMs = effectivePlan === 'annual'
+    ? 365 * 24 * 60 * 60 * 1000
     : 30 * 24 * 60 * 60 * 1000;
   const endDate = new Date(now.getTime() + durationMs);
 
-  // 1. Idempotency Check: if this orderId is already processed, do NOT duplicate
-  if (orderSnap.exists() && orderSnap.data()?.status === 'paid') {
-    const existingData = orderSnap.data();
-    const existingEndDate = existingData.subscriptionEndDate?.toDate() || endDate;
-    return {
-      alreadyProcessed: true,
-      subscriptionEndDate: existingEndDate,
-      planType: existingData.planType || effectivePlan,
-    };
+  // 1. Idempotency Check: try to read existing order — skip gracefully if denied
+  try {
+    const orderSnap = await getDoc(orderRef);
+    if (orderSnap.exists() && orderSnap.data()?.status === 'paid') {
+      const existingData = orderSnap.data();
+      const existingEndDate = existingData.subscriptionEndDate?.toDate() || endDate;
+      return {
+        alreadyProcessed: true,
+        subscriptionEndDate: existingEndDate,
+        planType: existingData.planType || effectivePlan,
+      };
+    }
+  } catch (readErr: any) {
+    // Firestore may deny read if doc doesn't exist yet under certain rules —
+    // safe to skip idempotency check and proceed to write
+    console.warn('recordOrderSuccessInFirestore: getDoc skipped:', readErr?.message);
   }
 
   // 2. Atomically write order document keyed strictly on order_id

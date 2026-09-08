@@ -185,28 +185,96 @@ if ($orderStatus === 'PAID' || $successfulPayment !== null) {
     $paymentId = $successfulPayment['cf_payment_id'] ?? ($orderId . "_cf");
     $rawMethod = $successfulPayment['payment_method'] ?? 'cashfree';
     $methodStr = extractMethodString($rawMethod);
-    
+
+    // Resolve userId: prefer explicitly-passed userId, fall back to order tags
+    // (tags are set server-side at order creation so they're trusted)
+    $effectiveUserId = $userId ?: ($orderTags['user_id'] ?? '');
+
     logApiCall("Cashfree payment verified (PAID)", [
-        "order_id" => $orderId,
+        "order_id"   => $orderId,
         "payment_id" => (string)$paymentId,
-        "amount" => $orderAmount,
-        "plan" => $planType,
-        "method" => $methodStr
+        "amount"     => $orderAmount,
+        "plan"       => $planType,
+        "method"     => $methodStr,
+        "userId"     => $effectiveUserId,
     ]);
 
+    // ── Firestore: Idempotently write PAID order + user profile ──────────────
+    // This is the PRIMARY write path (called by frontend after checkout).
+    // The webhook in cashfree-webhook.php acts as a secondary fallback.
+    // Both use firestoreRecordPayment() which:
+    //   ─ reads the order first
+    //   ─ skips the write if status is already 'paid' (idempotency)
+    //   ─ writes merge:true so concurrent webhook + verify writes are safe
+    $firestoreResult = null;
+    try {
+        require_once __DIR__ . '/firebase-helper.php';
+        $sa = firebaseLoadServiceAccount($env);
+        if ($sa && $effectiveUserId) {
+            $fbProjectId = $env['FIREBASE_PROJECT_ID'] ?? 'kidcoloro';
+            $fbToken     = firebaseGetAccessToken($sa);
+
+            $firestoreResult = firestoreRecordPayment(
+                projectId:     $fbProjectId,
+                orderId:       $orderId,
+                userId:        $effectiveUserId,
+                planType:      $planType,
+                amount:        $orderAmount,
+                currency:      $orderCurrency,
+                paymentId:     (string)$paymentId,
+                paymentMethod: normalisePaymentMethod($rawMethod),
+                source:        'verify',          // audit: written by verify endpoint
+                token:         $fbToken
+            );
+
+            if ($firestoreResult['alreadyProcessed']) {
+                logApiCall('Firestore: Order already paid (idempotent skip)', [
+                    'order_id' => $orderId,
+                ], 'INFO');
+            } else {
+                logApiCall('Firestore: Paid order + user profile written', [
+                    'order_id'            => $orderId,
+                    'plan'                => $planType,
+                    'subscriptionEndDate' => $firestoreResult['subscriptionEndDate'],
+                ]);
+            }
+        } elseif (!$effectiveUserId) {
+            logApiError('Firestore: Cannot write paid order — userId missing from request and order tags', [
+                'order_id' => $orderId,
+            ]);
+        } else {
+            logApiCall(
+                'Firestore: Service account not configured — paid order NOT written to DB. ' .
+                'Add FIREBASE_SERVICE_ACCOUNT_JSON to .env',
+                ['order_id' => $orderId],
+                'WARN'
+            );
+        }
+    } catch (Throwable $fbErr) {
+        // Log Firestore errors but always return payment success to the user.
+        // The webhook fallback will retry the DB write independently.
+        logApiError('Firestore: Failed to write paid order — ' . $fbErr->getMessage(), [
+            'order_id' => $orderId,
+            'userId'   => $effectiveUserId,
+        ]);
+    }
+    // ── End Firestore ─────────────────────────────────────────────────
+
     echo json_encode([
-        "success" => true,
-        "isPending" => false,
-        "order_id" => $orderId,
-        "payment_id" => (string)$paymentId,
-        "order_status" => "PAID",
-        "payment_status" => "SUCCESS",
-        "amount" => $orderAmount,
-        "currency" => $orderCurrency,
-        "planType" => $planType,
-        "payment_method" => $methodStr,
-        "tags" => $orderTags,
-        "message" => "Payment verified successfully."
+        "success"          => true,
+        "isPending"        => false,
+        "order_id"         => $orderId,
+        "payment_id"       => (string)$paymentId,
+        "order_status"     => "PAID",
+        "payment_status"   => "SUCCESS",
+        "amount"           => $orderAmount,
+        "currency"         => $orderCurrency,
+        "planType"         => $planType,
+        "payment_method"   => $methodStr,
+        "tags"             => $orderTags,
+        // alreadyProcessed: true means DB write was skipped (duplicate call), subscription is active
+        "alreadyProcessed" => $firestoreResult['alreadyProcessed'] ?? false,
+        "message"          => "Payment verified successfully."
     ]);
     exit;
 }

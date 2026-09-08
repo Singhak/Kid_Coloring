@@ -207,18 +207,70 @@ if ($httpCode >= 400 || empty($result['payment_session_id'])) {
 
 logApiCall("Cashfree order created successfully", [
     "order_id" => $result["order_id"],
-    "plan" => $planType,
-    "amount" => $amount,
-    "userId" => $userId
+    "plan"     => $planType,
+    "amount"   => $amount,
+    "userId"   => $userId
 ]);
 
+// ── Firestore: Write PENDING order (non-blocking) ────────────────────────────
+// Records every payment attempt server-side, even ones never completed.
+// Non-fatal: a Firestore failure here MUST NOT block the checkout flow.
+try {
+    require_once __DIR__ . '/firebase-helper.php';
+    $sa = firebaseLoadServiceAccount($env);
+    if ($sa) {
+        $fbProjectId = $env['FIREBASE_PROJECT_ID'] ?? 'kidcoloro';
+        $fbToken     = firebaseGetAccessToken($sa);
+
+        // Use merge:false for the initial write — document should not exist yet.
+        // If it somehow already exists (retry), merge:true is safe too; we'll
+        // only overwrite if status is still 'pending' (never overwrite 'paid').
+        $existingOrder = firestoreGet($fbProjectId, 'orders', $result['order_id'], $fbToken);
+        $existingStatus = $existingOrder['data']['status'] ?? null;
+
+        if ($existingStatus !== 'paid') {
+            firestoreSet($fbProjectId, 'orders', $result['order_id'], [
+                'orderId'   => $result['order_id'],
+                'userId'    => $userId,
+                'gateway'   => 'cashfree',
+                'planType'  => $planType,
+                'amount'    => $amount,
+                'currency'  => 'INR',
+                'status'    => 'pending',
+                'createdAt' => FIRESTORE_NOW,
+                'updatedAt' => FIRESTORE_NOW,
+            ], $fbToken, false); // false = full write (safe for new doc)
+
+            logApiCall('Firestore: Pending order written', ['order_id' => $result['order_id']]);
+        } else {
+            // Already paid (e.g. order ID collision is impossible, but guard anyway)
+            logApiCall('Firestore: Order already paid — skipping pending write', [
+                'order_id' => $result['order_id'],
+            ], 'WARN');
+        }
+    } else {
+        logApiCall(
+            'Firestore: Service account not configured — pending order NOT written to DB. ' .
+            'Add FIREBASE_SERVICE_ACCOUNT_JSON to .env',
+            ['order_id' => $result['order_id']],
+            'WARN'
+        );
+    }
+} catch (Throwable $fbErr) {
+    // Log the error but never let Firestore issues block the payment
+    logApiError('Firestore: Failed to write pending order (non-fatal) — ' . $fbErr->getMessage(), [
+        'order_id' => $result['order_id'] ?? $orderId,
+    ]);
+}
+// ── End Firestore ─────────────────────────────────────────────────────────
+
 echo json_encode([
-    "success" => true,
-    "order_id" => $result["order_id"],
+    "success"          => true,
+    "order_id"         => $result["order_id"],
     "payment_session_id" => $result["payment_session_id"],
-    "order_status" => $result["order_status"] ?? "ACTIVE",
-    "order_amount" => $result["order_amount"] ?? $amount,
-    "order_currency" => $result["order_currency"] ?? "INR",
-    "planType" => $planType,
-    "environment" => $cashfreeEnv
+    "order_status"     => $result["order_status"] ?? "ACTIVE",
+    "order_amount"     => $result["order_amount"] ?? $amount,
+    "order_currency"   => $result["order_currency"] ?? "INR",
+    "planType"         => $planType,
+    "environment"      => $cashfreeEnv
 ]);
