@@ -190,8 +190,16 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'send-subscription-email.php
     $subscriptionEndDate = trim($input['subscriptionEndDate'] ?? $_POST['subscriptionEndDate'] ?? '');
 
     if (empty($orderId) || empty($customerEmail)) {
+        logApiError("orderId and customerEmail are required.", $input, 400);
         http_response_code(400);
         echo json_encode(["error" => "orderId and valid customerEmail are required."]);
+        exit;
+    }
+
+    if (!filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+        logApiError("Invalid email format provided: {$customerEmail}", $input, 400);
+        http_response_code(400);
+        echo json_encode(["error" => "Invalid customer email address format."]);
         exit;
     }
 

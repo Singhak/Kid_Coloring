@@ -311,7 +311,7 @@ async function main() {
   await runTestCase(
     'Subscription',
     'Case 9: Invalid Email Syntax (Rejects malformed customer email)',
-    'Validation failure / HTTP 400 or error returned',
+    'HTTP 400 with "Invalid customer email address format"',
     async () => {
       const res = await fetch(`${apiBaseUrl}/send-subscription-email.php`, {
         method: 'POST',
@@ -322,7 +322,7 @@ async function main() {
         }),
       });
       const body = await res.json().catch(() => ({}));
-      const passed = res.status >= 400 || body.success === false;
+      const passed = res.status === 400 && body.error?.toLowerCase().includes('email');
       return {
         passed,
         actual: `HTTP ${res.status} - ${JSON.stringify(body)}`,
