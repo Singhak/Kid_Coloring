@@ -1,159 +1,211 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to Coloro! 🎨 Your 15-Day Free Trial is Ready</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Nunito','Segoe UI',Arial,sans-serif;background:#FAF8F5;color:#2D3436;-webkit-font-smoothing:antialiased}
-    .wrap{max-width:600px;margin:0 auto;padding:24px 16px;background:#FAF8F5}
-
-    /* ── Header ── */
-    .header{background:linear-gradient(135deg,#6C5CE7 0%,#FF6B6B 50%,#FFA502 100%);border-radius:28px 28px 0 0;padding:48px 32px 42px;text-align:center;position:relative;overflow:hidden}
-    .header::before{content:'🎨';position:absolute;top:18px;left:24px;font-size:32px;opacity:.5}
-    .header::after{content:'⭐';position:absolute;bottom:18px;right:24px;font-size:32px;opacity:.5}
-    .header-badge{display:inline-block;background:rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;padding:5px 18px;border-radius:100px;border:1.5px solid rgba(255,255,255,.4);margin-bottom:14px}
-    .header h1{color:#fff;font-size:32px;font-weight:900;line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.15);margin-bottom:10px}
-    .header p{color:rgba(255,255,255,.95);font-size:16px;font-weight:700}
-
-    /* ── Body ── */
-    .body{background:#fff;padding:36px 32px;border-left:1px solid #EBE8DC;border-right:1px solid #EBE8DC}
-    .greeting{font-size:20px;font-weight:900;margin-bottom:12px;color:#2D3436}
-    .intro{font-size:15px;font-weight:600;color:#555;line-height:1.8;margin-bottom:26px}
-
-    /* ── Trial Hero Card ── */
-    .trial-card{background:linear-gradient(135deg,#F3E8FF 0%,#E0E7FF 100%);border:2.5px solid #A78BFA;border-radius:22px;padding:26px 22px;text-align:center;margin-bottom:28px;box-shadow:0 8px 24px rgba(167,139,250,.22)}
-    .trial-badge{display:inline-block;background:#7C3AED;color:#fff;font-size:11px;font-weight:900;padding:5px 16px;border-radius:100px;margin-bottom:10px;letter-spacing:1px}
-    .trial-title{font-size:22px;font-weight:900;color:#2D3436;margin-bottom:6px}
-    .trial-desc{font-size:14px;font-weight:700;color:#5B21B6;margin-bottom:14px;line-height:1.5}
-    .trial-pill{display:inline-block;background:#fff;border:1.5px solid #C4B5FD;color:#6D28D9;font-size:13px;font-weight:800;padding:7px 20px;border-radius:100px;box-shadow:0 2px 8px rgba(109,40,217,.12)}
-
-    /* ── Features Grid ── */
-    .section-title{font-size:16px;font-weight:900;color:#2D3436;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-    .feature-list{margin-bottom:28px}
-    .feature-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #F3F0E6}
-    .feature-item:last-child{border-bottom:none}
-    .feature-icon{font-size:26px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#FAF8F5;border-radius:12px;flex-shrink:0}
-    .feature-text strong{display:block;font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px}
-    .feature-text span{font-size:13px;font-weight:600;color:#666;line-height:1.5}
-
-    /* ── Quick Steps ── */
-    .steps-card{background:#FAF9F5;border:1.5px dashed #D5D0C2;border-radius:20px;padding:22px 20px;margin-bottom:28px}
-    .step-item{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-    .step-item:last-child{margin-bottom:0}
-    .step-num{background:#FF6B6B;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0}
-    .step-text{font-size:13px;font-weight:700;color:#444}
-
-    /* ── CTA Button ── */
-    .cta-wrap{text-align:center;margin:32px 0 16px}
-    .cta-btn{display:inline-block;background:linear-gradient(135deg,#FF6B6B 0%,#FA8231 100%);color:#fff!important;text-decoration:none;font-size:17px;font-weight:900;padding:17px 46px;border-radius:100px;box-shadow:0 8px 26px rgba(255,107,107,.4);letter-spacing:.3px}
-    .subtext{font-size:12px;color:#888;font-weight:700;margin-top:12px;text-align:center}
-
-    /* ── Trust Badges ── */
-    .trust-row{display:flex;justify-content:center;gap:16px;margin:24px 0 8px;padding-top:16px;border-top:1px solid #F3F0E6}
-    .trust-pill{font-size:11px;font-weight:800;color:#666;background:#F5F3EB;padding:5px 12px;border-radius:100px}
-
-    /* ── Footer ── */
-    .footer{background:#F7F5EC;border:1px solid #EBE8DC;border-top:none;border-radius:0 0 28px 28px;padding:26px 32px;text-align:center;font-size:12px;color:#888;line-height:1.8}
-    .footer a{color:#6C5CE7;font-weight:700;text-decoration:none}
-  </style>
 </head>
-<body>
-  <div class="wrap">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-badge">✨ Welcome Little Artist ✨</div>
-      <h1>Welcome to Coloro! 🎨</h1>
-      <p>Sparking curiosity and creativity, one color at a time.</p>
-    </div>
+<body style="margin:0;padding:0;background-color:#FAF8F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <!-- Outer Wrapper Table -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FAF8F5;margin:0;padding:24px 10px;">
+    <tr>
+      <td align="center" style="padding:0;">
+        
+        <!-- Main Container (max 600px) -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.06);border:1px solid #EBE8DC;">
+          
+          <!-- 1. Header Banner -->
+          <tr>
+            <td align="center" style="background:#6C5CE7;background:linear-gradient(135deg,#6C5CE7 0%,#FF6B6B 50%,#FFA502 100%);padding:44px 28px 36px;border-radius:24px 24px 0 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin-bottom:14px;">
+                <tr>
+                  <td style="background-color:rgba(255,255,255,0.25);border:1.5px solid rgba(255,255,255,0.5);border-radius:100px;padding:6px 20px;font-size:12px;font-weight:900;color:#FFFFFF;letter-spacing:1.5px;text-transform:uppercase;">
+                    ✨ Welcome Little Artist ✨
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin:0 0 10px;font-size:32px;font-weight:900;color:#FFFFFF;line-height:1.25;text-shadow:0 2px 8px rgba(0,0,0,0.15);">
+                Welcome to Coloro! 🎨
+              </h1>
+              <p style="margin:0;font-size:16px;font-weight:700;color:rgba(255,255,255,0.96);line-height:1.4;">
+                Sparking curiosity and creativity, one color at a time.
+              </p>
+            </td>
+          </tr>
 
-    <!-- Body -->
-    <div class="body">
-      <p class="greeting">Hi {{NAME}}! 👋</p>
-      <p class="intro">
-        We're thrilled to welcome you to the Coloro family! Coloro is thoughtfully built for curious kids and creative minds to explore art, learn phonics, and express imagination without distractions.
-      </p>
+          <!-- 2. Main Content Body -->
+          <tr>
+            <td style="padding:34px 28px 24px;background-color:#FFFFFF;">
+              
+              <!-- Greeting -->
+              <p style="margin:0 0 12px;font-size:20px;font-weight:900;color:#2D3436;">
+                Hi {{NAME}}! 👋
+              </p>
+              <p style="margin:0 0 26px;font-size:15px;font-weight:600;color:#555555;line-height:1.75;">
+                We're thrilled to welcome you to the Coloro family! Coloro is thoughtfully built for curious kids and creative minds to explore art, learn phonics, and express imagination without advertisements or distractions.
+              </p>
 
-      <!-- Trial Card -->
-      <div class="trial-card">
-        <span class="trial-badge">🌟 15-DAY VIP MAGIC PASS UNLOCKED</span>
-        <h2 class="trial-title">All VIP Features Are Live!</h2>
-        <p class="trial-desc">Enjoy full access to our entire art library, AI generation, and printable sheets.</p>
-        <div class="trial-pill">📅 Active through: <strong>{{TRIAL_END_DATE}}</strong></div>
-      </div>
+              <!-- 3. Trial Hero Card (Table-based) -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F3E8FF;background:linear-gradient(135deg,#F5E8FF 0%,#EBF4FF 100%);border:2px solid #C4B5FD;border-radius:18px;margin-bottom:28px;">
+                <tr>
+                  <td align="center" style="padding:24px 20px;">
+                    <div style="background-color:#7C3AED;color:#FFFFFF;font-size:11px;font-weight:900;padding:4px 16px;border-radius:100px;display:inline-block;letter-spacing:1px;margin-bottom:10px;">
+                      🌟 15-DAY VIP MAGIC PASS UNLOCKED
+                    </div>
+                    <div style="font-size:22px;font-weight:900;color:#2D3436;margin-bottom:6px;">
+                      All VIP Features Are Live!
+                    </div>
+                    <div style="font-size:14px;font-weight:600;color:#5B21B6;line-height:1.5;margin-bottom:14px;">
+                      Enjoy full access to our entire art library, AI generation, and printable sheets.
+                    </div>
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+                      <tr>
+                        <td style="background-color:#FFFFFF;border:1.5px solid #C4B5FD;border-radius:100px;padding:7px 20px;font-size:13px;font-weight:800;color:#6D28D9;">
+                          📅 Active through: <strong>{{TRIAL_END_DATE}}</strong>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
 
-      <!-- Feature Grid -->
-      <div class="section-title">✨ Everything at Your Fingertips:</div>
-      <div class="feature-list">
-        <div class="feature-item">
-          <div class="feature-icon">🎨</div>
-          <div class="feature-text">
-            <strong>100+ Magical Coloring Sheets</strong>
-            <span>Animals, vehicles, fairies, space adventures, and fresh weekly drops.</span>
-          </div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">🔤</div>
-          <div class="feature-text">
-            <strong>Phonics Letters &amp; Numbers</strong>
-            <span>Interactive alphabet and counting sheets with joyful pronunciation audio.</span>
-          </div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">📸</div>
-          <div class="feature-text">
-            <strong>AI Photo to Coloring Line Art</strong>
-            <span>Transform personal family, pet, or toy photos into custom coloring pages.</span>
-          </div>
-        </div>
-        <div class="feature-item">
-          <div class="feature-icon">🖨️</div>
-          <div class="feature-text">
-            <strong>Unlimited A4 Printable PDFs</strong>
-            <span>Print high-resolution, crisp line art directly for crayons and sketch pens at home.</span>
-          </div>
-        </div>
-      </div>
+              <!-- 4. Feature List Section -->
+              <p style="margin:0 0 16px;font-size:16px;font-weight:900;color:#2D3436;">
+                ✨ Everything at Your Fingertips:
+              </p>
 
-      <!-- Quick Steps -->
-      <div class="steps-card">
-        <div style="font-size:13px;font-weight:900;color:#2D3436;margin-bottom:12px;text-align:center">3 Quick Steps to Start:</div>
-        <div class="step-item">
-          <div class="step-num">1</div>
-          <div class="step-text">Choose your favorite drawing template from the gallery.</div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">2</div>
-          <div class="step-text">Pick your favorite colors, brushes, and glitter patterns.</div>
-        </div>
-        <div class="step-item">
-          <div class="step-num">3</div>
-          <div class="step-text">Download, print, or share your child's masterpiece!</div>
-        </div>
-      </div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                
+                <!-- Feature 1 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:8px 12px 14px 0;">
+                    <div style="background-color:#FAF8F5;border:1px solid #EBE8DC;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      🎨
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:8px 0 14px 0;border-bottom:1px solid #F3F0E6;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      100+ Magical Coloring Sheets
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Animals, vehicles, fairies, space adventures, and fresh weekly releases.
+                    </div>
+                  </td>
+                </tr>
 
-      <!-- CTA -->
-      <div class="cta-wrap">
-        <a href="{{APP_URL}}" class="cta-btn">Start Coloring Now 🚀</a>
-        <div class="subtext">100% Kid Safe • Zero Annoying Ads • Pure Creative Fun</div>
-      </div>
+                <!-- Feature 2 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:12px 12px 14px 0;">
+                    <div style="background-color:#FAF8F5;border:1px solid #EBE8DC;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      🔤
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:12px 0 14px 0;border-bottom:1px solid #F3F0E6;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      Phonics Letters &amp; Numbers
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Interactive letter sounds, tracing lines, and numbers for early learning.
+                    </div>
+                  </td>
+                </tr>
 
-      <!-- Trust Badges -->
-      <div class="trust-row">
-        <span class="trust-pill">🛡️ Ad-Free Zone</span>
-        <span class="trust-pill">👶 Age 3–10 Friendly</span>
-        <span class="trust-pill">🌈 Creative Growth</span>
-      </div>
-    </div>
+                <!-- Feature 3 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:12px 12px 14px 0;">
+                    <div style="background-color:#FAF8F5;border:1px solid #EBE8DC;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      🪄
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:12px 0 14px 0;border-bottom:1px solid #F3F0E6;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      Photo-to-Line-Art Magic AI
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Snap a photo of your pet, toy, or family sketch and turn it into a coloring outline.
+                    </div>
+                  </td>
+                </tr>
 
-    <!-- Footer -->
-    <div class="footer">
-      <p>Need help or have questions? Simply reply to this email.</p>
-      <p>Visit us anytime at <a href="{{APP_URL}}">coloro.in</a></p>
-      <p style="margin-top:8px;font-size:11px;color:#aaa">Coloro • Where every child is an artist 🌟</p>
-    </div>
-  </div>
+                <!-- Feature 4 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:12px 12px 4px 0;">
+                    <div style="background-color:#FAF8F5;border:1px solid #EBE8DC;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      🖨️
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:12px 0 4px 0;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      A4 PDF Printables
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Download crisp, print-ready sheets anytime for crayons and markers on paper.
+                    </div>
+                  </td>
+                </tr>
+
+              </table>
+
+              <!-- 5. 3 Easy Steps Card -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FAF9F5;border:1.5px dashed #D5D0C2;border-radius:16px;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:20px;">
+                    <div style="font-size:13px;font-weight:900;color:#444444;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;">
+                      🚀 Quick Start in 3 Steps:
+                    </div>
+                    <div style="font-size:13px;font-weight:700;color:#444444;line-height:1.9;">
+                      <span style="background-color:#FF6B6B;color:#FFFFFF;border-radius:50%;width:20px;height:20px;display:inline-block;text-align:center;line-height:20px;font-size:11px;font-weight:900;margin-right:6px;">1</span> Pick an artwork from the home gallery.<br />
+                      <span style="background-color:#FF6B6B;color:#FFFFFF;border-radius:50%;width:20px;height:20px;display:inline-block;text-align:center;line-height:20px;font-size:11px;font-weight:900;margin-right:6px;">2</span> Choose vibrant colors, gradients, and fun brush sizes.<br />
+                      <span style="background-color:#FF6B6B;color:#FFFFFF;border-radius:50%;width:20px;height:20px;display:inline-block;text-align:center;line-height:20px;font-size:11px;font-weight:900;margin-right:6px;">3</span> Tap download or print to showcase your masterpiece!
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- 6. CTA Button -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 16px;">
+                <tr>
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" style="background:#FF6B6B;background:linear-gradient(135deg,#FF6B6B 0%,#FA8231 100%);border-radius:100px;padding:16px 44px;box-shadow:0 8px 24px rgba(255,107,107,0.35);">
+                          <a href="{{APP_URL}}" target="_blank" style="font-size:17px;font-weight:900;color:#FFFFFF;text-decoration:none;display:inline-block;letter-spacing:0.3px;">
+                            Start Coloring Now 🚀
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top:10px;font-size:12px;font-weight:700;color:#888888;">
+                    Works on Phones, Tablets, iPads &amp; Desktop browsers
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- 7. Footer -->
+          <tr>
+            <td align="center" style="background-color:#F7F5EC;padding:24px 28px;border-top:1px solid #EBE8DC;font-size:12px;font-weight:600;color:#888888;line-height:1.75;">
+              <p style="margin:0 0 6px;">
+                <strong>Coloro</strong> — Safe, Ad-Free Creative Digital Coloring for Kids
+              </p>
+              <p style="margin:0;">
+                <a href="{{APP_URL}}" style="color:#6C5CE7;font-weight:700;text-decoration:none;">Visit Website</a> • 
+                <a href="{{APP_URL}}#privacy" style="color:#6C5CE7;font-weight:700;text-decoration:none;">Privacy Policy</a> • 
+                <a href="mailto:support@coloro.in" style="color:#6C5CE7;font-weight:700;text-decoration:none;">Contact Support</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- End Container -->
+
+      </td>
+    </tr>
+  </table>
 </body>
 </html>

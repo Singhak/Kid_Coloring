@@ -177,7 +177,71 @@ if (!function_exists('sendColoroMail')) {
         $plain = strip_tags(preg_replace('/<style[^>]*>.*?<\/style>/si', '', $html));
         $plain = wordwrap(trim(preg_replace('/\s+/', ' ', $plain)), 76, "\r\n", false);
 
-        $boundary = '=_coloro_' . md5(uniqid((string)mt_rand(), true));
+        // ── 1. Try PHPMailer First (Primary Engine) ───────────────────────────
+        $phpMailerAutoload = __DIR__ . '/PHPMailer/PHPMailer.php';
+        if (file_exists($phpMailerAutoload)) {
+            try {
+                require_once __DIR__ . '/PHPMailer/Exception.php';
+                require_once __DIR__ . '/PHPMailer/PHPMailer.php';
+                require_once __DIR__ . '/PHPMailer/SMTP.php';
+
+                $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host       = $smtpHost;
+                $mail->SMTPAuth   = true;
+                $mail->Username   = $smtpUser;
+                $mail->Password   = $smtpPass;
+                $mail->Port       = $smtpPort;
+
+                if ($smtpEncryption === 'ssl' || $smtpPort === 465) {
+                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+                } elseif ($smtpEncryption === 'tls' || $smtpPort === 587) {
+                    $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+                } else {
+                    $mail->SMTPAutoTLS = false;
+                }
+
+                $mail->Timeout  = 15;
+                $mail->CharSet  = 'UTF-8';
+                $mail->Encoding = 'base64'; // Guaranteed clean MIME across all MTAs
+
+                $cleanFromName = preg_replace('/[\r\n]+/', '', trim($fromName));
+                $cleanToName   = preg_replace('/[\r\n]+/', '', trim($toName));
+
+                $mail->setFrom($fromEmail, $cleanFromName);
+                $mail->addAddress($cleanTo, $cleanToName);
+                $mail->addReplyTo($fromEmail, $cleanFromName);
+
+                $mail->isHTML(true);
+                $mail->Subject = $subject;
+                $mail->Body    = $html;
+                $mail->AltBody = $plain;
+
+                $mail->send();
+
+                if (function_exists('logApiCall')) {
+                    logApiCall("Mail dispatched successfully via PHPMailer", [
+                        'to'      => $cleanTo,
+                        'subject' => $subject,
+                    ]);
+                }
+                return true;
+            } catch (\Throwable $e) {
+                $errorOutput = "PHPMailer error: " . $e->getMessage();
+                if (function_exists('logApiError')) {
+                    logApiError($errorOutput, ['to' => $cleanTo, 'subject' => $subject]);
+                }
+                // Fall through to native socket fallback
+            }
+        }
+
+        // ── 2. Fallback: Native Socket SMTP with Base64 HTML Part ─────────────
+        $cleanToName = preg_replace('/[\r\n]+/', '', trim($toName));
+        $cleanFromName = preg_replace('/[\r\n]+/', '', trim($fromName));
+        $toHeader = $cleanToName ? "=?UTF-8?B?" . base64_encode($cleanToName) . "?= <{$cleanTo}>" : $cleanTo;
+        $fromHeader = $cleanFromName ? "=?UTF-8?B?" . base64_encode($cleanFromName) . "?= <{$fromEmail}>" : $fromEmail;
+
+        $boundary = 'b1_coloro_' . md5(uniqid((string)mt_rand(), true));
         $dateStr = date('r');
 
         // Assemble RFC 2822 MIME message
@@ -189,21 +253,23 @@ if (!function_exists('sendColoroMail')) {
             "Subject: =?UTF-8?B?" . base64_encode($subject) . "?=",
             "MIME-Version: 1.0",
             "Content-Type: multipart/alternative; boundary=\"{$boundary}\"",
-            "X-Mailer: Coloro-Mailer/1.0",
+            "X-Mailer: Coloro-Mailer/2.0",
         ];
+
+        $encodedHtml = rtrim(chunk_split(base64_encode($html), 76, "\r\n"));
 
         $bodyLines = [
             "--{$boundary}",
             "Content-Type: text/plain; charset=UTF-8",
-            "Content-Transfer-Encoding: quoted-printable",
+            "Content-Transfer-Encoding: 8bit",
             "",
-            quoted_printable_encode($plain),
+            $plain,
             "",
             "--{$boundary}",
             "Content-Type: text/html; charset=UTF-8",
-            "Content-Transfer-Encoding: quoted-printable",
+            "Content-Transfer-Encoding: base64",
             "",
-            quoted_printable_encode($html),
+            $encodedHtml,
             "",
             "--{$boundary}--",
             ""

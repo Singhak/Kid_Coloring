@@ -1,160 +1,247 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Welcome to Coloro VIP! 👑 Your Subscription is Active</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Nunito','Segoe UI',Arial,sans-serif;background:#FFF9F0;color:#2D3436;-webkit-font-smoothing:antialiased}
-    .wrap{max-width:600px;margin:0 auto;padding:24px 16px;background:#FFF9F0}
-
-    /* ── Header ── */
-    .header{background:linear-gradient(135deg,#FF9F43 0%,#FF6B6B 50%,#6C5CE7 100%);border-radius:28px 28px 0 0;padding:48px 32px 42px;text-align:center;position:relative;overflow:hidden}
-    .header::before{content:'👑';position:absolute;top:18px;left:24px;font-size:32px;opacity:.5}
-    .header::after{content:'🌟';position:absolute;bottom:18px;right:24px;font-size:32px;opacity:.5}
-    .header-badge{display:inline-block;background:rgba(255,255,255,.28);color:#fff;font-size:11px;font-weight:900;letter-spacing:1.8px;text-transform:uppercase;padding:5px 18px;border-radius:100px;border:1.5px solid rgba(255,255,255,.45);margin-bottom:14px}
-    .header h1{color:#fff;font-size:32px;font-weight:900;line-height:1.2;text-shadow:0 2px 10px rgba(0,0,0,.18);margin-bottom:10px}
-    .header p{color:rgba(255,255,255,.95);font-size:16px;font-weight:700}
-
-    /* ── Body ── */
-    .body{background:#fff;padding:36px 32px;border-left:1px solid #FFE7BA;border-right:1px solid #FFE7BA}
-    .greeting{font-size:20px;font-weight:900;margin-bottom:12px;color:#2D3436}
-    .intro{font-size:15px;font-weight:600;color:#555;line-height:1.8;margin-bottom:26px}
-
-    /* ── Order Receipt Card ── */
-    .receipt-card{background:linear-gradient(135deg,#FFF8E7 0%,#FFF1D6 100%);border:2.5px solid #FFD166;border-radius:22px;padding:26px 24px;margin-bottom:28px;box-shadow:0 8px 24px rgba(255,209,102,.25)}
-    .receipt-title{font-size:13px;font-weight:900;color:#B45309;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:16px;text-align:center}
-    .receipt-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px dashed #F3DEB0}
-    .receipt-row:last-child{border-bottom:none;padding-top:14px}
-    .receipt-label{font-size:14px;font-weight:700;color:#78350F}
-    .receipt-val{font-size:14px;font-weight:800;color:#2D3436;text-align:right}
-    .receipt-val.highlight{font-size:22px;font-weight:900;color:#D97706}
-    .receipt-val.badge{background:#10B981;color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:100px}
-
-    /* ── VIP Perks List ── */
-    .section-title{font-size:16px;font-weight:900;color:#2D3436;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-    .perks-list{margin-bottom:28px}
-    .perk-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #FDF2E2}
-    .perk-item:last-child{border-bottom:none}
-    .perk-icon{font-size:24px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:#FEF3C7;border-radius:12px;flex-shrink:0}
-    .perk-text strong{display:block;font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px}
-    .perk-text span{font-size:13px;font-weight:600;color:#666;line-height:1.5}
-
-    /* ── CTA Button ── */
-    .cta-wrap{text-align:center;margin:32px 0 16px}
-    .cta-btn{display:inline-block;background:linear-gradient(135deg,#FF9F43 0%,#EE5253 100%);color:#fff!important;text-decoration:none;font-size:18px;font-weight:900;padding:18px 48px;border-radius:100px;box-shadow:0 8px 26px rgba(238,82,83,.38);letter-spacing:.3px}
-    .subtext{font-size:12px;color:#888;font-weight:700;margin-top:12px;text-align:center}
-
-    /* ── Invoice / Support Box ── */
-    .support-box{background:#FAF8F5;border:1px solid #EBE8DC;border-radius:16px;padding:16px 20px;margin-top:24px;text-align:center;font-size:13px;color:#666;line-height:1.6}
-    .support-box strong{color:#2D3436}
-
-    /* ── Footer ── */
-    .footer{background:#F7F5EC;border:1px solid #FFE7BA;border-top:none;border-radius:0 0 28px 28px;padding:26px 32px;text-align:center;font-size:12px;color:#888;line-height:1.8}
-    .footer a{color:#D97706;font-weight:700;text-decoration:none}
-  </style>
 </head>
-<body>
-  <div class="wrap">
-    <!-- Header -->
-    <div class="header">
-      <div class="header-badge">👑 Coloro VIP Confirmed 👑</div>
-      <h1>You're Now a VIP Artist! 🌟</h1>
-      <p>Thank you for supporting creative learning on Coloro.</p>
-    </div>
+<body style="margin:0;padding:0;background-color:#FFF9F0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+  <!-- Outer Wrapper Table -->
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFF9F0;margin:0;padding:24px 10px;">
+    <tr>
+      <td align="center" style="padding:0;">
+        
+        <!-- Main Email Container (max 600px) -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#FFFFFF;border-radius:24px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.06);border:1px solid #FFE7BA;">
+          
+          <!-- 1. Header Banner -->
+          <tr>
+            <td align="center" style="background:#FF9F43;background:linear-gradient(135deg,#FF9F43 0%,#FF6B6B 50%,#6C5CE7 100%);padding:44px 28px 36px;border-radius:24px 24px 0 0;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin-bottom:14px;">
+                <tr>
+                  <td style="background-color:rgba(255,255,255,0.28);border:1.5px solid rgba(255,255,255,0.55);border-radius:100px;padding:6px 20px;font-size:12px;font-weight:900;color:#FFFFFF;letter-spacing:1.5px;text-transform:uppercase;">
+                    👑 Coloro VIP Confirmed 👑
+                  </td>
+                </tr>
+              </table>
+              <h1 style="margin:0 0 10px;font-size:30px;font-weight:900;color:#FFFFFF;line-height:1.25;text-shadow:0 2px 8px rgba(0,0,0,0.18);">
+                You're Now a VIP Artist! 🌟
+              </h1>
+              <p style="margin:0;font-size:16px;font-weight:700;color:rgba(255,255,255,0.96);line-height:1.4;">
+                Thank you for supporting creative learning on Coloro.
+              </p>
+            </td>
+          </tr>
 
-    <!-- Body -->
-    <div class="body">
-      <p class="greeting">Hi {{NAME}}! 🎉</p>
-      <p class="intro">
-        Your subscription to <strong>{{PLAN_NAME}}</strong> is confirmed and fully active! Your little artist now has unlimited creative freedom to color, learn phonics, generate AI line art, and print endlessly.
-      </p>
+          <!-- 2. Main Content Body -->
+          <tr>
+            <td style="padding:34px 28px 24px;background-color:#FFFFFF;">
+              
+              <!-- Greeting -->
+              <p style="margin:0 0 12px;font-size:20px;font-weight:900;color:#2D3436;">
+                Hi {{NAME}}! 🎉
+              </p>
+              <p style="margin:0 0 26px;font-size:15px;font-weight:600;color:#555555;line-height:1.75;">
+                Your subscription to <strong style="color:#2D3436;">{{PLAN_NAME}}</strong> is confirmed and fully active! Your little artist now has unlimited creative freedom to color, learn phonics, generate AI line art, and print endlessly.
+              </p>
 
-      <!-- Receipt Card -->
-      <div class="receipt-card">
-        <div class="receipt-title">🧾 Subscription &amp; Payment Summary</div>
-        <div class="receipt-row">
-          <span class="receipt-label">Membership Plan</span>
-          <span class="receipt-val"><strong>{{PLAN_NAME}}</strong></span>
-        </div>
-        <div class="receipt-row">
-          <span class="receipt-label">Order ID</span>
-          <span class="receipt-val" style="font-family:monospace;font-size:13px">{{ORDER_ID}}</span>
-        </div>
-        <div class="receipt-row">
-          <span class="receipt-label">Payment Status</span>
-          <span class="receipt-val badge">✓ Confirmed</span>
-        </div>
-        <div class="receipt-row">
-          <span class="receipt-label">VIP Valid Until</span>
-          <span class="receipt-val"><strong>{{VALID_UNTIL}}</strong></span>
-        </div>
-        <div class="receipt-row">
-          <span class="receipt-label">Amount Paid</span>
-          <span class="receipt-val highlight">₹{{AMOUNT}}</span>
-        </div>
-      </div>
+              <!-- 3. Receipt Card (Table-based for 100% email client compatibility) -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFDF5;border:2px solid #FFD166;border-radius:18px;margin-bottom:28px;">
+                <tr>
+                  <td style="padding:22px 20px;">
+                    <div style="font-size:13px;font-weight:900;color:#B45309;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:16px;text-align:center;">
+                      🧾 Subscription &amp; Payment Summary
+                    </div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      
+                      <!-- Plan Name -->
+                      <tr>
+                        <td style="padding:8px 0;font-size:14px;font-weight:700;color:#78350F;border-bottom:1px dashed #F3DEB0;">
+                          Membership Plan
+                        </td>
+                        <td align="right" style="padding:8px 0;font-size:14px;font-weight:800;color:#2D3436;border-bottom:1px dashed #F3DEB0;">
+                          {{PLAN_NAME}}
+                        </td>
+                      </tr>
 
-      <!-- VIP Perks -->
-      <div class="section-title">✨ All Your Unlocked VIP Privileges:</div>
-      <div class="perks-list">
-        <div class="perk-item">
-          <div class="perk-icon">🎨</div>
-          <div class="perk-text">
-            <strong>Unlimited 100+ Artworks &amp; Future Drops</strong>
-            <span>Complete access to every current category and early access to all new weekly releases.</span>
-          </div>
-        </div>
-        <div class="perk-item">
-          <div class="perk-icon">📸</div>
-          <div class="perk-text">
-            <strong>Unlimited AI Photo to Line Art</strong>
-            <span>Turn unlimited family and toy pictures into coloring outlines without restrictions.</span>
-          </div>
-        </div>
-        <div class="perk-item">
-          <div class="perk-icon">🖨️</div>
-          <div class="perk-text">
-            <strong>Unlimited A4 Printable Outlines</strong>
-            <span>Print crisp line drawings whenever you want for home crayons and markers.</span>
-          </div>
-        </div>
-        <div class="perk-item">
-          <div class="perk-icon">🔤</div>
-          <div class="perk-text">
-            <strong>Complete Phonics &amp; Number Series</strong>
-            <span>Interactive letter sounds and numbers for holistic early childhood learning.</span>
-          </div>
-        </div>
-        <div class="perk-item">
-          <div class="perk-icon">🛡️</div>
-          <div class="perk-text">
-            <strong>100% Ad-Free Creative Safe Space</strong>
-            <span>No popups, zero banners, and no interruptions. Pure focused creativity.</span>
-          </div>
-        </div>
-      </div>
+                      <!-- Order ID -->
+                      <tr>
+                        <td style="padding:8px 0;font-size:14px;font-weight:700;color:#78350F;border-bottom:1px dashed #F3DEB0;">
+                          Order ID
+                        </td>
+                        <td align="right" style="padding:8px 0;font-family:Consolas,Monaco,'Courier New',monospace;font-size:12px;font-weight:700;color:#555555;border-bottom:1px dashed #F3DEB0;">
+                          {{ORDER_ID}}
+                        </td>
+                      </tr>
 
-      <!-- CTA -->
-      <div class="cta-wrap">
-        <a href="{{APP_URL}}" class="cta-btn">Open Coloro VIP 🚀</a>
-        <div class="subtext">Your VIP access is active on all your devices.</div>
-      </div>
+                      <!-- Payment Status -->
+                      <tr>
+                        <td style="padding:8px 0;font-size:14px;font-weight:700;color:#78350F;border-bottom:1px dashed #F3DEB0;">
+                          Payment Status
+                        </td>
+                        <td align="right" style="padding:8px 0;border-bottom:1px dashed #F3DEB0;">
+                          <span style="background-color:#10B981;color:#FFFFFF;font-size:11px;font-weight:900;padding:3px 12px;border-radius:100px;display:inline-block;">
+                            ✓ Confirmed
+                          </span>
+                        </td>
+                      </tr>
 
-      <!-- Support Box -->
-      <div class="support-box">
-        Need an invoice or have billing questions? Simply reply to this email or reach us anytime at <strong>support@coloro.in</strong>.
-      </div>
-    </div>
+                      <!-- VIP Valid Until -->
+                      <tr>
+                        <td style="padding:8px 0;font-size:14px;font-weight:700;color:#78350F;border-bottom:1px dashed #F3DEB0;">
+                          VIP Valid Until
+                        </td>
+                        <td align="right" style="padding:8px 0;font-size:14px;font-weight:800;color:#2D3436;border-bottom:1px dashed #F3DEB0;">
+                          {{VALID_UNTIL}}
+                        </td>
+                      </tr>
 
-    <!-- Footer -->
-    <div class="footer">
-      <p>This email serves as your official payment receipt for order #{{ORDER_ID}}.</p>
-      <p>Visit your dashboard at <a href="{{APP_URL}}">coloro.in</a></p>
-      <p style="margin-top:8px;font-size:11px;color:#aaa">Coloro • Unleashing the little artist within 🌟</p>
-    </div>
-  </div>
+                      <!-- Amount Paid -->
+                      <tr>
+                        <td style="padding:12px 0 4px;font-size:15px;font-weight:900;color:#78350F;">
+                          Amount Paid
+                        </td>
+                        <td align="right" style="padding:12px 0 4px;font-size:22px;font-weight:900;color:#D97706;">
+                          ₹{{AMOUNT}}
+                        </td>
+                      </tr>
+
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- 4. VIP Perks Section -->
+              <p style="margin:0 0 16px;font-size:16px;font-weight:900;color:#2D3436;">
+                ✨ All Your Unlocked VIP Privileges:
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                
+                <!-- Perk 1 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:8px 12px 14px 0;">
+                    <div style="background-color:#FEF3C7;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      🎨
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:8px 0 14px 0;border-bottom:1px solid #FDF2E2;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      Unlimited 100+ Artworks &amp; Future Drops
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Complete access to every current category and early access to all new weekly releases.
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Perk 2 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:12px 12px 14px 0;">
+                    <div style="background-color:#EDE9FE;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      📸
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:12px 0 14px 0;border-bottom:1px solid #FDF2E2;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      Unlimited AI Photo to Line Art
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Turn unlimited family and toy pictures into coloring outlines without restrictions.
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Perk 3 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:12px 12px 14px 0;">
+                    <div style="background-color:#E0F2FE;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      🖨️
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:12px 0 14px 0;border-bottom:1px solid #FDF2E2;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      Unlimited A4 Printable Outlines
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Print crisp line drawings whenever you want for home crayons and markers.
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Perk 4 -->
+                <tr>
+                  <td width="48" valign="top" style="padding:12px 12px 4px 0;">
+                    <div style="background-color:#FEE2E2;border-radius:12px;width:40px;height:40px;text-align:center;line-height:40px;font-size:22px;">
+                      🔤
+                    </div>
+                  </td>
+                  <td valign="middle" style="padding:12px 0 4px 0;">
+                    <div style="font-size:14px;font-weight:800;color:#2D3436;margin-bottom:2px;">
+                      Complete Phonics &amp; Number Series
+                    </div>
+                    <div style="font-size:13px;font-weight:600;color:#666666;line-height:1.45;">
+                      Interactive letter sounds and numbers for holistic early childhood learning.
+                    </div>
+                  </td>
+                </tr>
+
+              </table>
+
+              <!-- 5. CTA Button (Bulletproof email table button) -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 16px;">
+                <tr>
+                  <td align="center">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td align="center" style="background:#FF9F43;background:linear-gradient(135deg,#FF9F43 0%,#EE5253 100%);border-radius:100px;padding:16px 44px;box-shadow:0 8px 24px rgba(238,82,83,0.35);">
+                          <a href="{{APP_URL}}" target="_blank" style="font-size:17px;font-weight:900;color:#FFFFFF;text-decoration:none;display:inline-block;letter-spacing:0.3px;">
+                            Open Coloro VIP 🚀
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="padding-top:10px;font-size:12px;font-weight:700;color:#888888;">
+                    Instant access on Web, Android, iPad &amp; Tablet
+                  </td>
+                </tr>
+              </table>
+
+              <!-- 6. Support Box -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FAF8F5;border:1px solid #EBE8DC;border-radius:14px;margin-top:20px;">
+                <tr>
+                  <td align="center" style="padding:14px 18px;font-size:13px;font-weight:600;color:#666666;line-height:1.55;">
+                    Need assistance or have questions? Our support team is here for you:<br />
+                    <a href="mailto:support@coloro.in" style="color:#D97706;font-weight:800;text-decoration:none;">support@coloro.in</a> • Mon - Sat (9:00 AM - 6:00 PM IST)
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- 7. Footer -->
+          <tr>
+            <td align="center" style="background-color:#F7F5EC;padding:24px 28px;border-top:1px solid #FFE7BA;font-size:12px;font-weight:600;color:#888888;line-height:1.75;">
+              <p style="margin:0 0 6px;">
+                <strong>Coloro</strong> — Creative Learning &amp; Kid-Friendly Digital Coloring
+              </p>
+              <p style="margin:0;">
+                <a href="{{APP_URL}}" style="color:#D97706;font-weight:700;text-decoration:none;">Visit Website</a> • 
+                <a href="{{APP_URL}}#privacy" style="color:#D97706;font-weight:700;text-decoration:none;">Privacy Policy</a> • 
+                <a href="{{APP_URL}}#terms" style="color:#D97706;font-weight:700;text-decoration:none;">Terms of Service</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- End Container -->
+
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
