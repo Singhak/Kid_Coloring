@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Crown, Award, Wand2, Camera, Flame, Clock, ArrowRight } from 'lucide-react';
+import { Sparkles, Crown, Award, Wand2, Camera, Flame, Clock, ArrowRight, PartyPopper } from 'lucide-react';
 import { STATIC_TEMPLATES, CATEGORIES } from '../constants';
 import { Template } from '../types';
 import { getCurrentWeeklyDrop } from '../constants/weeklyDrops';
+import { getActiveFestivalStatus, FESTIVAL_PACKS, FestivalPack } from '../constants/festivalPacks';
 import { playPop, playChime } from '../services/soundEffects';
 
 interface TemplateGridProps {
@@ -14,6 +15,7 @@ interface TemplateGridProps {
   selectTemplate: (template: Template) => void;
   setShowUpgradeModal: (show: boolean) => void;
   onOpenPhotoArt?: () => void;
+  onSelectCategory?: (category: string) => void;
 }
 
 const TemplateGrid: React.FC<TemplateGridProps> = ({
@@ -23,12 +25,26 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
   generateRandomImage,
   selectTemplate,
   setShowUpgradeModal,
-  onOpenPhotoArt
+  onOpenPhotoArt,
+  onSelectCategory
 }) => {
+  const [selectedFestival, setSelectedFestival] = useState<string>('all');
   const currentCategory = CATEGORIES.find(c => c.id === selectedCategory);
-  const filteredTemplates = STATIC_TEMPLATES.filter(
+  const activeFestivalData = getActiveFestivalStatus();
+  const currentFeaturedPack = selectedFestival === 'all' 
+    ? activeFestivalData.pack 
+    : (FESTIVAL_PACKS.find(p => p.id === selectedFestival) || activeFestivalData.pack);
+
+  let filteredTemplates = STATIC_TEMPLATES.filter(
     t => selectedCategory === 'random' || t.category === selectedCategory
   );
+
+  if (selectedCategory === 'festivals' && selectedFestival !== 'all') {
+    filteredTemplates = filteredTemplates.filter(
+      t => t.id && t.id.startsWith(`fest-${selectedFestival}-`)
+    );
+  }
+
   const weeklyDropData = getCurrentWeeklyDrop();
 
   return (
@@ -54,6 +70,162 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
           </p>
         </div>
       </div>
+
+      {/* Festival Sub-Navigation & Pack Selector (Shown in 'festivals') */}
+      {selectedCategory === 'festivals' && (
+        <div className="mb-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1">
+            <button
+              onClick={() => {
+                playPop();
+                setSelectedFestival('all');
+              }}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer whitespace-nowrap shadow-xs ${
+                selectedFestival === 'all'
+                  ? 'bg-[#2D3436] text-white scale-102'
+                  : 'bg-white border border-[#EBE8DC] text-[#636E72] hover:bg-[#F7F5EC] hover:text-[#2D3436]'
+              }`}
+            >
+              <span>🎉 All Festivals</span>
+              <span className="text-[10px] px-1.5 py-0.5 bg-black/10 rounded-full font-bold">
+                {STATIC_TEMPLATES.filter(t => t.category === 'festivals').length}
+              </span>
+            </button>
+
+            {FESTIVAL_PACKS.map((pack) => {
+              const isCurrentActive = activeFestivalData.pack.id === pack.id;
+              const isSelected = selectedFestival === pack.id;
+              const packCount = pack.templates.length;
+
+              return (
+                <button
+                  key={pack.id}
+                  onClick={() => {
+                    playPop();
+                    setSelectedFestival(pack.id);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer whitespace-nowrap border shadow-xs ${
+                    isSelected
+                      ? 'text-white shadow-md scale-102'
+                      : 'bg-white border-[#EBE8DC] text-[#4B5563] hover:bg-[#F9FAFB] hover:text-[#1F2937]'
+                  }`}
+                  style={{
+                    backgroundColor: isSelected ? pack.themeColor : undefined,
+                    borderColor: isSelected ? pack.themeColor : undefined,
+                  }}
+                >
+                  <span className="text-sm sm:text-base">{pack.emoji}</span>
+                  <span>{pack.shortName}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold opacity-80 bg-black/10">
+                    {packCount}
+                  </span>
+                  {isCurrentActive && (
+                    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-amber-300 text-amber-950 uppercase tracking-wider animate-pulse">
+                      {activeFestivalData.isLive ? 'Active' : 'Next'}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Featured Festival Showcase Banner (Shown in 'festivals') */}
+      {selectedCategory === 'festivals' && currentFeaturedPack && (
+        <div className={`mb-4 sm:mb-6 rounded-2xl sm:rounded-3xl border-2 border-[${currentFeaturedPack.themeColor}]/40 bg-gradient-to-r ${currentFeaturedPack.gradient} p-3.5 sm:p-5 shadow-sm relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4`}>
+          <div className="flex items-center gap-3.5 sm:gap-5 flex-1 min-w-0">
+            {/* SVG Thumbnail of Premier Template */}
+            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-white border-2 border-amber-200/60 p-2 shrink-0 flex items-center justify-center shadow-xs">
+              <svg viewBox={currentFeaturedPack.templates[0].viewBox} className="w-full h-full">
+                {currentFeaturedPack.templates[0].paths.map((p) => (
+                  <path
+                    key={p.id}
+                    d={p.d}
+                    fill="none"
+                    stroke="#2D3436"
+                    strokeWidth={p.strokeWidth || 4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ))}
+              </svg>
+            </div>
+
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1 bg-[#FF3838] text-white text-[10px] sm:text-[11px] font-black px-2.5 py-0.5 rounded-full shadow-2xs">
+                  <PartyPopper className="w-3 h-3" />
+                  <span>{currentFeaturedPack.badge.toUpperCase()}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 bg-white/90 text-[#374151] border border-[#E5E7EB] text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full shadow-2xs">
+                  <Clock className="w-3 h-3 text-[#FF9900]" />
+                  <span>{activeFestivalData.message}</span>
+                </span>
+              </div>
+
+              <h3 className="text-base sm:text-xl font-black text-[#2D3436] font-display truncate flex items-center gap-1.5">
+                <span>{currentFeaturedPack.emoji}</span>
+                <span>{currentFeaturedPack.name}</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-[#4B5563] font-medium line-clamp-2">
+                {currentFeaturedPack.description}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Action Button */}
+          <div className="shrink-0 w-full md:w-auto">
+            <button
+              onClick={() => {
+                playPop();
+                selectTemplate(currentFeaturedPack.templates[0]);
+              }}
+              className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 sm:py-3 text-white font-black text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md hover:brightness-105 active:scale-95 cursor-pointer transition-all"
+              style={{ backgroundColor: currentFeaturedPack.themeColor }}
+            >
+              <span>Color {currentFeaturedPack.templates[0].name}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Active Festival Spotlight Callout (Shown in 'random') */}
+      {selectedCategory === 'random' && (
+        <div className={`mb-4 rounded-2xl sm:rounded-3xl border-2 border-amber-300 bg-gradient-to-r ${activeFestivalData.pack.gradient} p-3 sm:p-4 shadow-sm flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-2xl sm:text-3xl shrink-0 select-none">{activeFestivalData.pack.emoji}</span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="bg-[#FF3838] text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full">
+                  FESTIVAL PACK LIVE
+                </span>
+                <span className="text-[11px] font-bold text-[#4B5563]">
+                  {activeFestivalData.message}
+                </span>
+              </div>
+              <h4 className="text-xs sm:text-sm font-black text-[#1F2937] font-display truncate mt-0.5">
+                {activeFestivalData.pack.name} — {activeFestivalData.pack.tagline}
+              </h4>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              playPop();
+              if (onSelectCategory) {
+                onSelectCategory('festivals');
+              }
+            }}
+            className="w-full sm:w-auto shrink-0 flex items-center justify-center gap-1.5 px-4 py-2 text-white font-black text-xs rounded-xl shadow-xs hover:brightness-105 active:scale-95 cursor-pointer transition-all"
+            style={{ backgroundColor: activeFestivalData.pack.themeColor }}
+          >
+            <span>Explore Festival Pack</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Featured Weekly Drop Spotlight Banner (Shown in 'random' & 'weekly') */}
       {(selectedCategory === 'random' || selectedCategory === 'weekly') && (
@@ -218,6 +390,9 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
         {/* Static Coloring Page Cards */}
         {filteredTemplates.map((template) => {
           const isLocked = Boolean(template.isVip && !isPro);
+          const festMatch = template.id?.match(/^fest-([a-z]+)-/);
+          const festPack = festMatch ? FESTIVAL_PACKS.find(p => p.id === festMatch[1]) : null;
+
           return (
             <button
               key={template.id || template.name}
@@ -247,6 +422,16 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
                 <div className="absolute top-2.5 left-2.5 bg-[#FFD93D] text-[#7A4B00] px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm flex items-center gap-1 z-10">
                   <Crown className="w-2.5 h-2.5 fill-current" />
                   <span>VIP</span>
+                </div>
+              )}
+
+              {festPack && (
+                <div 
+                  className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm border px-2 py-0.5 rounded-full text-[10px] font-black shadow-xs flex items-center gap-1 z-10"
+                  style={{ borderColor: `${festPack.themeColor}55`, color: festPack.themeColor }}
+                >
+                  <span>{festPack.emoji}</span>
+                  <span className="hidden sm:inline">{festPack.shortName}</span>
                 </div>
               )}
 

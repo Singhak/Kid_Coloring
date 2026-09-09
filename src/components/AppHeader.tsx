@@ -31,6 +31,7 @@ import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
 import { motion, AnimatePresence } from 'motion/react';
 import { isSoundEnabled, toggleSound, playClick, playSwish, playFanfare, playChime } from '../services/soundEffects';
+import { getActiveFestivalStatus } from '../constants/festivalPacks';
 
 interface AppHeaderProps {
   user: any;
@@ -49,6 +50,7 @@ interface AppHeaderProps {
   setShowUpgradeModal: (show: boolean) => void;
   handleCancelSubscription: () => void;
   onOpenPhotoArt?: () => void;
+  onOpenFestivalPacks?: () => void;
   isColorByNumber?: boolean;
   onToggleColorByNumber?: () => void;
   onOpenPricingPage?: () => void;
@@ -80,6 +82,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   setShowUpgradeModal,
   handleCancelSubscription,
   onOpenPhotoArt,
+  onOpenFestivalPacks,
   isColorByNumber = false,
   onToggleColorByNumber,
   onOpenPricingPage,
@@ -98,6 +101,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
+  const activeFestival = getActiveFestivalStatus();
 
   const now = new Date();
   const isTrialActive = trialEndDate && trialEndDate.getTime() > now.getTime();
@@ -243,6 +247,24 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   <Camera className="w-3.5 h-3.5 shrink-0" />
                   <span>Photo Art</span>
                   {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+                </button>
+              )}
+
+              {/* Active Festival Spotlight Button */}
+              {onOpenFestivalPacks && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenFestivalPacks();
+                  }}
+                  className="hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-gradient-to-r from-[#FFF1F2] to-[#FFE4E6] hover:from-[#FFE4E6] hover:to-[#FECDD3] text-[#E11D48] border border-[#FDA4AF] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs shrink-0 group/fest"
+                  title={`Explore ${activeFestival.pack.name}`}
+                >
+                  <span className="text-sm group-hover/fest:scale-125 transition-transform">{activeFestival.pack.emoji}</span>
+                  <span>{activeFestival.pack.shortName}</span>
+                  <span className="bg-[#E11D48] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                    {activeFestival.isLive ? 'LIVE' : 'SOON'}
+                  </span>
                 </button>
               )}
             </>

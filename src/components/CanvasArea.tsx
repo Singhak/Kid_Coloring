@@ -37,6 +37,7 @@ interface CanvasAreaProps {
   fillCount?: number;
   onIncrementFillCount?: () => void;
   resetTrigger?: number;
+  setSelectedCategory?: (category: string) => void;
 }
 
 const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -66,9 +67,10 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   onToggleColorByNumber,
   onOpenStickers,
   onQuickNext,
-  fillCount,
+  fillCount = 0,
   onIncrementFillCount,
-  resetTrigger
+  resetTrigger,
+  setSelectedCategory
 }) => {
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -140,6 +142,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
               selectTemplate={handleSelectTemplate}
               setShowUpgradeModal={setShowUpgradeModal}
               onOpenPhotoArt={onOpenPhotoArt}
+              onSelectCategory={setSelectedCategory}
             />
           ) : isGenerating ? (
             <LoadingSpinner key="loading-view" />

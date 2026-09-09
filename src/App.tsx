@@ -994,6 +994,10 @@ export default function App() {
         setShowUpgradeModal={setShowUpgradeModal}
         handleCancelSubscription={handleCancelSubscription}
         onOpenPhotoArt={() => setShowPhotoModal(true)}
+        onOpenFestivalPacks={() => {
+          setSelectedCategory('festivals');
+          setShowTemplates(true);
+        }}
         isColorByNumber={isColorByNumber}
         onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
         onOpenPricingPage={() => setShowPricingPage(true)}
@@ -1052,6 +1056,7 @@ export default function App() {
             fillCount={fillCount}
             onIncrementFillCount={() => setFillCount((prev) => prev + 1)}
             resetTrigger={resetTrigger}
+            setSelectedCategory={setSelectedCategory}
           />
         </div>
 

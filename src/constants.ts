@@ -13,6 +13,7 @@ import { REALISTIC_TEMPLATES } from './constants/realisticTemplates';
 import { EDUCATIONAL_TEMPLATES } from './constants/educationalTemplates';
 import { THEMATIC_TEMPLATES } from './constants/thematicTemplates';
 import { getAllWeeklyDropTemplates } from './constants/weeklyDrops';
+import { getAllFestivalTemplates } from './constants/festivalPacks';
 
 export const COLORS = [
   '#FF6B6B', '#FF9248', '#FFD93D', '#6BCB77', '#4D96FF', '#9B72AA', 
@@ -212,6 +213,7 @@ MAGIC_COLORS.forEach((item) => {
 
 export const CATEGORIES: Category[] = [
   { id: 'random', label: 'All Magic', icon: Sparkles, color: '#FFD93D', emoji: '✨' },
+  { id: 'festivals', label: 'Festivals & Holidays', icon: Sparkles, color: '#FF3838', emoji: '🎉' },
   { id: 'weekly', label: 'Weekly Drops', icon: Sparkles, color: '#FF4757', emoji: '🔥' },
   { id: 'alphabet', label: 'Alphabets', icon: ImageIcon, color: '#FF6B6B', emoji: '🔤' },
   { id: 'numbers', label: 'Numbers', icon: ImageIcon, color: '#4D96FF', emoji: '🔢' },
@@ -225,6 +227,18 @@ export const CATEGORIES: Category[] = [
 ];
 
 export const SUBJECTS_BY_CATEGORY: Record<string, string[]> = {
+  festivals: [
+    'ornate diya oil lamp with floral petal rangoli and golden flame',
+    'playful pichkari water gun splashing colorful holi gulal into bowls',
+    'jolly santa claus with big sack of toys and glowing star',
+    'golden crescent moon and hanging fanous lantern under night sky',
+    'sunny tropical beach sandcastle with sun umbrella and seashells',
+    'decorated christmas tree with star topper and wrapped presents',
+    'dancing holi peacock surrounded by bright color powder clouds',
+    'triple scoop ice cream waffle cone with cherry on top',
+    'grand eid mosque with domes and tall minarets in starlight',
+    'sweet diwali festive laddoo and jalebi celebration platter'
+  ],
   weekly: ['cosmic space rocket past alien planets', 'enchanted fairy treehouse with forest friends', 'ancient giant sea turtle with coral reef', 'baby dinosaur in smoking volcano safari', 'magical flying winged unicorn in rainbow sky', 'futuristic cyber race car with speed flames'],
   alphabet: ['letter A with apple', 'letter B with butterfly', 'letter C with cute cat', 'letter D with friendly dinosaur', 'letter E with baby elephant', 'letter S with shining star', 'letter Z with zebra'],
   numbers: ['number 1 with radiant smiling sun', 'number 2 with swimming baby ducks', 'number 3 with floating party balloons', 'number 4 with shining stars', 'number 5 with red apples on tree'],
@@ -240,6 +254,7 @@ export const SUBJECTS_BY_CATEGORY: Record<string, string[]> = {
 };
 
 export const STATIC_TEMPLATES: Template[] = [
+  ...getAllFestivalTemplates(),
   ...getAllWeeklyDropTemplates(),
   ...EDUCATIONAL_TEMPLATES,
   ...REALISTIC_TEMPLATES,
