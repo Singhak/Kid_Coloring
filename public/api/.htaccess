@@ -16,8 +16,8 @@
 </IfModule>
 
 # Block direct web access to sensitive files (.env, logs, git, config, archives, internal logger,
-# and Firebase service account private key JSON)
-<FilesMatch "(^\.env|\.env\..*|\.log$|\.sql$|\.bak$|\.rar$|\.zip$|\.git.*|composer\.(json|lock)|package(-lock)?\.json|\.htaccess$|^logger\.php$|^firebase-helper\.php$|^firebase-service-account\.json$)">
+# internal helpers, and Firebase service account private key JSON)
+<FilesMatch "(^\.env|\.env\..*|\.log$|\.sql$|\.bak$|\.rar$|\.zip$|\.git.*|composer\.(json|lock)|package(-lock)?\.json|\.htaccess$|^logger\.php$|^firebase-helper\.php$|^mailer-helper\.php$|^firebase-service-account\.json$)">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>

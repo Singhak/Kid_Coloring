@@ -238,6 +238,42 @@ if ($orderStatus === 'PAID' || $successfulPayment !== null) {
                     'subscriptionEndDate' => $firestoreResult['subscriptionEndDate'],
                 ]);
             }
+
+            // ── Send VIP Subscription Confirmation Email ──────────────────────────
+            try {
+                require_once __DIR__ . '/send-subscription-email.php';
+                $customerEmail = $input['customerEmail'] ?? $input['email'] ?? ($orderData['customer_details']['customer_email'] ?? '');
+                $customerName  = $input['customerName']  ?? $input['displayName'] ?? ($orderData['customer_details']['customer_name'] ?? '');
+
+                // If email missing from order payload, fallback to user document in Firestore
+                if (empty($customerEmail) && $effectiveUserId) {
+                    $uDoc = firestoreGet($fbProjectId, 'users', $effectiveUserId, $fbToken);
+                    if ($uDoc['exists']) {
+                        $customerEmail = $uDoc['data']['email'] ?? '';
+                        if (empty($customerName)) {
+                            $customerName = $uDoc['data']['displayName'] ?? '';
+                        }
+                    }
+                }
+
+                if (!empty($customerEmail) && filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+                    sendSubscriptionSuccessEmail(
+                        orderId:             $orderId,
+                        userId:              $effectiveUserId,
+                        planType:            $planType,
+                        amount:              $orderAmount,
+                        currency:            $orderCurrency,
+                        customerEmail:       $customerEmail,
+                        customerName:        $customerName,
+                        subscriptionEndDate: $firestoreResult['subscriptionEndDate'] ?? '',
+                        env:                 $env
+                    );
+                }
+            } catch (Throwable $mailErr) {
+                logApiError('Subscription email trigger exception: ' . $mailErr->getMessage(), [
+                    'order_id' => $orderId,
+                ]);
+            }
         } elseif (!$effectiveUserId) {
             logApiError('Firestore: Cannot write paid order — userId missing from request and order tags', [
                 'order_id' => $orderId,

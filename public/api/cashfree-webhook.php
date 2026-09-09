@@ -178,6 +178,42 @@ if ($signatureValid && $orderId) {
                         'subscriptionEndDate' => $fbResult['subscriptionEndDate'],
                     ]);
                 }
+
+                // ── Send VIP Subscription Confirmation Email (Webhook fallback) ───
+                try {
+                    require_once __DIR__ . '/send-subscription-email.php';
+                    $custDetails   = $payload['data']['customer_details'] ?? [];
+                    $customerEmail = $custDetails['customer_email'] ?? '';
+                    $customerName  = $custDetails['customer_name'] ?? '';
+
+                    if (empty($customerEmail) && $tagUserId) {
+                        $uDoc = firestoreGet($fbProjectId, 'users', $tagUserId, $fbToken);
+                        if ($uDoc['exists']) {
+                            $customerEmail = $uDoc['data']['email'] ?? '';
+                            if (empty($customerName)) {
+                                $customerName = $uDoc['data']['displayName'] ?? '';
+                            }
+                        }
+                    }
+
+                    if (!empty($customerEmail) && filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+                        sendSubscriptionSuccessEmail(
+                            orderId:             $orderId,
+                            userId:              $tagUserId,
+                            planType:            $planType,
+                            amount:              $orderAmount,
+                            currency:            $orderCurrency,
+                            customerEmail:       $customerEmail,
+                            customerName:        $customerName,
+                            subscriptionEndDate: $fbResult['subscriptionEndDate'] ?? '',
+                            env:                 $env
+                        );
+                    }
+                } catch (Throwable $mailErr) {
+                    logApiError('Webhook: Subscription email trigger exception: ' . $mailErr->getMessage(), [
+                        'order_id' => $orderId,
+                    ]);
+                }
             } else {
                 logApiCall(
                     'Firestore: Service account not configured — webhook write skipped. ' .
