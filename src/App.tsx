@@ -59,6 +59,7 @@ import {
   recordOrderSuccessInFirestore,
   PlanType,
 } from './services/paymentService';
+import { sendWelcomeEmail } from './services/emailService';
 import { motion, AnimatePresence } from 'motion/react';
 import { Crown, Sparkles, X } from 'lucide-react';
 
@@ -222,9 +223,24 @@ export default function App() {
                 lastLoginAt: serverTimestamp(),
                 trialEndDate: trialEndTimestamp,
                 isSubscribed: false,
+                welcomeEmailSent: true,
               },
               { merge: true }
             );
+
+            // Dispatch welcome email once on first-time login
+            if (user.email) {
+              const welcomeKey = `kidcolor_welcome_sent_${user.uid}`;
+              if (!localStorage.getItem(welcomeKey)) {
+                localStorage.setItem(welcomeKey, 'true');
+                sendWelcomeEmail({
+                  userId: user.uid,
+                  email: user.email,
+                  displayName: user.displayName || 'Little Artist',
+                  trialEndDate: localTrialDate,
+                }).catch((err) => console.warn('Welcome email error:', err));
+              }
+            }
           } else {
             // Check if user has an active, unexpired subscription
             const subEndDate = userData.subscriptionEndDate?.toDate() || null;
@@ -248,6 +264,22 @@ export default function App() {
             } else {
               currentTrialEndDate = firestoreTrial;
               localStorage.setItem(storageKey, firestoreTrial.toISOString());
+            }
+
+            // Dispatch welcome email if not previously sent
+            if (!userData.welcomeEmailSent && user.email) {
+              const welcomeKey = `kidcolor_welcome_sent_${user.uid}`;
+              if (!localStorage.getItem(welcomeKey)) {
+                localStorage.setItem(welcomeKey, 'true');
+                sendWelcomeEmail({
+                  userId: user.uid,
+                  email: user.email,
+                  displayName: user.displayName || userData.displayName || 'Little Artist',
+                  trialEndDate: currentTrialEndDate,
+                }).catch((err) => console.warn('Welcome email error:', err));
+
+                setDoc(userRef, { welcomeEmailSent: true }, { merge: true }).catch(() => {});
+              }
             }
           }
 
@@ -382,7 +414,12 @@ export default function App() {
         status: 'verifying',
       }));
 
-      const verifyRes = await verifyCashfreePayment(order.order_id, user.uid);
+      const verifyRes = await verifyCashfreePayment(
+        order.order_id,
+        user.uid,
+        user.email || undefined,
+        user.displayName || undefined
+      );
       const verifiedPlan: PlanType = (verifyRes.planType as PlanType) || plan;
       const finalPlanTitle = verifiedPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
 
@@ -409,30 +446,36 @@ export default function App() {
         });
 
         // Start polling verification
-        activePollCancelRef.current = pollCashfreePayment(order.order_id, user.uid, async (pollRes) => {
-          if (pollRes.success) {
-            const pollPlan: PlanType = (pollRes.planType as PlanType) || verifiedPlan;
-            await recordOrderSuccessInFirestore(order.order_id, user.uid, pollPlan, pollRes);
-            setIsSubscribed(true);
-            setIsPro(true);
-            setPaymentModalState({
-              isOpen: true,
-              status: 'success',
-              orderId: order.order_id,
-              planName: pollPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)',
-              planType: pollPlan,
-            });
-          } else if (!pollRes.isPending && pollRes.error) {
-            setPaymentModalState({
-              isOpen: true,
-              status: 'failed',
-              orderId: order.order_id,
-              errorMessage: pollRes.error,
-              planName: finalPlanTitle,
-              planType: verifiedPlan,
-            });
-          }
-        });
+        activePollCancelRef.current = pollCashfreePayment(
+          order.order_id,
+          user.uid,
+          async (pollRes) => {
+            if (pollRes.success) {
+              const pollPlan: PlanType = (pollRes.planType as PlanType) || verifiedPlan;
+              await recordOrderSuccessInFirestore(order.order_id, user.uid, pollPlan, pollRes);
+              setIsSubscribed(true);
+              setIsPro(true);
+              setPaymentModalState({
+                isOpen: true,
+                status: 'success',
+                orderId: order.order_id,
+                planName: pollPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)',
+                planType: pollPlan,
+              });
+            } else if (!pollRes.isPending && pollRes.error) {
+              setPaymentModalState({
+                isOpen: true,
+                status: 'failed',
+                orderId: order.order_id,
+                errorMessage: pollRes.error,
+                planName: finalPlanTitle,
+                planType: verifiedPlan,
+              });
+            }
+          },
+          user.email || undefined,
+          user.displayName || undefined
+        );
       } else {
         setPaymentModalState({
           isOpen: true,

@@ -181,10 +181,18 @@ export const initiateCashfreeCheckout = async (
  */
 export const verifyCashfreePayment = async (
   orderId: string,
-  userId?: string
+  userId?: string,
+  customerEmail?: string,
+  customerName?: string
 ): Promise<CashfreeVerifyResponse> => {
   const apiBase = getApiBaseUrl();
   const url = `${apiBase}/verify-cashfree-payment.php`;
+  const bodyPayload = {
+    order_id: orderId,
+    userId,
+    customerEmail,
+    customerName,
+  };
 
   try {
     const response = await fetch(url, {
@@ -192,7 +200,7 @@ export const verifyCashfreePayment = async (
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ order_id: orderId, userId }),
+      body: JSON.stringify(bodyPayload),
     });
 
     const contentType = response.headers.get('content-type') || '';
@@ -201,7 +209,7 @@ export const verifyCashfreePayment = async (
         const fallbackRes = await fetch('https://coloro.in/api/verify-cashfree-payment.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ order_id: orderId, userId }),
+          body: JSON.stringify(bodyPayload),
         });
         return await fallbackRes.json();
       }
@@ -228,6 +236,8 @@ export const pollCashfreePayment = (
   orderId: string,
   userId: string,
   onUpdate: (res: CashfreeVerifyResponse) => void,
+  customerEmail?: string,
+  customerName?: string,
   maxAttempts: number = 15,
   intervalMs: number = 3000
 ): (() => void) => {
@@ -239,7 +249,7 @@ export const pollCashfreePayment = (
     attempts++;
 
     try {
-      const res = await verifyCashfreePayment(orderId, userId);
+      const res = await verifyCashfreePayment(orderId, userId, customerEmail, customerName);
       if (cancelled) return;
 
       onUpdate(res);
