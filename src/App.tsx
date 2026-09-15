@@ -51,6 +51,8 @@ import SpotlightTourOverlay from './components/SpotlightTourOverlay';
 import PaymentStatusModal, { PaymentModalStatus } from './components/PaymentStatusModal';
 import EducationalArticlesModal from './components/EducationalArticlesModal';
 import ColoroChatBotModal from './components/ColoroChatBotModal';
+import AnalyticsDashboardModal from './components/AnalyticsDashboardModal';
+import { tracker } from './services/tracker';
 import {
   createCashfreeOrder,
   initiateCashfreeCheckout,
@@ -73,26 +75,36 @@ export default function App() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showPricingPage, setShowPricingPage] = useState(false);
   const [legalTab, setLegalTab] = useState<LegalTabType | null>(null);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
 
-  // Listen for direct URL hash navigation (#privacy, #terms, #refund, #pricing)
+  // Listen for direct URL hash navigation (#privacy, #terms, #refund, #pricing, #analytics)
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#privacy') {
         setLegalTab('privacy');
         setShowPricingPage(false);
+        tracker.pageView('#privacy', 'Privacy Policy');
       } else if (hash === '#terms' || hash === '#terms-and-conditions') {
         setLegalTab('terms');
         setShowPricingPage(false);
+        tracker.pageView('#terms', 'Terms and Conditions');
       } else if (hash === '#refund' || hash === '#refund-policy' || hash === '#cancellation') {
         setLegalTab('refund');
         setShowPricingPage(false);
+        tracker.pageView('#refund', 'Refund Policy');
       } else if (hash === '#contact' || hash === '#contact-us') {
         setLegalTab('contact');
         setShowPricingPage(false);
+        tracker.pageView('#contact', 'Contact Us');
       } else if (hash === '#pricing' || hash === '#upgrade') {
         setShowPricingPage(true);
         setLegalTab(null);
+        tracker.trackMonetization('view_pricing');
+        tracker.pageView('#pricing', 'VIP Pricing & Plans');
+      } else if (hash === '#analytics' || hash === '#stats' || hash === '#telemetry') {
+        setShowAnalyticsModal(true);
+        tracker.pageView('#analytics', 'Live Telemetry Dashboard');
       }
     };
     handleHash();
@@ -287,17 +299,21 @@ export default function App() {
           setIsSubscribed(currentIsSubscribed);
 
           const isTrialActive = currentTrialEndDate && currentTrialEndDate.getTime() > Date.now();
-          setIsPro(currentIsSubscribed || isTrialActive);
+          const effectivePro = currentIsSubscribed || isTrialActive;
+          setIsPro(effectivePro);
+          tracker.identify(user.uid, { isPro: effectivePro });
         } catch (err) {
           console.warn('Firestore user profile sync warning (retaining 15-day local trial):', err);
           setTrialEndDate(localTrialDate);
           setIsPro(true);
+          tracker.identify(user.uid, { isPro: true });
         }
       },
       (error) => {
         console.warn('Firestore onSnapshot error (retaining 15-day local trial):', error);
         setTrialEndDate(localTrialDate);
         setIsPro(true);
+        tracker.identify(user.uid, { isPro: true });
       }
     );
 
@@ -325,6 +341,7 @@ export default function App() {
           const isTrialActive = targetTrial.getTime() > Date.now();
           setTrialEndDate(targetTrial);
           setIsPro(isTrialActive);
+          tracker.identify(result.user.uid, { isPro: isTrialActive });
           if (isTrialActive) {
             setShowTrialWelcome(true);
             confetti({
@@ -346,6 +363,7 @@ export default function App() {
     setIsPro(false);
     setTrialEndDate(null);
     setIsSubscribed(false);
+    tracker.identify(null);
     if (user?.uid) {
       sessionStorage.removeItem(`trial_welcome_shown_${user.uid}`);
     }
@@ -357,6 +375,8 @@ export default function App() {
       handleLogin();
       return;
     }
+
+    tracker.trackMonetization('click_subscribe', plan);
 
     // Cancel any previous polling if running
     if (activePollCancelRef.current) {
@@ -397,6 +417,7 @@ export default function App() {
       const checkoutResult = await initiateCashfreeCheckout(order.payment_session_id, order.environment);
 
       if (!checkoutResult.success) {
+        tracker.trackMonetization('payment_failed', plan, undefined, { stage: 'checkout_cancelled', error: checkoutResult.error });
         setPaymentModalState({
           isOpen: true,
           status: 'failed',
@@ -424,6 +445,7 @@ export default function App() {
       const finalPlanTitle = verifiedPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
 
       if (verifyRes.success) {
+        tracker.trackMonetization('payment_success', verifiedPlan, verifyRes.amount);
         // 4. Idempotently record order in Firestore strictly keyed by order_id (orders/{order_id})
         await recordOrderSuccessInFirestore(order.order_id, user.uid, verifiedPlan, verifyRes);
         setIsSubscribed(true);
@@ -452,6 +474,7 @@ export default function App() {
           async (pollRes) => {
             if (pollRes.success) {
               const pollPlan: PlanType = (pollRes.planType as PlanType) || verifiedPlan;
+              tracker.trackMonetization('payment_success', pollPlan, pollRes.amount);
               await recordOrderSuccessInFirestore(order.order_id, user.uid, pollPlan, pollRes);
               setIsSubscribed(true);
               setIsPro(true);
@@ -463,6 +486,7 @@ export default function App() {
                 planType: pollPlan,
               });
             } else if (!pollRes.isPending && pollRes.error) {
+              tracker.trackMonetization('payment_failed', verifiedPlan, undefined, { error: pollRes.error });
               setPaymentModalState({
                 isOpen: true,
                 status: 'failed',
@@ -477,6 +501,7 @@ export default function App() {
           user.displayName || undefined
         );
       } else {
+        tracker.trackMonetization('payment_failed', verifiedPlan, undefined, { error: verifyRes.error });
         setPaymentModalState({
           isOpen: true,
           status: 'failed',
@@ -488,6 +513,7 @@ export default function App() {
       }
     } catch (err: any) {
       console.error('Subscription process failed:', err);
+      tracker.trackMonetization('payment_failed', plan, undefined, { error: err.message });
       setPaymentModalState({
         isOpen: true,
         status: 'failed',
@@ -620,6 +646,7 @@ export default function App() {
     if (window.confirm("Are you sure you want to cancel your subscription? This will revoke access to Pro features at the end of your current billing period.")) {
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, { isSubscribed: false }, { merge: true });
+      tracker.trackMonetization('cancel_subscription');
       alert("Subscription cancelled. You will lose access to Pro features at the end of your current billing cycle.");
       setShowUpgradeModal(false);
     }
@@ -637,6 +664,7 @@ export default function App() {
 
   const undo = useCallback(() => {
     if (historyIndex > 0) {
+      tracker.trackCanvas('undo');
       const prevIndex = historyIndex - 1;
       setHistoryIndex(prevIndex);
       setRestoredDataUrl(history[prevIndex]);
@@ -646,6 +674,7 @@ export default function App() {
 
   const redo = useCallback(() => {
     if (historyIndex < history.length - 1) {
+      tracker.trackCanvas('redo');
       const nextIndex = historyIndex + 1;
       setHistoryIndex(nextIndex);
       setRestoredDataUrl(history[nextIndex]);
@@ -654,6 +683,7 @@ export default function App() {
   }, [historyIndex, history]);
 
   const selectTemplate = (template: Template) => {
+    tracker.trackTemplate(template.name || template.category, template.category, 'select_template');
     setCurrentImageUrl(null);
     const newPaths = (template.paths || []).map(p => ({
       ...p,
@@ -674,6 +704,7 @@ export default function App() {
 
   const handleQuickNext = useCallback(() => {
     playSwish();
+    tracker.trackTemplate('Quick Next Shuffle', 'quick_next', 'quick_next');
     const available = STATIC_TEMPLATES.filter(t => t.paths && t.paths.length > 0);
     if (available.length > 0) {
       const randomIndex = Math.floor(Math.random() * available.length);
@@ -684,9 +715,12 @@ export default function App() {
   // AI generation: Prioritize PHP Backend SVG vector paths with fallback to diffusion line art
   const handleGenerateAiImage = async (customPrompt?: string) => {
     if (!isPro) {
+      tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
       return;
     }
+
+    tracker.trackAI('magic_prompt', customPrompt, selectedCategory);
 
     if (isGenerating) return;
 
@@ -779,9 +813,11 @@ export default function App() {
 
   const handleGenerateProceduralRealistic = () => {
     if (!isPro) {
+      tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
       return;
     }
+    tracker.trackAI('instant_realistic', undefined, selectedCategory);
     const result = generateProceduralPaths(selectedCategory);
     setCurrentImageUrl(null);
     setPaths(result.paths);
@@ -804,13 +840,16 @@ export default function App() {
 
   const handleOpenMagicPrompt = () => {
     if (!isPro) {
+      tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
       return;
     }
+    tracker.trackModal('magic_prompt', 'open');
     setShowMagicPromptModal(true);
   };
 
   const handleSelectPhotoLineArt = (dataUrl: string) => {
+    tracker.trackAI('photo_art');
     setCurrentImageUrl(dataUrl);
     setPaths([]);
     setViewBox("0 0 1000 1000");
@@ -824,9 +863,11 @@ export default function App() {
 
   const downloadImage = () => {
     if (!isPro) {
+      tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
       return;
     }
+    tracker.trackCanvas('download_image', { isPro });
     const paintCanvas = paintCanvasRef.current;
     const lineArtCanvas = lineArtCanvasRef.current;
     if (!paintCanvas || !lineArtCanvas) return;
@@ -913,15 +954,18 @@ export default function App() {
 
   const handlePrintSheet = () => {
     if (!isPro) {
+      tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
       return;
     }
+    tracker.trackCanvas('print_sheet', { isPro });
     const lineArtCanvas = lineArtCanvasRef.current;
     if (!lineArtCanvas) return;
     printColoringSheet(lineArtCanvas, 'Coloring Masterpiece');
   };
 
   const clearCanvas = () => {
+    tracker.trackCanvas('clear');
     const paintCanvas = paintCanvasRef.current;
     if (!paintCanvas) return;
     const ctx = paintCanvas.getContext('2d');
@@ -1267,6 +1311,12 @@ export default function App() {
         onClose={() => setShowArticlesModal(false)}
         onOpenMagicAI={handleOpenMagicPrompt}
         onPrintSheet={handlePrintSheet}
+      />
+
+      {/* Live SQLite Telemetry & Feature Usage Modal */}
+      <AnalyticsDashboardModal
+        isOpen={showAnalyticsModal}
+        onClose={() => setShowAnalyticsModal(false)}
       />
     </div>
   );

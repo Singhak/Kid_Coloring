@@ -11,6 +11,7 @@ import {
 import { COLORS, COLOR_METADATA } from '../constants';
 import { playPop, playChime } from '../services/soundEffects';
 import { StickerItem } from './StickerStampsModal';
+import { tracker } from '../services/tracker';
 
 export const SPECIAL_PATTERNS = [
   { id: 'pattern:glitter', label: 'Glitter ✨', icon: '✨', bg: 'linear-gradient(135deg, #FFD700, #FFF8DC, #FFA500)' },
@@ -112,6 +113,7 @@ const ColorPaletteDock: React.FC<ColorPaletteDockProps> = ({
             <button
               onClick={() => {
                 playPop(420);
+                tracker.trackTool('fill_bucket');
                 if (selectedSticker || selectedColor === '#FFFFFF') {
                   setSelectedColor(COLORS[0]);
                 }
@@ -131,6 +133,7 @@ const ColorPaletteDock: React.FC<ColorPaletteDockProps> = ({
             <button
               onClick={() => {
                 playPop(300);
+                tracker.trackTool('chunky_eraser');
                 setSelectedColor('#FFFFFF');
               }}
               className={`group relative flex flex-col items-center justify-center w-8 h-10 sm:w-10 sm:h-14 rounded-lg sm:rounded-xl transition-all cursor-pointer ${
@@ -153,6 +156,7 @@ const ColorPaletteDock: React.FC<ColorPaletteDockProps> = ({
               <button
                 onClick={() => {
                   playPop(550);
+                  tracker.trackTool('open_stamps_modal');
                   onOpenStickers();
                 }}
                 className={`relative flex flex-col items-center justify-center w-8 h-10 sm:w-10 sm:h-14 rounded-lg sm:rounded-xl transition-all cursor-pointer ${
@@ -190,6 +194,7 @@ const ColorPaletteDock: React.FC<ColorPaletteDockProps> = ({
                   key={color}
                   onClick={() => {
                     playPop(350 + (index % 12) * 35);
+                    tracker.trackColor(color, meta?.name, false);
                     setSelectedColor(color);
                   }}
                   onMouseEnter={() => setHoveredColor(color)}
@@ -275,10 +280,12 @@ const ColorPaletteDock: React.FC<ColorPaletteDockProps> = ({
                   onClick={() => {
                     if (!isPro) {
                       playChime();
+                      tracker.trackMonetization('open_upgrade_modal');
                       setShowUpgradeModal(true);
                       return;
                     }
                     playPop(520);
+                    tracker.trackColor(pat.id, pat.label, true);
                     setSelectedColor(pat.id);
                   }}
                   className={`
@@ -310,10 +317,12 @@ const ColorPaletteDock: React.FC<ColorPaletteDockProps> = ({
               onClick={() => {
                 if (!isPro) {
                   playChime();
+                  tracker.trackMonetization('open_upgrade_modal');
                   setShowUpgradeModal(true);
                   return;
                 }
                 playChime();
+                tracker.trackTool('open_magic_palette');
                 setShowProColors(true);
               }}
               className={`

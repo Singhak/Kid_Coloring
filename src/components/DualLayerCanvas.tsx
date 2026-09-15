@@ -13,6 +13,7 @@ import { StickerItem } from './StickerStampsModal';
 import ColorByNumberOverlay, { NumberTarget } from './ColorByNumberOverlay';
 import { playPop, playFanfare, playChime } from '../services/soundEffects';
 import { COLORS } from '../constants';
+import { tracker } from '../services/tracker';
 
 interface DualLayerCanvasProps {
   paths: SvgPath[];
@@ -426,6 +427,14 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
       paintCtx.fillText(selectedSticker.emoji, coords.x, coords.y);
       paintCtx.restore();
 
+      tracker.trackCanvas('stamp_sticker', {
+        sticker: selectedSticker.id,
+        name: selectedSticker.name,
+        emoji: selectedSticker.emoji,
+        x: coords.x,
+        y: coords.y
+      });
+
       playPop(500);
       try {
         confetti({
@@ -452,6 +461,12 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     );
 
     if (success) {
+      tracker.trackCanvas('flood_fill', {
+        color: selectedColor,
+        isColorByNumber,
+        isPattern: selectedColor.startsWith('pattern:')
+      });
+
       const dataUrl = paintCanvas.toDataURL();
       onHistoryPush(dataUrl);
 
@@ -461,6 +476,10 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
           prev.map((t) => {
             const dist = Math.hypot(t.xPercent - coords.normX * 100, t.yPercent - coords.normY * 100);
             if (dist < 22 && !t.isCompleted && selectedColor === t.expectedColor) {
+              tracker.event('color_by_number', 'target_completed', `Target ${t.number}`, undefined, {
+                color: selectedColor,
+                expectedColor: t.expectedColor
+              });
               playFanfare();
               try {
                 confetti({

@@ -6,6 +6,7 @@ import LoadingSpinner from './LoadingSpinner';
 import DualLayerCanvas from './DualLayerCanvas';
 import CanvasActionButtons from './CanvasActionButtons';
 import { StickerItem } from './StickerStampsModal';
+import { tracker } from '../services/tracker';
 
 interface CanvasAreaProps {
   isPro: boolean;
@@ -76,10 +77,12 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
   const handleZoomIn = () => {
+    tracker.trackCanvas('zoom_in');
     setScale((prev) => Math.min(5.0, prev + 0.3));
   };
 
   const handleZoomOut = () => {
+    tracker.trackCanvas('zoom_out');
     setScale((prev) => {
       const next = Math.max(1.0, prev - 0.3);
       if (next <= 1.05) setPan({ x: 0, y: 0 });

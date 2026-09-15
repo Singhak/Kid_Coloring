@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Crown, Smile, Sparkles } from 'lucide-react';
 import { playClick, playPop, playChime } from '../services/soundEffects';
+import { tracker } from '../services/tracker';
 
 export type StickerCategory = 'all' | 'faces' | 'magic' | 'fun' | 'animals' | 'fashion';
 
@@ -144,10 +145,12 @@ const StickerStampsModal: React.FC<StickerStampsModalProps> = ({
 
   const handlePick = (sticker: StickerItem) => {
     if (sticker.isVip && !isPro) {
+      tracker.trackMonetization('open_upgrade_modal', undefined, undefined, { reason: 'vip_sticker', sticker: sticker.name });
       setShowUpgradeModal(true);
       return;
     }
     playPop(550);
+    tracker.event('stickers', 'select_sticker', sticker.name, undefined, { emoji: sticker.emoji, category: sticker.category, isVip: sticker.isVip });
     onSelectSticker(sticker);
     onClose();
   };

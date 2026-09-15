@@ -66,6 +66,15 @@ const AppFooter: React.FC<AppFooterProps> = ({
             </button>
           </>
         )}
+
+        <span className="hidden sm:inline text-[#CCC]">•</span>
+        <a
+          href="#analytics"
+          className="inline-flex items-center gap-1 text-[#8B5CF6] hover:text-[#7C3AED] font-black hover:underline cursor-pointer transition-colors"
+          title="View live SQLite analytics & granular feature usage"
+        >
+          <span>📊 Telemetry</span>
+        </a>
       </div>
 
       {/* Bottom Row: Mandatory Merchant Compliance Policy Links (Cashfree & Regulatory) */}

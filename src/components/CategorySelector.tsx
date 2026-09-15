@@ -1,6 +1,7 @@
 import React from 'react';
 import { CATEGORIES } from '../constants';
 import { playPop } from '../services/soundEffects';
+import { tracker } from '../services/tracker';
 
 interface CategorySelectorProps {
   selectedCategory: string;
@@ -27,6 +28,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({
               key={cat.id}
               onClick={() => {
                 playPop();
+                tracker.event('category', 'select_category', cat.label, undefined, { categoryId: cat.id });
                 setSelectedCategory(cat.id);
                 setShowTemplates(true);
                 setIsGenerating(false);
