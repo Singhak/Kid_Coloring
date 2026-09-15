@@ -60,15 +60,40 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [adminKey, setAdminKey] = useState<string>(() => {
+    return typeof window !== 'undefined' ? (sessionStorage.getItem('coloro_telemetry_key') || '') : '';
+  });
+  const [passcodeInput, setPasscodeInput] = useState('');
+  const [isUnlocked, setIsUnlocked] = useState<boolean>(() => {
+    return Boolean(typeof window !== 'undefined' && sessionStorage.getItem('coloro_telemetry_key'));
+  });
 
-  const fetchStats = async () => {
+  const fetchStats = async (keyToUse?: string) => {
+    const key = keyToUse !== undefined ? keyToUse : adminKey;
+    if (!key) {
+      setIsUnlocked(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/tracking-stats.php?range=${range}`);
+      const res = await fetch(`/api/tracking-stats.php?range=${range}`, {
+        headers: {
+          'X-Admin-Key': key
+        }
+      });
+      if (res.status === 401) {
+        setIsUnlocked(false);
+        sessionStorage.removeItem('coloro_telemetry_key');
+        setError('Incorrect admin passcode. Please enter the correct passcode.');
+        return;
+      }
       const json = await res.json();
       if (json.success) {
         setData(json);
+        setIsUnlocked(true);
+        sessionStorage.setItem('coloro_telemetry_key', key);
+        setAdminKey(key);
       } else {
         setError(json.error || 'Failed to load telemetry stats');
       }
@@ -80,12 +105,26 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
   };
 
   useEffect(() => {
-    if (isOpen) {
-      fetchStats();
+    if (isOpen && adminKey) {
+      fetchStats(adminKey);
     }
   }, [isOpen, range]);
 
   if (!isOpen) return null;
+
+  const handleUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passcodeInput.trim()) return;
+    fetchStats(passcodeInput.trim());
+  };
+
+  const handleLock = () => {
+    sessionStorage.removeItem('coloro_telemetry_key');
+    setAdminKey('');
+    setIsUnlocked(false);
+    setData(null);
+    setError(null);
+  };
 
   const formatDuration = (seconds?: number) => {
     if (!seconds) return '0s';
@@ -125,25 +164,37 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
             </div>
 
             <div className="flex items-center gap-2">
-              <a
-                href="/api/analytics-dashboard.php"
-                target="_blank"
-                rel="noreferrer"
-                className="hidden sm:flex items-center gap-1 text-xs font-bold text-[#38BDF8] hover:text-white px-2.5 py-1.5 rounded-xl border border-[#38BDF8]/30 hover:bg-[#38BDF8]/10 transition-colors"
-                title="Open standalone web dashboard"
-              >
-                <span>Full Web View</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
+              {isUnlocked && (
+                <>
+                  <a
+                    href="/api/analytics-dashboard.php"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hidden sm:flex items-center gap-1 text-xs font-bold text-[#38BDF8] hover:text-white px-2.5 py-1.5 rounded-xl border border-[#38BDF8]/30 hover:bg-[#38BDF8]/10 transition-colors"
+                    title="Open standalone web dashboard"
+                  >
+                    <span>Full Web View</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
 
-              <button
-                onClick={fetchStats}
-                disabled={isLoading}
-                className="p-2 rounded-xl text-[#94A3B8] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                title="Refresh stats"
-              >
-                <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-              </button>
+                  <button
+                    onClick={() => fetchStats()}
+                    disabled={isLoading}
+                    className="p-2 rounded-xl text-[#94A3B8] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                    title="Refresh stats"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  </button>
+
+                  <button
+                    onClick={handleLock}
+                    className="text-xs font-bold text-red-400 hover:text-white px-2.5 py-1.5 rounded-xl border border-red-500/30 hover:bg-red-500/10 transition-colors cursor-pointer"
+                    title="Lock dashboard"
+                  >
+                    🔒 Lock
+                  </button>
+                </>
+              )}
 
               <button
                 onClick={onClose}
@@ -155,35 +206,75 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
             </div>
           </div>
 
-          {/* Date Filter Bar */}
-          <div className="flex items-center gap-2 px-5 py-2.5 border-b border-[#334155]/60 bg-[#1E293B]/30 overflow-x-auto">
-            <span className="text-xs font-bold text-[#94A3B8] mr-1 shrink-0">Timeframe:</span>
-            {(['today', 'yesterday', '7d', '30d', 'all'] as const).map((r) => (
-              <button
-                key={r}
-                onClick={() => setRange(r)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors shrink-0 cursor-pointer ${
-                  range === r
-                    ? 'bg-[#38BDF8] text-[#0F172A]'
-                    : 'bg-[#1E293B] text-[#94A3B8] hover:text-white hover:bg-[#334155]'
-                }`}
-              >
-                {r === 'today' ? 'Today' : r === 'yesterday' ? 'Yesterday' : r === '7d' ? 'Last 7 Days' : r === '30d' ? 'Last 30 Days' : 'All Time'}
-              </button>
-            ))}
-          </div>
-
-          {/* Body Content */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-            {error && (
-              <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium">
-                ⚠️ {error}
+          {!isUnlocked ? (
+            /* Admin Lock Screen */
+            <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-12 text-center my-auto">
+              <div className="w-14 h-14 rounded-2xl bg-[#38BDF8]/10 border border-[#38BDF8]/30 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                🔒
               </div>
-            )}
+              <h3 className="text-lg sm:text-xl font-black text-white mb-2">
+                Admin Passcode Required
+              </h3>
+              <p className="text-xs sm:text-sm text-[#94A3B8] max-w-sm mb-6">
+                Live visitor telemetry and feature usage tracking are strictly restricted to administrators.
+              </p>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              <div className="p-3.5 rounded-2xl bg-[#1E293B] border border-[#334155]">
+              {error && (
+                <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-semibold max-w-sm w-full">
+                  ⚠️ {error}
+                </div>
+              )}
+
+              <form onSubmit={handleUnlock} className="w-full max-w-sm space-y-3">
+                <input
+                  type="password"
+                  value={passcodeInput}
+                  onChange={(e) => setPasscodeInput(e.target.value)}
+                  placeholder="Enter Admin Passcode"
+                  className="w-full bg-[#0F172A] border border-[#334155] rounded-xl px-4 py-3 text-white text-center font-bold tracking-widest text-sm focus:border-[#38BDF8] focus:outline-hidden transition-all placeholder:text-[#64748B]"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-[#38BDF8] hover:bg-[#7DD3FC] text-[#0F172A] font-black rounded-xl py-3 text-sm cursor-pointer transition-colors disabled:opacity-50"
+                >
+                  {isLoading ? 'Verifying...' : 'Unlock Telemetry'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            /* Unlocked Telemetry Content */
+            <>
+              {/* Date Filter Bar */}
+              <div className="flex items-center gap-2 px-5 py-2.5 border-b border-[#334155]/60 bg-[#1E293B]/30 overflow-x-auto">
+                <span className="text-xs font-bold text-[#94A3B8] mr-1 shrink-0">Timeframe:</span>
+                {(['today', 'yesterday', '7d', '30d', 'all'] as const).map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRange(r)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors shrink-0 cursor-pointer ${
+                      range === r
+                        ? 'bg-[#38BDF8] text-[#0F172A]'
+                        : 'bg-[#1E293B] text-[#94A3B8] hover:text-white hover:bg-[#334155]'
+                    }`}
+                  >
+                    {r === 'today' ? 'Today' : r === 'yesterday' ? 'Yesterday' : r === '7d' ? 'Last 7 Days' : r === '30d' ? 'Last 30 Days' : 'All Time'}
+                  </button>
+                ))}
+              </div>
+
+              {/* Body Content */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+                {error && (
+                  <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium">
+                    ⚠️ {error}
+                  </div>
+                )}
+
+                {/* KPI Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  <div className="p-3.5 rounded-2xl bg-[#1E293B] border border-[#334155]">
                 <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#34D399] uppercase">
                   <span className="w-2 h-2 rounded-full bg-[#34D399] animate-ping inline-block" />
                   Live Now
@@ -359,6 +450,8 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
               </div>
             </div>
           </div>
+        </>
+      )}
         </motion.div>
       </div>
     </AnimatePresence>

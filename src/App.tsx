@@ -102,9 +102,8 @@ export default function App() {
         setLegalTab(null);
         tracker.trackMonetization('view_pricing');
         tracker.pageView('#pricing', 'VIP Pricing & Plans');
-      } else if (hash === '#analytics' || hash === '#stats' || hash === '#telemetry') {
+      } else if (hash === '#admin-telemetry' || hash === '#admin-stats') {
         setShowAnalyticsModal(true);
-        tracker.pageView('#analytics', 'Live Telemetry Dashboard');
       }
     };
     handleHash();
