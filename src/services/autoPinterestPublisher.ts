@@ -23,8 +23,8 @@ const publishedHashes = new Set<string>();
 export async function autoPublishArtworkSilently(options: AutoPublishOptions): Promise<void> {
   const { paintCanvas, lineArtCanvas, category, templateName, isAi, fillCount } = options;
 
-  // Safety check: Only publish if canvas exists and user actually colored at least 4-5 regions
-  if (!paintCanvas || !lineArtCanvas || (fillCount !== undefined && fillCount < 4)) {
+  // Safety check: Only publish if canvas exists and user actually colored at least 1 region
+  if (!paintCanvas || !lineArtCanvas || (fillCount !== undefined && fillCount < 1)) {
     return;
   }
 
@@ -140,20 +140,37 @@ export async function autoPublishArtworkSilently(options: AutoPublishOptions): P
     }
     publishedHashes.add(hash);
 
+    const visitorId = typeof localStorage !== 'undefined' ? (localStorage.getItem('coloro_vid') || 'guest') : 'guest';
+
+    const payload = JSON.stringify({
+      imageData: pngData,
+      category: catSlug,
+      templateName: name,
+      isAi: Boolean(isAi),
+      visitorId
+    });
+
+    const isLocalhost = typeof window !== 'undefined' && 
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    const primaryUrl = '/api/publish-community-art.php';
+    const fallbackUrl = 'https://coloro.in/api/publish-community-art.php';
+
     // Silent background send to backend
-    fetch('/api/publish-community-art.php', {
+    fetch(isLocalhost ? fallbackUrl : primaryUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        imageData: pngData,
-        category: catSlug,
-        templateName: name,
-        isAi: Boolean(isAi)
-      }),
+      body: payload,
       keepalive: true
-    }).catch(err => {
-      // Non-blocking, completely silent
-      console.debug('Background art auto-publish skipped:', err);
+    }).catch(() => {
+      if (!isLocalhost) {
+        fetch(fallbackUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload,
+          keepalive: true
+        }).catch(() => {});
+      }
     });
   } catch (e) {
     console.debug('Auto publish error:', e);

@@ -279,9 +279,9 @@ export default function App() {
   const paintCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const lineArtCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Silent Auto-Publish to Pinterest RSS Feed when user colors an artwork (debounced 12s)
+  // Silent Auto-Publish to Pinterest RSS Feed when user colors an artwork (debounced 3s)
   useEffect(() => {
-    if (fillCount < 5) return;
+    if (fillCount < 1) return;
     const timer = setTimeout(() => {
       autoPublishArtworkSilently({
         paintCanvas: paintCanvasRef.current,
@@ -291,8 +291,37 @@ export default function App() {
         isAi: isAiGeneratedRef.current,
         fillCount
       });
-    }, 12000);
+    }, 3000);
     return () => clearTimeout(timer);
+  }, [fillCount, selectedCategory, currentTemplateName]);
+
+  // Also auto-publish immediately when user navigates away or switches tabs
+  useEffect(() => {
+    const handleLeave = () => {
+      if (fillCount >= 1) {
+        autoPublishArtworkSilently({
+          paintCanvas: paintCanvasRef.current,
+          lineArtCanvas: lineArtCanvasRef.current,
+          category: selectedCategory,
+          templateName: currentTemplateName,
+          isAi: isAiGeneratedRef.current,
+          fillCount
+        });
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        handleLeave();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleLeave);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('beforeunload', handleLeave);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, [fillCount, selectedCategory, currentTemplateName]);
 
   // Sync user profile & grant 15-day free trial on login
@@ -807,7 +836,7 @@ export default function App() {
 
   const selectTemplate = (template: Template) => {
     // If previous artwork was colored, silently auto-publish to Pinterest RSS feed
-    if (fillCount >= 4) {
+    if (fillCount >= 1) {
       autoPublishArtworkSilently({
         paintCanvas: paintCanvasRef.current,
         lineArtCanvas: lineArtCanvasRef.current,
@@ -1012,7 +1041,7 @@ export default function App() {
     if (!paintCanvas || !lineArtCanvas) return;
 
     // Silent background auto-publish on download
-    if (fillCount >= 3) {
+    if (fillCount >= 1) {
       autoPublishArtworkSilently({
         paintCanvas,
         lineArtCanvas,

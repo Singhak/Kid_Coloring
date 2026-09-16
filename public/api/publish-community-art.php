@@ -93,11 +93,42 @@ if (file_exists($manifestFile)) {
     }
 }
 
-// Prepend new artwork
+// Extract visitor identifier to distinguish between different users
+$visitorId = preg_replace('/[^a-zA-Z0-9_-]/', '', $data['visitorId'] ?? 'guest');
+$userScope = ($visitorId && $visitorId !== 'guest') 
+    ? $visitorId 
+    : substr(md5($_SERVER['REMOTE_ADDR'] ?? 'guest'), 0, 10);
+
+// Normalize template identifier key scoped to this user (e.g. "vis_123_juicy purple grapes_fruits")
+$templateKey = $userScope . '_' . strtolower(trim($templateName)) . '_' . strtolower($category);
+
+// Clean up existing / previous version of the same template for THIS specific user in manifest to replace it
+$filteredPins = [];
+foreach ($manifest['pins'] as $existingPin) {
+    $existingKey = $existingPin['templateKey'] ?? '';
+    $isSameUserTemplate = ($existingKey === $templateKey);
+    
+    if ($isSameUserTemplate) {
+        // Delete old image file from disk to prevent orphaned files
+        if (!empty($existingPin['filename'])) {
+            $oldFile = $storageDir . '/' . $existingPin['filename'];
+            if (file_exists($oldFile) && $existingPin['filename'] !== $filename) {
+                @unlink($oldFile);
+            }
+        }
+    } else {
+        $filteredPins[] = $existingPin;
+    }
+}
+$manifest['pins'] = $filteredPins;
+
+// Prepend the new updated artwork to the top of the feed
 array_unshift($manifest['pins'], [
     'id' => "user-{$timestamp}-{$randomHash}",
     'title' => $title,
     'description' => $description,
+    'templateName' => $templateName,
+    'templateKey' => $templateKey,
     'category' => $category,
     'categoryLabel' => $categoryLabel,
     'destinationUrl' => $destinationUrl,
