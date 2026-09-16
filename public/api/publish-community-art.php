@@ -53,8 +53,9 @@ if (!$decodedImage) {
 // Storage directory
 $storageDir = __DIR__ . '/../community-pins';
 if (!is_dir($storageDir)) {
-    mkdir($storageDir, 0755, true);
+    @mkdir($storageDir, 0777, true);
 }
+@chmod($storageDir, 0777);
 
 // Generate unique filename
 $timestamp = time();
@@ -65,9 +66,10 @@ $filePath = $storageDir . '/' . $filename;
 // Save PNG file to server
 if (file_put_contents($filePath, $decodedImage) === false) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Failed to save image']);
+    echo json_encode(['success' => false, 'error' => 'Failed to save image to ' . $filePath]);
     exit;
 }
+@chmod($filePath, 0644);
 
 $baseUrl = 'https://coloro.in';
 $publicImageUrl = "{$baseUrl}/community-pins/{$filename}";

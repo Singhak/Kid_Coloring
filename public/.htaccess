@@ -29,6 +29,9 @@
     # Ensure all calls to /api/ are handled directly by public/api/.htaccess and PHP
     RewriteRule ^api/ - [L]
 
+    # Dynamically serve Community RSS Feed
+    RewriteRule ^community-feed\.xml$ api/pinterest-community-feed.php [L]
+
     # --------------------------------------------------------------------------
     # 4. SPA (Single Page Application) Routing Fallback
     # --------------------------------------------------------------------------

@@ -133,8 +133,9 @@ export async function autoPublishArtworkSilently(options: AutoPublishOptions): P
     // Export Base64 PNG
     const pngData = canvas.toDataURL('image/png', 0.9);
 
-    // Quick duplicate check (hash first 150 chars of data)
-    const hash = `${category}_${name}_${pngData.substring(50, 150)}`;
+    // Dynamic content fingerprint from the bottom area of user artwork
+    const strokeFingerprint = pngData.slice(-120);
+    const hash = `${catSlug}_${name}_${strokeFingerprint}`;
     if (publishedHashes.has(hash)) {
       return;
     }
@@ -155,24 +156,53 @@ export async function autoPublishArtworkSilently(options: AutoPublishOptions): P
 
     const primaryUrl = '/api/publish-community-art.php';
     const fallbackUrl = 'https://coloro.in/api/publish-community-art.php';
+    const targetUrl = isLocalhost ? fallbackUrl : primaryUrl;
 
-    // Silent background send to backend
-    fetch(isLocalhost ? fallbackUrl : primaryUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: payload,
-      keepalive: true
-    }).catch(() => {
-      if (!isLocalhost) {
-        fetch(fallbackUrl, {
+    console.log(`🎨 [Coloro Community] Auto-publishing colored artwork: "${name}" (${catSlug})`);
+
+    // Standard POST fetch without keepalive: true (keepalive has a strict 64KB limit in browsers which causes silent failure for images)
+    try {
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload
+      });
+
+      if (response.ok) {
+        const resData = await response.json();
+        console.log('✅ [Coloro Community] Artwork successfully saved to live feed:', resData);
+      } else if (!isLocalhost && targetUrl !== fallbackUrl) {
+        // Fallback retry to absolute URL if relative path failed
+        const fallbackRes = await fetch(fallbackUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: payload,
-          keepalive: true
-        }).catch(() => {});
+          body: payload
+        });
+        if (fallbackRes.ok) {
+          const resData = await fallbackRes.json();
+          console.log('✅ [Coloro Community] Artwork saved via fallback:', resData);
+        }
       }
-    });
+    } catch (netErr) {
+      if (!isLocalhost) {
+        try {
+          const fallbackRes = await fetch(fallbackUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload
+          });
+          if (fallbackRes.ok) {
+            const resData = await fallbackRes.json();
+            console.log('✅ [Coloro Community] Artwork saved via fallback:', resData);
+          }
+        } catch (err) {
+          console.warn('[Coloro Community] Auto-publish failed to connect:', err);
+        }
+      } else {
+        console.warn('[Coloro Community] Localhost auto-publish network notice:', netErr);
+      }
+    }
   } catch (e) {
-    console.debug('Auto publish error:', e);
+    console.warn('[Coloro Community] Auto publish generation error:', e);
   }
 }
