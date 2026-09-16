@@ -13,6 +13,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { Resvg } from '@resvg/resvg-js';
 
 // Import templates directly
 import { EDUCATIONAL_TEMPLATES } from '../src/constants/educationalTemplates.js';
@@ -24,6 +25,7 @@ import {
   generatePinterestPinSvg,
   generatePinMetadata,
   exportPinsToPinterestCsv,
+  exportPinsToRssFeed,
   CATEGORY_MAP,
   getCategoryMeta,
   buildPinDestinationUrl,
@@ -243,9 +245,23 @@ function run() {
     };
     hashPins.push(pinHashData);
 
-    // Save SVG file
+    // 1. Save SVG file
     const svgPath = path.join(outDir, `${filePrefix}.svg`);
     fs.writeFileSync(svgPath, querySvg, 'utf8');
+
+    // 2. Render and save high-resolution 1000x1500 PNG file for Pinterest
+    try {
+      const resvg = new Resvg(querySvg, {
+        fitTo: { mode: 'width', value: 1000 },
+        font: { loadSystemFonts: true }
+      });
+      const pngData = resvg.render();
+      const pngBuffer = pngData.asPng();
+      const pngPath = path.join(outDir, `${filePrefix}.png`);
+      fs.writeFileSync(pngPath, pngBuffer);
+    } catch (renderErr) {
+      console.warn(`[WARN] PNG rasterization failed for ${filePrefix}:`, renderErr);
+    }
   });
 
   // Save Pinterest Bulk Upload CSVs (both query and hash flavors)
@@ -260,6 +276,16 @@ function run() {
   // Also write standard pinterest_bulk_schedule.csv (query parameter as default)
   const defaultCsvPath = path.join(outDir, 'pinterest_bulk_schedule.csv');
   fs.writeFileSync(defaultCsvPath, csvQuery, 'utf8');
+
+  // Save Pinterest RSS 2.0 XML Feed for Auto-Publish
+  const rssXml = exportPinsToRssFeed(queryPins);
+  const rssPath = path.join(outDir, 'pinterest-feed.xml');
+  fs.writeFileSync(rssPath, rssXml, 'utf8');
+  
+  // Also write to public/ root for direct https://coloro.in/pinterest-feed.xml and https://coloro.in/feed.xml
+  const publicDir = path.resolve(process.cwd(), 'public');
+  fs.writeFileSync(path.join(publicDir, 'pinterest-feed.xml'), rssXml, 'utf8');
+  fs.writeFileSync(path.join(publicDir, 'feed.xml'), rssXml, 'utf8');
 
   // Save manifest JSON for in-app or API consumption
   const manifest = {
@@ -279,7 +305,7 @@ function run() {
       boardName: p.boardName,
       scheduledDate: p.scheduledDate,
       scheduledTime: p.scheduledTime,
-      filename: `${p.id}.svg`
+      filename: `${p.id}.png`
     }))
   };
   fs.writeFileSync(path.join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf8');
@@ -293,51 +319,181 @@ function run() {
   <title>Coloro Pinterest Batch Pin Review &amp; Schedule</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0F172A;
-      --card-bg: #1E293B;
-      --text: #F8FAFC;
-      --accent: #FF5252;
-      --border: #334155;
+      --primary: #E60023;
+      --bg: #F7F5EC;
+      --card-bg: #FFFFFF;
+      --text: #2D3436;
+      --muted: #636E72;
+      --border: #E8E4D8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); padding: 32px 20px; }
-    .header { max-width: 1200px; margin: 0 auto 32px; text-align: center; }
-    .header h1 { font-size: 36px; font-weight: 900; color: #FFF; margin-bottom: 8px; }
-    .header p { font-size: 16px; color: #94A3B8; max-width: 700px; margin: 0 auto 20px; }
-    .stats-bar { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-    .stat-pill { background: var(--card-bg); border: 1px solid var(--border); padding: 8px 18px; border-radius: 999px; font-size: 14px; font-weight: 600; }
-    .stat-pill strong { color: #38BDF8; }
-    .downloads-bar { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 32px; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 800; text-decoration: none; transition: transform 0.15s, opacity 0.15s; }
-    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn.secondary { background: #334155; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; max-width: 1400px; margin: 0 auto; }
-    .pin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; display: flex; flex-col; transition: transform 0.2s, box-shadow 0.2s; }
-    .pin-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
-    .pin-preview { width: 100%; aspect-ratio: 2/3; background: #000; overflow: hidden; position: relative; }
-    .pin-preview img { width: 100%; height: 100%; object-fit: contain; }
-    .pin-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-    .pin-meta { display: flex; justify-content: space-between; font-size: 12px; color: #38BDF8; font-weight: 800; }
-    .pin-title { font-size: 16px; font-weight: 800; color: #FFF; line-height: 1.3; }
-    .pin-desc { font-size: 12px; color: #94A3B8; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .pin-link { font-size: 11px; color: #A78BFA; word-break: break-all; font-family: monospace; background: #0F172A; padding: 6px 10px; border-radius: 8px; border: 1px solid #1E293B; }
-    .pin-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
-    .btn-sm { font-size: 12px; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: 700; flex: 1; text-align: center; }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 32px 20px;
+    }
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 32px;
+      text-align: center;
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 28px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .stat-pill {
+      background: white;
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .downloads-bar {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary);
+      color: white;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 10px 22px;
+      border-radius: 12px;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn:hover { transform: translateY(-2px); opacity: 0.95; }
+    .btn.secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .pin-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-col;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .pin-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+    }
+    .pin-preview {
+      aspect-ratio: 2/3;
+      background: #FAFAFA;
+      overflow: hidden;
+    }
+    .pin-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .pin-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .pin-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pin-title {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+    .pin-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .pin-link {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0984e3;
+      word-break: break-all;
+      margin-top: auto;
+      margin-bottom: 12px;
+    }
+    .pin-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+      flex: 1;
+      text-align: center;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>📌 Coloro Pinterest Batch Studio</h1>
-    <p>5–8 high-contrast graphics generated daily showing blank coloring sheets side-by-side with colored versions. Direct links to categories without or with hash.</p>
+    <div class="logo">
+      <span>🎨</span>
+      <span>Coloro Pinterest Auto-Publish Suite</span>
+    </div>
+    <p class="subtitle">100 High-Converting Side-by-Side Pins (Blank Printable vs Colored Guide)</p>
     
     <div class="stats-bar">
       <div class="stat-pill">Total Pins: <strong>${queryPins.length}</strong></div>
       <div class="stat-pill">Schedule: <strong>${pinsPerDay} Pins/Day</strong></div>
       <div class="stat-pill">Days Covered: <strong>${Math.ceil(queryPins.length / pinsPerDay)} Days</strong></div>
-      <div class="stat-pill">Aspect Ratio: <strong>1000x1500 (2:3 Standard)</strong></div>
     </div>
 
     <div class="downloads-bar">
@@ -351,7 +507,7 @@ function run() {
     ${queryPins.map((p, idx) => `
       <div class="pin-card">
         <div class="pin-preview">
-          <img src="${p.id}.svg" alt="${p.title}" loading="lazy" />
+          <img src="${p.id}.png" alt="${p.title}" loading="lazy" />
         </div>
         <div class="pin-body">
           <div class="pin-meta">
@@ -362,7 +518,7 @@ function run() {
           <p class="pin-desc">${p.description}</p>
           <div class="pin-link">🔗 ${p.destinationUrl}</div>
           <div class="pin-actions">
-            <a href="${p.id}.svg" download="${p.id}.svg" class="btn btn-sm">Download SVG</a>
+            <a href="${p.id}.png" download="${p.id}.png" class="btn btn-sm">Download PNG</a>
             <a href="${p.destinationUrl}" target="_blank" class="btn btn-sm secondary">Test Link ↗</a>
           </div>
         </div>

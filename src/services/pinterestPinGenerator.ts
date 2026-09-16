@@ -556,3 +556,42 @@ export function exportPinsToPinterestCsv(pins: GeneratedPinData[], baseUrl: stri
 
   return [headers.join(','), ...rows].join('\n');
 }
+
+/**
+ * Exports generated pins to Pinterest-compliant RSS 2.0 XML Feed with Media Enclosures
+ * for zero-touch Auto-Publishing (https://coloro.in/pinterest-feed.xml)
+ */
+export function exportPinsToRssFeed(pins: GeneratedPinData[], baseUrl: string = 'https://coloro.in'): string {
+  const itemsXml = pins.map(pin => {
+    const cleanTitle = escapeXml(pin.title.length > 95 ? pin.title.substring(0, 95) + '...' : pin.title);
+    const mediaUrl = `${baseUrl}/pinterest-pins/${pin.id}.png`;
+    const cleanDesc = escapeXml(pin.description.length > 480 ? pin.description.substring(0, 480) + '...' : pin.description);
+    const pubDate = new Date(`${pin.scheduledDate}T${pin.scheduledTime}:00Z`).toUTCString();
+
+    return `    <item>
+      <title>${cleanTitle}</title>
+      <link>${escapeXml(pin.destinationUrl)}</link>
+      <guid isPermaLink="false">coloro-${pin.id}</guid>
+      <pubDate>${pubDate}</pubDate>
+      <description><![CDATA[${pin.description}]]></description>
+      <enclosure url="${mediaUrl}" length="15000" type="image/png" />
+      <media:content url="${mediaUrl}" medium="image" type="image/png" width="1000" height="1500" />
+      <category>${escapeXml(pin.categoryLabel)}</category>
+    </item>`;
+  }).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" 
+     xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:media="http://search.yahoo.com/mrss/"
+     xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Coloro: Free Kids Coloring Sheets &amp; Printable Art</title>
+    <link>${baseUrl}</link>
+    <description>Daily free printable high-contrast coloring sheets, alphabet activities, and online magic drawing for kids.</description>
+    <language>en-us</language>
+    <atom:link href="${baseUrl}/pinterest-feed.xml" rel="self" type="application/rss+xml" />
+${itemsXml}
+  </channel>
+</rss>`;
+}
