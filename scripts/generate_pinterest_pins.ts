@@ -267,18 +267,28 @@ function run() {
     }
   });
 
-  // Save Pinterest Bulk Upload CSVs (both query and hash flavors)
-  const csvQuery = exportPinsToPinterestCsv(queryPins);
-  const csvQueryPath = path.join(outDir, 'pinterest_bulk_schedule_query.csv');
-  fs.writeFileSync(csvQueryPath, csvQuery, 'utf8');
+  // Save Pinterest Bulk Upload CSVs strictly following Pinterest's Official 8-column format:
+  // Title, Media URL, Pinterest board, Thumbnail, Description, Link, Publish date, Keywords
+  
+  // 1. Standard instant/blank date CSV (Safest for bulk upload - avoids all timezone/date errors)
+  const csvInstant = exportPinsToPinterestCsv(queryPins, { includePublishDate: false });
+  const defaultCsvPath = path.join(outDir, 'pinterest_bulk_schedule.csv');
+  fs.writeFileSync(defaultCsvPath, csvInstant, 'utf8');
 
-  const csvHash = exportPinsToPinterestCsv(hashPins);
+  // 2. Dated schedule CSV (includes ISO dates across 7-14 days)
+  const csvQueryDated = exportPinsToPinterestCsv(queryPins, { includePublishDate: true });
+  const csvQueryPath = path.join(outDir, 'pinterest_bulk_schedule_query.csv');
+  fs.writeFileSync(csvQueryPath, csvQueryDated, 'utf8');
+
+  // 3. Hash-based links CSV
+  const csvHash = exportPinsToPinterestCsv(hashPins, { includePublishDate: false });
   const csvHashPath = path.join(outDir, 'pinterest_bulk_schedule_hash.csv');
   fs.writeFileSync(csvHashPath, csvHash, 'utf8');
 
-  // Also write standard pinterest_bulk_schedule.csv (query parameter as default)
-  const defaultCsvPath = path.join(outDir, 'pinterest_bulk_schedule.csv');
-  fs.writeFileSync(defaultCsvPath, csvQuery, 'utf8');
+  // 4. Quick 3-Pin Test Sample CSV (for instant 3-pin verification without risking 100 rows)
+  const csvSample = exportPinsToPinterestCsv(queryPins.slice(0, 3), { includePublishDate: false });
+  const sampleCsvPath = path.join(outDir, 'pinterest_test_sample.csv');
+  fs.writeFileSync(sampleCsvPath, csvSample, 'utf8');
 
   // Save Pinterest RSS 2.0 XML Feed for Auto-Publish
   const rssXml = exportPinsToRssFeed(queryPins);
