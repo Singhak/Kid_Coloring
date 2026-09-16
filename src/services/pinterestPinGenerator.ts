@@ -507,40 +507,74 @@ export function batchGeneratePins(templates: Template[], options: PinGenerationO
   return generated;
 }
 
+export interface PinterestCsvExportOptions {
+  baseUrl?: string;
+  boardOverride?: string;
+  includePublishDate?: boolean;
+  includeThumbnail?: boolean; // Set true only for video pins
+}
+
 /**
- * Exports generated pins metadata strictly following Pinterest's Official Bulk Create CSV standard:
- * Headers: Title, Media URL, Pinterest board, Description, Link, Publish date, Keywords
- * Note: 'Thumbnail' must NOT be included for Image Pins as Pinterest treats CSVs with 'Thumbnail' as Video Pins.
+ * Exports generated pins metadata following Pinterest's Bulk Create CSV standard:
+ * For Image Pins (default): Title, Media URL, Pinterest board, Description, Link, Publish date, Keywords
+ * For Video Pins (if includeThumbnail is true): Title, Media URL, Pinterest board, Thumbnail, Description, Link, Publish date, Keywords
+ * Note: When 'Thumbnail' is included, Pinterest routes the CSV to its Video Pin pipeline which requires .mp4 files.
  */
-export function exportPinsToPinterestCsv(pins: GeneratedPinData[], baseUrl: string = 'https://coloro.in'): string {
-  const headers = ['Title', 'Media URL', 'Pinterest board', 'Description', 'Link', 'Publish date', 'Keywords'];
+export function exportPinsToPinterestCsv(
+  pins: GeneratedPinData[], 
+  options: PinterestCsvExportOptions | string = {}
+): string {
+  const opts: PinterestCsvExportOptions = typeof options === 'string' ? { baseUrl: options } : options;
+  const baseUrl = opts.baseUrl || 'https://coloro.in';
+  const boardOverride = opts.boardOverride?.trim();
+  const includePublishDate = opts.includePublishDate !== false;
+  const includeThumbnail = Boolean(opts.includeThumbnail);
+
+  // Standard Image Pin headers (omitting Thumbnail prevents Pinterest from misclassifying image pins as Video Pins)
+  const headers = includeThumbnail
+    ? ['Title', 'Media URL', 'Pinterest board', 'Thumbnail', 'Description', 'Link', 'Publish date', 'Keywords']
+    : ['Title', 'Media URL', 'Pinterest board', 'Description', 'Link', 'Publish date', 'Keywords'];
   
   const rows = pins.map(pin => {
-    // Pinterest constraints:
-    // Title <= 100 chars
+    // 1. Title <= 100 chars
     const rawTitle = pin.title.length > 95 ? pin.title.substring(0, 95) + '...' : pin.title;
     const cleanTitle = `"${rawTitle.replace(/"/g, '""')}"`;
 
-    // Media URL: Pinterest requires a public image URL ending in .png or .jpg
+    // 2. Media URL: Public direct image link (.png / .jpg)
     const mediaUrl = `"${baseUrl}/pinterest-pins/${pin.id}.png"`;
 
-    // Board: Exact column name "Pinterest board"
-    const cleanBoard = `"${pin.boardName.replace(/"/g, '""')}"`;
+    // 3. Pinterest board: Either user-specified board override or category-mapped board
+    const targetBoard = boardOverride || pin.boardName;
+    const cleanBoard = `"${targetBoard.replace(/"/g, '""')}"`;
 
-    // Description <= 500 chars
+    // 4. Description <= 500 chars
     const rawDesc = pin.description.length > 480 ? pin.description.substring(0, 480) + '...' : pin.description;
     const cleanDesc = `"${rawDesc.replace(/"/g, '""')}"`;
 
-    // Link: Destination category URL
+    // 5. Link: Destination URL
     const cleanLink = `"${pin.destinationUrl}"`;
 
-    // Publish date: ISO 8601 format without trailing 'Z' (YYYY-MM-DDTHH:MM:SS)
-    const publishDate = pin.scheduledDate && pin.scheduledTime 
+    // 6. Publish date: ISO 8601 (YYYY-MM-DDTHH:MM:SS) or blank for immediate publish / drafts
+    const publishDate = includePublishDate && pin.scheduledDate && pin.scheduledTime 
       ? `"${pin.scheduledDate}T${pin.scheduledTime}:00"`
       : '""';
 
-    // Keywords
+    // 7. Keywords: comma-separated
     const cleanKeywords = `"${(pin.keywords || []).join(', ').replace(/"/g, '""')}"`;
+
+    if (includeThumbnail) {
+      const thumbnail = '""';
+      return [
+        cleanTitle,
+        mediaUrl,
+        cleanBoard,
+        thumbnail,
+        cleanDesc,
+        cleanLink,
+        publishDate,
+        cleanKeywords
+      ].join(',');
+    }
 
     return [
       cleanTitle,

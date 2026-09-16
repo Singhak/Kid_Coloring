@@ -124,15 +124,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   }, [user?.uid, user?.photoURL]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node) &&
           buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
         setShowProfileMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
 
@@ -159,7 +161,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="relative flex flex-col bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50 w-full">
       {/* Primary Top Bar */}
-      <div className="w-full px-2.5 py-1.5 sm:px-4 md:px-5 lg:px-6 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 md:gap-3 overflow-hidden">
+      <div className="w-full px-2.5 py-1.5 sm:px-4 md:px-5 lg:px-6 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 md:gap-3">
         {/* Brand & Mode Switcher */}
         <div id="tour-nav-brand" className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0 min-w-0">
           <button
@@ -490,17 +492,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* User Profile / Login */}
         {user ? (
-          <div className="relative flex items-center ml-0.5 sm:ml-1 shrink-0">
+          <div className="relative flex items-center ml-0.5 sm:ml-1 shrink-0 z-50">
             <button
               ref={buttonRef}
+              type="button"
               onClick={() => {
                 playClick();
-                setShowProfileMenu(!showProfileMenu);
+                setShowProfileMenu(prev => !prev);
               }}
-              className="flex items-center gap-1.5 p-1 rounded-2xl hover:bg-[#F5F3E9] border border-transparent hover:border-[#E5E1D0] transition-all cursor-pointer shrink-0"
+              className="flex items-center gap-1.5 p-1 rounded-2xl hover:bg-[#F5F3E9] border border-transparent hover:border-[#E5E1D0] transition-all cursor-pointer shrink-0 focus:outline-none"
               title={user.displayName || 'User Profile'}
+              aria-label="User Profile"
+              aria-expanded={showProfileMenu}
             >
-              <div className="relative shrink-0">
+              <div className="relative shrink-0 pointer-events-none">
                 {user.photoURL ? (
                   <img src={user.photoURL} alt="Avatar" className="w-8 h-8 sm:w-8.5 sm:h-8.5 md:w-9 md:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
                 ) : (
@@ -521,7 +526,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full right-0 mt-2 w-56 bg-white rounded-3xl shadow-xl border-2 border-[#EBE8DC] z-50 overflow-hidden p-2"
+                  className="absolute top-full right-0 mt-2 w-60 bg-white rounded-3xl shadow-2xl border-2 border-[#EBE8DC] z-[100] overflow-hidden p-2 max-h-[85vh] overflow-y-auto"
                 >
                   <div className="p-3 bg-[#FAF8EF] rounded-2xl mb-2">
                     <p className="text-sm font-black text-[#2D3436] truncate">{user.displayName || 'Little Artist'}</p>

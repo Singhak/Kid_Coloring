@@ -28,6 +28,8 @@ const PinterestStudioModal: React.FC<PinterestStudioModalProps> = ({
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>('all');
   const [urlFormat, setUrlFormat] = useState<'query' | 'hash' | 'path'>('query');
+  const [boardOverride, setBoardOverride] = useState<string>('');
+  const [includePublishDate, setIncludePublishDate] = useState<boolean>(false); // default blank for safest upload
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [previewPin, setPreviewPin] = useState<GeneratedPinData | null>(null);
   const [isZipping, setIsZipping] = useState(false);
@@ -100,15 +102,23 @@ const PinterestStudioModal: React.FC<PinterestStudioModalProps> = ({
     img.src = url;
   };
 
-  // Download Pinterest Bulk Schedule CSV
-  const downloadCsv = () => {
+  // Download Pinterest Bulk Schedule CSV with official 8-column format
+  const downloadCsv = (limit?: number) => {
     playChime();
-    const csvContent = exportPinsToPinterestCsv(filteredPins.length > 0 ? filteredPins : allPins);
+    const sourcePins = filteredPins.length > 0 ? filteredPins : allPins;
+    const pinsToExport = limit ? sourcePins.slice(0, limit) : sourcePins;
+    const csvContent = exportPinsToPinterestCsv(pinsToExport, {
+      baseUrl: 'https://coloro.in',
+      boardOverride: boardOverride.trim() || undefined,
+      includePublishDate
+    });
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `pinterest_bulk_schedule_${urlFormat}.csv`;
+    link.download = limit 
+      ? `pinterest_test_sample_${limit}_pins.csv` 
+      : `pinterest_bulk_schedule_${urlFormat}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -124,8 +134,12 @@ const PinterestStudioModal: React.FC<PinterestStudioModalProps> = ({
       const pinsFolder = zip.folder('pins');
       const pinsToExport = filteredPins.length > 0 ? filteredPins : allPins;
 
-      // Add CSV
-      const csvContent = exportPinsToPinterestCsv(pinsToExport);
+      // Add CSV formatted for Pinterest bulk create
+      const csvContent = exportPinsToPinterestCsv(pinsToExport, {
+        baseUrl: 'https://coloro.in',
+        boardOverride: boardOverride.trim() || undefined,
+        includePublishDate
+      });
       zip.file('pinterest_bulk_schedule.csv', csvContent);
 
       // Add each pin SVG
@@ -262,11 +276,11 @@ const PinterestStudioModal: React.FC<PinterestStudioModalProps> = ({
 
               {/* CSV Export Button */}
               <button
-                onClick={downloadCsv}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 transition-all cursor-pointer"
-                title="Download CSV for Pinterest Bulk Uploader"
+                onClick={() => downloadCsv()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 border border-emerald-500 text-xs font-bold text-white shadow-sm transition-all cursor-pointer"
+                title="Download CSV formatted for Pinterest Bulk Create"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                <FileSpreadsheet className="w-3.5 h-3.5" />
                 <span>Pinterest CSV</span>
               </button>
 
@@ -287,6 +301,65 @@ const PinterestStudioModal: React.FC<PinterestStudioModalProps> = ({
                     <span>Download ZIP Batch</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+
+          {/* Pinterest Bulk CSV Configuration Bar */}
+          <div className="px-4 py-2.5 bg-slate-950/80 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-slate-300 flex items-center gap-1">
+                <span>📌 Target Board:</span>
+              </span>
+              <input
+                type="text"
+                value={boardOverride}
+                onChange={(e) => setBoardOverride(e.target.value)}
+                placeholder="Auto category boards (or type your Board name)"
+                className="px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-white text-xs w-64 focus:outline-none focus:border-indigo-500 placeholder-slate-500"
+                title="If you only have one board on your Pinterest account (e.g. 'Kids Coloring Pages'), enter it here so all rows match your board!"
+              />
+
+              <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => setIncludePublishDate(false)}
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                    !includePublishDate ? 'bg-emerald-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                  }`}
+                  title="Leaves publish date blank: Pinterest publishes immediately / saves as draft without any timezone or clock rejection"
+                >
+                  ⚡ Blank Date (Instant / Safest)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIncludePublishDate(true)}
+                  className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                    includePublishDate ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                  }`}
+                  title="Includes scheduled dates across the next 7-14 days"
+                >
+                  📅 Scheduled Dates
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => downloadCsv(3)}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs transition-all cursor-pointer"
+                title="Download a 3-row test CSV matching Pinterest's official format to verify first"
+              >
+                <span>🧪 Test 3 Pins CSV</span>
+              </button>
+
+              <button
+                onClick={() => downloadCsv()}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow transition-all cursor-pointer"
+                title="Download full CSV with official 8-column format"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Full CSV ({filteredPins.length > 0 ? filteredPins.length : allPins.length})</span>
               </button>
             </div>
           </div>

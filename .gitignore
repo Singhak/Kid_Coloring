@@ -16,3 +16,6 @@ ios/
 .vite/
 firebase-service-account.json
 firebase-applet-config.json
+.deploy_staging/
+.deploy_manifest_pending.json
+
