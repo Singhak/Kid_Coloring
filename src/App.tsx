@@ -52,6 +52,7 @@ import PaymentStatusModal, { PaymentModalStatus } from './components/PaymentStat
 import EducationalArticlesModal from './components/EducationalArticlesModal';
 import ColoroChatBotModal from './components/ColoroChatBotModal';
 import AnalyticsDashboardModal from './components/AnalyticsDashboardModal';
+import PinterestStudioModal from './components/PinterestStudioModal';
 import { tracker } from './services/tracker';
 import {
   createCashfreeOrder,
@@ -76,40 +77,7 @@ export default function App() {
   const [showPricingPage, setShowPricingPage] = useState(false);
   const [legalTab, setLegalTab] = useState<LegalTabType | null>(null);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
-
-  // Listen for direct URL hash navigation (#privacy, #terms, #refund, #pricing, #analytics)
-  useEffect(() => {
-    const handleHash = () => {
-      const hash = window.location.hash.toLowerCase();
-      if (hash === '#privacy') {
-        setLegalTab('privacy');
-        setShowPricingPage(false);
-        tracker.pageView('#privacy', 'Privacy Policy');
-      } else if (hash === '#terms' || hash === '#terms-and-conditions') {
-        setLegalTab('terms');
-        setShowPricingPage(false);
-        tracker.pageView('#terms', 'Terms and Conditions');
-      } else if (hash === '#refund' || hash === '#refund-policy' || hash === '#cancellation') {
-        setLegalTab('refund');
-        setShowPricingPage(false);
-        tracker.pageView('#refund', 'Refund Policy');
-      } else if (hash === '#contact' || hash === '#contact-us') {
-        setLegalTab('contact');
-        setShowPricingPage(false);
-        tracker.pageView('#contact', 'Contact Us');
-      } else if (hash === '#pricing' || hash === '#upgrade') {
-        setShowPricingPage(true);
-        setLegalTab(null);
-        tracker.trackMonetization('view_pricing');
-        tracker.pageView('#pricing', 'VIP Pricing & Plans');
-      } else if (hash === '#admin-telemetry' || hash === '#admin-stats') {
-        setShowAnalyticsModal(true);
-      }
-    };
-    handleHash();
-    window.addEventListener('hashchange', handleHash);
-    return () => window.removeEventListener('hashchange', handleHash);
-  }, []);
+  const [showPinterestStudio, setShowPinterestStudio] = useState(false);
   const [showProColors, setShowProColors] = useState(false);
   const [showMagicPromptModal, setShowMagicPromptModal] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -136,6 +104,112 @@ export default function App() {
   const [viewBox, setViewBox] = useState("0 0 1000 1000");
   const [fillCount, setFillCount] = useState(0);
   const [resetTrigger, setResetTrigger] = useState(0);
+
+  // Listen for direct URL routing: query params (?category=animals), hash (#category=animals), and paths
+  useEffect(() => {
+    const handleUrlRoute = () => {
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search;
+      const pathname = window.location.pathname.toLowerCase();
+      const params = new URLSearchParams(search);
+
+      // Check for Pinterest Studio tool trigger
+      if (
+        hash === '#pinterest-studio' || 
+        hash === '#pinterest' || 
+        params.get('tool') === 'pinterest-studio' || 
+        params.get('pinterest') === 'true'
+      ) {
+        setShowPinterestStudio(true);
+      }
+
+      // Check for category deep-linking (?category=animals, #category=animals, /category/animals)
+      let targetCat: string | null = null;
+      if (params.get('category')) {
+        targetCat = params.get('category');
+      } else if (params.get('cat')) {
+        targetCat = params.get('cat');
+      } else if (hash.startsWith('#category=')) {
+        targetCat = hash.replace('#category=', '');
+      } else if (hash.startsWith('#cat=')) {
+        targetCat = hash.replace('#cat=', '');
+      } else if (pathname.startsWith('/category/')) {
+        targetCat = pathname.replace('/category/', '').replace(/\/$/, '');
+      }
+
+      if (targetCat) {
+        const normalized = targetCat.toLowerCase().trim();
+        const categoryMap: Record<string, string> = {
+          animal: 'animal',
+          animals: 'animal',
+          alphabet: 'alphabet',
+          alphabets: 'alphabet',
+          number: 'numbers',
+          numbers: 'numbers',
+          fruit: 'fruits',
+          fruits: 'fruits',
+          vegetable: 'vegetables',
+          vegetables: 'vegetables',
+          nature: 'nature',
+          space: 'space',
+          vehicle: 'vehicles',
+          vehicles: 'vehicles',
+          festival: 'festivals',
+          festivals: 'festivals',
+          weekly: 'weekly',
+          object: 'object',
+          objects: 'object',
+          all: 'random',
+          random: 'random',
+        };
+
+        const resolvedCat = categoryMap[normalized];
+        if (resolvedCat) {
+          setSelectedCategory(resolvedCat);
+          setShowTemplates(true);
+          tracker.event('acquisition', 'pinterest_landing', resolvedCat, undefined, {
+            url: window.location.href,
+            source: 'pinterest_direct_link',
+            category: resolvedCat
+          });
+        }
+      }
+
+      // Legal & Monetization modal routes
+      if (hash === '#privacy') {
+        setLegalTab('privacy');
+        setShowPricingPage(false);
+        tracker.pageView('#privacy', 'Privacy Policy');
+      } else if (hash === '#terms' || hash === '#terms-and-conditions') {
+        setLegalTab('terms');
+        setShowPricingPage(false);
+        tracker.pageView('#terms', 'Terms and Conditions');
+      } else if (hash === '#refund' || hash === '#refund-policy' || hash === '#cancellation') {
+        setLegalTab('refund');
+        setShowPricingPage(false);
+        tracker.pageView('#refund', 'Refund Policy');
+      } else if (hash === '#contact' || hash === '#contact-us') {
+        setLegalTab('contact');
+        setShowPricingPage(false);
+        tracker.pageView('#contact', 'Contact Us');
+      } else if (hash === '#pricing' || hash === '#upgrade') {
+        setShowPricingPage(true);
+        setLegalTab(null);
+        tracker.trackMonetization('view_pricing');
+        tracker.pageView('#pricing', 'VIP Pricing & Plans');
+      } else if (hash === '#admin-telemetry' || hash === '#admin-stats') {
+        setShowAnalyticsModal(true);
+      }
+    };
+
+    handleUrlRoute();
+    window.addEventListener('hashchange', handleUrlRoute);
+    window.addEventListener('popstate', handleUrlRoute);
+    return () => {
+      window.removeEventListener('hashchange', handleUrlRoute);
+      window.removeEventListener('popstate', handleUrlRoute);
+    };
+  }, []);
 
   // Cashfree Payment Modal State
   const [paymentModalState, setPaymentModalState] = useState<{
@@ -1131,6 +1205,7 @@ export default function App() {
           onOpenArticles={() => setShowArticlesModal(true)}
           onOpenChatBot={() => setShowChatBotModal(true)}
           onOpenLegalPage={(tab) => setLegalTab(tab)}
+          onOpenPinterestStudio={() => setShowPinterestStudio(true)}
         />
       )}
 
@@ -1316,6 +1391,16 @@ export default function App() {
       <AnalyticsDashboardModal
         isOpen={showAnalyticsModal}
         onClose={() => setShowAnalyticsModal(false)}
+      />
+
+      {/* Pinterest Batch Studio & Daily Graphics Exporter */}
+      <PinterestStudioModal
+        isOpen={showPinterestStudio}
+        onClose={() => setShowPinterestStudio(false)}
+        onSelectCategory={(cat) => {
+          setSelectedCategory(cat);
+          setShowTemplates(true);
+        }}
       />
     </div>
   );

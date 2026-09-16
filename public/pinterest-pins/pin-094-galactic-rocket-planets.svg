@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1000" height="1500" viewBox="0 0 1000 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1000" y2="1500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFDF9" />
+      <stop offset="40%" stop-color="#FFFBEB" />
+      <stop offset="100%" stop-color="#FEF3C7" />
+    </linearGradient>
+
+    <!-- Header Gradient Banner -->
+    <linearGradient id="headerGrad" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF5252" />
+      <stop offset="50%" stop-color="#FF7675" />
+      <stop offset="100%" stop-color="#FFAA00" />
+    </linearGradient>
+
+    <!-- CTA Footer Gradient -->
+    <linearGradient id="ctaGrad" x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+
+    <!-- Card Soft Shadow -->
+    <filter id="cardShadow" x="-10%" y="-10%" width="125%" height="125%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0F172A" flood-opacity="0.12" />
+    </filter>
+    <filter id="badgeShadow" x="-10%" y="-10%" width="120%" height="130%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <style>
+    .font-title { font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 900; }
+    .font-bold { font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 800; }
+    .font-medium { font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-weight: 600; }
+    .font-mono { font-family: 'SF Mono', Monaco, Consolas, monospace; }
+  </style>
+
+  <!-- Canvas Background -->
+  <rect width="1000" height="1500" fill="url(#bgGrad)" />
+
+  <!-- Playful Polka Dot Pattern Overlay in Header -->
+  <g opacity="0.08">
+    <circle cx="50" cy="50" r="15" fill="#000" />
+    <circle cx="150" cy="90" r="10" fill="#000" />
+    <circle cx="280" cy="40" r="18" fill="#000" />
+    <circle cx="850" cy="60" r="16" fill="#000" />
+    <circle cx="950" cy="110" r="12" fill="#000" />
+    <circle cx="70" cy="1400" r="20" fill="#000" />
+    <circle cx="920" cy="1420" r="18" fill="#000" />
+  </g>
+
+  <!-- ==================== TOP BRAND & CATEGORY HEADER ==================== -->
+  
+  <!-- Category Pill Badge -->
+  <g transform="translate(50, 48)">
+    <rect x="0" y="0" width="260" height="46" rx="23" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" filter="url(#badgeShadow)" />
+    <text x="24" y="29" font-size="20" class="font-bold" fill="#EA580C">🔥 WEEKLY DROPS</text>
+  </g>
+
+  <!-- Brand Callout -->
+  <g transform="translate(680, 48)">
+    <rect x="0" y="0" width="270" height="46" rx="23" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" filter="url(#badgeShadow)" />
+    <text x="24" y="29" font-size="18" class="font-title" fill="#FF5252">✨ COLORO.IN</text>
+  </g>
+
+  <!-- Main Pin Headline (High-Contrast & Hook) -->
+  <text x="500" y="160" text-anchor="middle" font-size="44" class="font-title" fill="#0F172A" letter-spacing="-0.5">
+    FREE PRINTABLE COLORING PAGE
+  </text>
+  <text x="500" y="215" text-anchor="middle" font-size="34" class="font-title" fill="#EA580C">
+    Galactic Rocket &amp; Planets
+  </text>
+  <text x="500" y="255" text-anchor="middle" font-size="20" class="font-medium" fill="#64748B">
+    Print Clean Line-Art Sheet or Color Online With Magic Brushes!
+  </text>
+
+  <!-- ==================== SIDE-BY-SIDE CARDS ==================== -->
+
+  <!-- Card 1: Blank Sheet (Left Side) -->
+  <g transform="translate(50, 300)" filter="url(#cardShadow)">
+    <!-- White Card Background -->
+    <rect x="0" y="0" width="430" height="580" rx="28" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="3" />
+    
+    <!-- Top Card Ribbon -->
+    <rect x="0" y="0" width="430" height="66" rx="28" fill="#F8FAFC" />
+    <path d="M 0,40 L 0,66 L 430,66 L 430,40 Z" fill="#F8FAFC" />
+    <line x1="0" y1="66" x2="430" y2="66" stroke="#E2E8F0" stroke-width="2" />
+    <text x="215" y="43" text-anchor="middle" font-size="20" class="font-title" fill="#1E293B">
+      🖨️ 1. BLANK PRINTABLE
+    </text>
+
+    <!-- SVG Blank Canvas Window -->
+    <g transform="translate(25, 90)">
+      <rect x="0" y="0" width="380" height="420" rx="16" fill="#FAFAFA" stroke="#F1F5F9" stroke-width="2" />
+      <svg x="10" y="10" width="360" height="400" viewBox="0 0 1000 1000">
+        <path d="M 500,120 C 600,260 620,540 600,740 L 400,740 C 380,540 400,260 500,120 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="7.700000000000001" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 500,120 C 560,200 580,260 580,260 L 420,260 C 420,260 440,200 500,120 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="6.6000000000000005" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 500,420 m -70,0 a 70,70 0 1,0 140,0 a 70,70 0 1,0 -140,0 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="6.6000000000000005" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 500,420 m -45,0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 400,560 L 260,740 L 260,820 L 400,740 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="7.700000000000001" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 600,560 L 740,740 L 740,820 L 600,740 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="7.700000000000001" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 440,740 L 560,740 L 580,780 L 420,780 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="6.6000000000000005" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 450,780 Q 500,940 550,780" fill="#FFFFFF" stroke="#1E293B" stroke-width="6.6000000000000005" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 470,780 Q 500,890 530,780" fill="#FFFFFF" stroke="#1E293B" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 800,240 m -65,0 a 65,65 0 1,0 130,0 a 65,65 0 1,0 -130,0 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 690,260 Q 800,320 910,220" fill="#FFFFFF" stroke="#1E293B" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 180,260 C 140,320 160,400 220,420 C 170,410 140,340 180,260 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 780,560 L 790,580 L 810,580 L 795,595 L 800,615 L 780,600 L 760,615 L 765,595 L 750,580 L 770,580 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 220,580 L 230,600 L 250,600 L 235,615 L 240,635 L 220,620 L 200,635 L 205,615 L 190,600 L 210,600 Z" fill="#FFFFFF" stroke="#1E293B" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </g>
+
+    <!-- Subtext Hook under Sheet -->
+    <text x="215" y="546" text-anchor="middle" font-size="16" class="font-bold" fill="#64748B">
+      High-Resolution • Easy For Toddlers
+    </text>
+  </g>
+
+  <!-- Card 2: Colored Version (Right Side) -->
+  <g transform="translate(520, 300)" filter="url(#cardShadow)">
+    <!-- White Card Background -->
+    <rect x="0" y="0" width="430" height="580" rx="28" fill="#FFFFFF" stroke="#EA580C" stroke-width="3" />
+    
+    <!-- Top Card Ribbon with Vibrant Fill -->
+    <rect x="0" y="0" width="430" height="66" rx="28" fill="#EA580C" />
+    <path d="M 0,40 L 0,66 L 430,66 L 430,40 Z" fill="#EA580C" />
+    <text x="215" y="43" text-anchor="middle" font-size="20" class="font-title" fill="#FFFFFF">
+      🎨 2. COLORED GUIDE
+    </text>
+
+    <!-- SVG Colored Canvas Window -->
+    <g transform="translate(25, 90)">
+      <rect x="0" y="0" width="380" height="420" rx="16" fill="#FAFAFA" stroke="#F1F5F9" stroke-width="2" />
+      <svg x="10" y="10" width="360" height="400" viewBox="0 0 1000 1000">
+        <path d="M 500,120 C 600,260 620,540 600,740 L 400,740 C 380,540 400,260 500,120 Z" fill="#EF4444" stroke="#1E293B" stroke-width="6.6499999999999995" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 500,120 C 560,200 580,260 580,260 L 420,260 C 420,260 440,200 500,120 Z" fill="#334155" stroke="#1E293B" stroke-width="5.699999999999999" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 500,420 m -70,0 a 70,70 0 1,0 140,0 a 70,70 0 1,0 -140,0 Z" fill="#10B981" stroke="#1E293B" stroke-width="5.699999999999999" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 500,420 m -45,0 a 45,45 0 1,0 90,0 a 45,45 0 1,0 -90,0 Z" fill="#F59E0B" stroke="#1E293B" stroke-width="4.75" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 400,560 L 260,740 L 260,820 L 400,740 Z" fill="#8B5CF6" stroke="#1E293B" stroke-width="6.6499999999999995" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 600,560 L 740,740 L 740,820 L 600,740 Z" fill="#EC4899" stroke="#1E293B" stroke-width="6.6499999999999995" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 440,740 L 560,740 L 580,780 L 420,780 Z" fill="#14B8A6" stroke="#1E293B" stroke-width="5.699999999999999" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 450,780 Q 500,940 550,780" fill="#EF4444" stroke="#1E293B" stroke-width="5.699999999999999" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 470,780 Q 500,890 530,780" fill="#EF4444" stroke="#1E293B" stroke-width="4.75" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 800,240 m -65,0 a 65,65 0 1,0 130,0 a 65,65 0 1,0 -130,0 Z" fill="#10B981" stroke="#1E293B" stroke-width="4.75" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 690,260 Q 800,320 910,220" fill="#F59E0B" stroke="#1E293B" stroke-width="4.75" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 180,260 C 140,320 160,400 220,420 C 170,410 140,340 180,260 Z" fill="#8B5CF6" stroke="#1E293B" stroke-width="4.75" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 780,560 L 790,580 L 810,580 L 795,595 L 800,615 L 780,600 L 760,615 L 765,595 L 750,580 L 770,580 Z" fill="#FBBF24" stroke="#1E293B" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M 220,580 L 230,600 L 250,600 L 235,615 L 240,635 L 220,620 L 200,635 L 205,615 L 190,600 L 210,600 Z" fill="#FBBF24" stroke="#1E293B" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </g>
+
+    <!-- Sparkle Badge -->
+    <text x="215" y="546" text-anchor="middle" font-size="16" class="font-bold" fill="#EA580C">
+      ✨ Vibrant In-App Digital Magic
+    </text>
+  </g>
+
+  <!-- Central "VS / Before ➔ After" Connector Badge -->
+  <g transform="translate(500, 580)">
+    <circle cx="0" cy="0" r="38" fill="#FFFFFF" stroke="#0F172A" stroke-width="4" filter="url(#badgeShadow)" />
+    <text x="0" y="8" text-anchor="middle" font-size="24" class="font-title" fill="#FF5252">➔</text>
+  </g>
+
+  <!-- ==================== FEATURE HIGHLIGHTS PILLS ==================== -->
+  <g transform="translate(50, 930)">
+    <!-- Pill 1 -->
+    <g transform="translate(0, 0)">
+      <rect width="280" height="64" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" filter="url(#badgeShadow)" />
+      <text x="35" y="38" font-size="19" class="font-bold" fill="#0F172A">📄 Instant 1-Click Print</text>
+    </g>
+    <!-- Pill 2 -->
+    <g transform="translate(310, 0)">
+      <rect width="280" height="64" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" filter="url(#badgeShadow)" />
+      <text x="28" y="38" font-size="19" class="font-bold" fill="#0F172A">📱 Color On Tablet / Phone</text>
+    </g>
+    <!-- Pill 3 -->
+    <g transform="translate(620, 0)">
+      <rect width="280" height="64" rx="20" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2" filter="url(#badgeShadow)" />
+      <text x="40" y="38" font-size="19" class="font-bold" fill="#0F172A">🆓 100% Free Access</text>
+    </g>
+  </g>
+
+  <!-- ==================== HIGH-CONVERTING BOTTOM CTA BANNER ==================== -->
+  <g transform="translate(50, 1040)" filter="url(#cardShadow)">
+    <rect x="0" y="0" width="900" height="390" rx="36" fill="url(#ctaGrad)" />
+
+    <!-- Playful Border Accent -->
+    <rect x="8" y="8" width="884" height="374" rx="28" fill="none" stroke="#334155" stroke-width="2" />
+
+    <!-- Big Attention Callout -->
+    <g transform="translate(60, 50)">
+      <rect x="0" y="0" width="190" height="36" rx="18" fill="#FFD93D" />
+      <text x="95" y="24" text-anchor="middle" font-size="15" class="font-title" fill="#0F172A">
+        ⭐ NO SIGNUP NEEDED
+      </text>
+    </g>
+
+    <!-- Bold Call to Action -->
+    <text x="60" y="140" font-size="42" class="font-title" fill="#FFFFFF" letter-spacing="-0.5">
+      Download &amp; Color Online Now!
+    </text>
+    <text x="60" y="180" font-size="22" class="font-medium" fill="#94A3B8">
+      Explore 100+ free educational sheets in Weekly Drops.
+    </text>
+
+    <!-- Direct URL Pill Button -->
+    <g transform="translate(60, 220)">
+      <rect x="0" y="0" width="780" height="84" rx="42" fill="#FF5252" filter="url(#badgeShadow)" />
+      <text x="390" y="52" text-anchor="middle" font-size="28" class="font-title" fill="#FFFFFF">
+        👉 Tap To Open: coloro.in/?category=weekly
+      </text>
+    </g>
+
+    <text x="450" y="348" text-anchor="middle" font-size="17" class="font-medium" fill="#CBD5E1">
+      Direct Link: <tspan class="font-mono" fill="#38BDF8">https://coloro.in/?category=weekly</tspan>
+    </text>
+  </g>
+</svg>

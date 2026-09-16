@@ -7,13 +7,15 @@ interface AppFooterProps {
   onOpenArticles?: () => void;
   onOpenChatBot?: () => void;
   onOpenLegalPage?: (tab: 'contact' | 'terms' | 'refund' | 'privacy') => void;
+  onOpenPinterestStudio?: () => void;
 }
 
 const AppFooter: React.FC<AppFooterProps> = ({ 
   onOpenPricingPage, 
   onOpenArticles,
   onOpenChatBot,
-  onOpenLegalPage
+  onOpenLegalPage,
+  onOpenPinterestStudio
 }) => {
   return (
     <footer className="py-2 px-3 sm:px-6 text-center text-[11px] sm:text-xs font-bold text-[#666] shrink-0 border-t border-[#EBE8DC]/80 bg-white/70 backdrop-blur-xs flex flex-col items-center gap-1.5 select-none">
@@ -63,6 +65,22 @@ const AppFooter: React.FC<AppFooterProps> = ({
             >
               <Crown className="w-3.5 h-3.5 fill-current" />
               <span>Plans & Pricing (INR)</span>
+            </button>
+          </>
+        )}
+
+        {onOpenPinterestStudio && (
+          <>
+            <span className="hidden sm:inline text-[#CCC]">•</span>
+            <button
+              onClick={() => {
+                playClick();
+                onOpenPinterestStudio();
+              }}
+              className="inline-flex items-center gap-1 text-[#E60023] hover:text-[#B8001C] font-black hover:underline cursor-pointer transition-colors"
+              title="Batch generate and review 5-8 daily Pinterest pins with direct category links"
+            >
+              <span>📌 Pinterest Studio</span>
             </button>
           </>
         )}
