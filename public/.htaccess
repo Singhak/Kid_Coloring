@@ -37,8 +37,8 @@
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Otherwise rewrite all requests to index.html for client-side routing
-    RewriteRule ^ index.html [L]
+    # Otherwise rewrite all requests to index.html for client-side routing (preserving query string parameters)
+    RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
 # ------------------------------------------------------------------------------
@@ -61,7 +61,7 @@
     # Prevent MIME type sniffing
     Header always set X-Content-Type-Options "nosniff"
 
-    # Mitigate clickjacking attacks
+    # Mitigate clickjacking attacks`
     Header always set X-Frame-Options "SAMEORIGIN"
 
     # Control Referrer information
