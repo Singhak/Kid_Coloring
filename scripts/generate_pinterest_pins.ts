@@ -245,22 +245,23 @@ function run() {
     };
     hashPins.push(pinHashData);
 
-    // 1. Save SVG file
+    // 1. Save SVG file immediately
     const svgPath = path.join(outDir, `${filePrefix}.svg`);
     fs.writeFileSync(svgPath, querySvg, 'utf8');
 
-    // 2. Render and save high-resolution 1000x1500 PNG file for Pinterest
-    try {
-      const resvg = new Resvg(querySvg, {
-        fitTo: { mode: 'width', value: 1000 },
-        font: { loadSystemFonts: true }
-      });
-      const pngData = resvg.render();
-      const pngBuffer = pngData.asPng();
-      const pngPath = path.join(outDir, `${filePrefix}.png`);
-      fs.writeFileSync(pngPath, pngBuffer);
-    } catch (renderErr) {
-      console.warn(`[WARN] PNG rasterization failed for ${filePrefix}:`, renderErr);
+    // 2. Render and save high-resolution 1000x1500 PNG file for Pinterest (skip if already exists to be fast)
+    const pngPath = path.join(outDir, `${filePrefix}.png`);
+    if (!fs.existsSync(pngPath)) {
+      try {
+        const resvg = new Resvg(querySvg, {
+          fitTo: { mode: 'width', value: 1000 }
+        });
+        const pngData = resvg.render();
+        const pngBuffer = pngData.asPng();
+        fs.writeFileSync(pngPath, pngBuffer);
+      } catch (renderErr) {
+        console.warn(`[WARN] PNG rasterization failed for ${filePrefix}:`, renderErr);
+      }
     }
   });
 

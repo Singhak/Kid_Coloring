@@ -157,11 +157,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
 
   return (
-    <header className="relative flex flex-col bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50">
+    <header className="relative flex flex-col bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50 w-full">
       {/* Primary Top Bar */}
-      <div className="px-2.5 py-1.5 sm:px-6 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-4">
+      <div className="w-full px-2.5 py-1.5 sm:px-4 md:px-5 lg:px-6 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 md:gap-3 overflow-hidden">
         {/* Brand & Mode Switcher */}
-        <div id="tour-nav-brand" className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div id="tour-nav-brand" className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0 min-w-0">
           <button
             onClick={() => {
               playClick();
@@ -173,7 +173,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <img
               src="/coloro-web-logo.png"
               alt="Coloro - Kids Digital Art Studio"
-              className="h-8 sm:h-10 md:h-11 w-auto object-contain drop-shadow-xs group-hover:scale-105 group-active:scale-95 transition-transform duration-200"
+              className="h-7 sm:h-8 md:h-9 lg:h-10 w-auto object-contain drop-shadow-xs group-hover:scale-105 group-active:scale-95 transition-transform duration-200"
             />
           </button>
 
@@ -196,13 +196,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {showTemplates ? (
             /* Library Mode: View Mode Toggle & Quick Actions */
             <>
-              <div className="hidden md:flex items-center p-0.5 bg-[#F4F1DE]/60 rounded-2xl border border-[#E6E2D3] ml-1 sm:ml-2 h-9 sm:h-9.5">
+              <div className="hidden md:flex items-center p-0.5 bg-[#F4F1DE]/60 rounded-2xl border border-[#E6E2D3] ml-1 sm:ml-1.5 h-8 sm:h-9 md:h-9.5 shrink-0">
                 <button
                   onClick={() => {
                     playClick();
                     setShowTemplates(true);
                   }}
-                  className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm bg-white text-[#2D3436] shadow-sm cursor-pointer whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-2.5 md:px-3 h-full rounded-xl font-bold text-xs sm:text-sm bg-white text-[#2D3436] shadow-sm cursor-pointer whitespace-nowrap"
                 >
                   <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
                   <span>Library</span>
@@ -212,7 +212,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     setShowTemplates(false);
                   }}
-                  className="flex items-center gap-1.5 px-3 h-full rounded-xl font-bold text-xs sm:text-sm text-[#888] hover:text-[#2D3436] cursor-pointer transition-all whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-2.5 md:px-3 h-full rounded-xl font-bold text-xs sm:text-sm text-[#888] hover:text-[#2D3436] cursor-pointer transition-all whitespace-nowrap"
                 >
                   <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B] shrink-0" />
                   <span>Coloring Canvas</span>
@@ -226,7 +226,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenPricingPage();
                   }}
-                  className="hidden lg:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0"
+                  className="hidden lg:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0"
                   title="See all Free vs VIP Superpower features"
                 >
                   <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
@@ -241,7 +241,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenPhotoArt();
                   }}
-                  className="hidden sm:flex items-center gap-1.5 px-2.5 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  className="hidden sm:flex items-center gap-1.5 px-2.5 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
                   title="Convert your real photos into coloring pages"
                 >
                   <Camera className="w-3.5 h-3.5 shrink-0" />
@@ -257,7 +257,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenFestivalPacks();
                   }}
-                  className="hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-gradient-to-r from-[#FFF1F2] to-[#FFE4E6] hover:from-[#FFE4E6] hover:to-[#FECDD3] text-[#E11D48] border border-[#FDA4AF] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs shrink-0 group/fest"
+                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-gradient-to-r from-[#FFF1F2] to-[#FFE4E6] hover:from-[#FFE4E6] hover:to-[#FECDD3] text-[#E11D48] border border-[#FDA4AF] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs shrink-0 group/fest"
                   title={`Explore ${activeFestival.pack.name}`}
                 >
                   <span className="text-sm group-hover/fest:scale-125 transition-transform">{activeFestival.pack.emoji}</span>
@@ -270,14 +270,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             </>
           ) : (
             /* Coloring Canvas Mode: Desktop Creative Toolbar (>= md) */
-            <div id="tour-creative-tools" className="hidden md:flex items-center gap-1.5 sm:gap-2 ml-1">
+            <div id="tour-creative-tools" className="hidden md:flex items-center gap-1 sm:gap-1.5 md:gap-2 ml-0.5 sm:ml-1">
               {/* Back to Library */}
               <button
                 onClick={() => {
                   playClick();
                   setShowTemplates(true);
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs sm:text-sm transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs sm:text-sm transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
                 title="Return to Coloring Library"
               >
                 <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
@@ -298,7 +298,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     onOpenMagicAI();
                   }}
                   disabled={isGenerating}
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
                     isPro
                       ? 'bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D]'
                       : 'bg-white hover:bg-[#FFFDF0] text-[#2D3436] border border-[#EBE8DC]'
@@ -322,7 +322,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenPhotoArt();
                   }}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  className="hidden lg:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
                   title="Convert real photo into coloring page"
                 >
                   <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
@@ -338,29 +338,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenChatBot();
                   }}
-                  className="flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#1D4ED8] border border-[#93C5FD] rounded-xl text-xs sm:text-sm font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  className="hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#1D4ED8] border border-[#93C5FD] rounded-xl text-xs sm:text-sm font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
                   title="Chat with Coloro AI Buddy for coloring ideas"
                 >
                   <Bot className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
                   <span>AI Buddy</span>
-                  <span className="hidden lg:inline-block bg-[#2563EB] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                  <span className="inline-block bg-[#2563EB] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
                     Chat
                   </span>
-                </button>
-              )}
-
-              {/* Benefits Guide for Parents & Teachers */}
-              {onOpenArticles && (
-                <button
-                  onClick={() => {
-                    playClick();
-                    onOpenArticles();
-                  }}
-                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
-                  title="Read child development & color benefits guide"
-                >
-                  <BookOpen className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
-                  <span>Parent Guide</span>
                 </button>
               )}
 
@@ -376,7 +361,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onToggleColorByNumber();
                   }}
-                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-9 sm:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                  className={`hidden sm:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
                     isColorByNumber
                       ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
                       : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
@@ -403,11 +388,26 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenPricingPage();
                   }}
-                  className="hidden xl:flex items-center gap-1.5 px-3 h-9 sm:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
+                  className="hidden 2xl:flex items-center gap-1.5 px-3 h-8 sm:h-9 md:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
                   title="See all Free vs VIP Superpower features"
                 >
                   <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
                   <span>Why VIP?</span>
+                </button>
+              )}
+
+              {/* Benefits Guide for Parents & Teachers */}
+              {onOpenArticles && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenArticles();
+                  }}
+                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Read child development & color benefits guide"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                  <span>Parent Guide</span>
                 </button>
               )}
             </div>
@@ -415,17 +415,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
 
         {/* Action Controls Cluster */}
-        <div id="tour-save-actions" className="flex items-center gap-1 sm:gap-2 shrink-0">
+        <div id="tour-save-actions" className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
           {/* Undo / Redo (Only active on Canvas - Desktop) */}
           {!showTemplates && (
-            <div className="hidden md:flex items-center bg-[#F7F5EC] px-1 h-9 sm:h-9.5 rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
+            <div className="hidden md:flex items-center bg-[#F7F5EC] px-1 h-8 sm:h-9 md:h-9.5 rounded-xl sm:rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
               <button
                 onClick={handleUndo}
                 disabled={historyIndex <= 0}
                 className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
                 title="Undo (Ctrl+Z)"
               >
-                <Undo2 className="w-4 h-4" />
+                <Undo2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </button>
               <div className="w-px h-4 bg-[#E0DCBC] mx-0.5" />
               <button
@@ -434,7 +434,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
                 title="Redo (Ctrl+Y)"
               >
-                <Redo2 className="w-4 h-4" />
+                <Redo2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
               </button>
             </div>
           )}
@@ -442,14 +442,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {/* Sound FX Toggle */}
           <button
             onClick={handleToggleSound}
-            className={`h-8 w-8 sm:h-9.5 sm:w-9.5 rounded-xl sm:rounded-2xl border transition-all active:scale-90 cursor-pointer flex items-center justify-center shrink-0 ${
+            className={`h-8 w-8 sm:h-9 sm:w-9 md:h-9.5 md:w-9.5 rounded-xl sm:rounded-2xl border transition-all active:scale-90 cursor-pointer flex items-center justify-center shrink-0 ${
               soundOn 
                 ? 'bg-[#EBF7FF] border-[#B9E0FF] text-[#0984E3] hover:bg-[#DDF0FF]' 
                 : 'bg-[#F5F5F5] border-[#E0E0E0] text-[#A0A0A0] hover:bg-[#EBEBEB]'
             }`}
             title={soundOn ? 'Sound FX: ON' : 'Sound FX: Muted'}
           >
-            {soundOn ? <Volume2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />}
+            {soundOn ? <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5" />}
           </button>
 
           {/* Simple Help (?) Button */}
@@ -460,10 +460,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 playClick();
                 onOpenHelpFlow();
               }}
-              className="h-8 w-8 sm:h-9.5 sm:w-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl sm:rounded-2xl font-black flex items-center justify-center shadow-xs transition-all active:scale-90 cursor-pointer shrink-0"
+              className="h-8 w-8 sm:h-9 sm:w-9 md:h-9.5 md:w-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl sm:rounded-2xl font-black flex items-center justify-center shadow-xs transition-all active:scale-90 cursor-pointer shrink-0"
               title="Help & Studio Guide (?)"
             >
-              <span className="font-display font-black text-sm sm:text-lg text-[#E67E22] leading-none select-none">?</span>
+              <span className="font-display font-black text-sm sm:text-base md:text-lg text-[#E67E22] leading-none select-none">?</span>
             </button>
           )}
 
@@ -471,7 +471,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {!showTemplates && (
             <button
               onClick={handleSave}
-              className={`btn-bubbly h-8 sm:h-9.5 flex items-center gap-1 sm:gap-2 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap shrink-0 ${
+              className={`btn-bubbly h-8 sm:h-9 md:h-9.5 flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3.5 md:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap shrink-0 ${
                 isPro 
                   ? 'bg-gradient-to-r from-[#6BCB77] to-[#4EBA5C] hover:brightness-105' 
                   : 'bg-gradient-to-r from-[#FF9F43] to-[#EE5253] animate-shimmer'
@@ -490,21 +490,21 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* User Profile / Login */}
         {user ? (
-          <div className="relative flex items-center ml-1 sm:ml-2">
+          <div className="relative flex items-center ml-0.5 sm:ml-1 shrink-0">
             <button
               ref={buttonRef}
               onClick={() => {
                 playClick();
                 setShowProfileMenu(!showProfileMenu);
               }}
-              className="flex items-center gap-1.5 p-1 rounded-2xl hover:bg-[#F5F3E9] border border-transparent hover:border-[#E5E1D0] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 p-1 rounded-2xl hover:bg-[#F5F3E9] border border-transparent hover:border-[#E5E1D0] transition-all cursor-pointer shrink-0"
               title={user.displayName || 'User Profile'}
             >
-              <div className="relative">
+              <div className="relative shrink-0">
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt="Avatar" className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
+                  <img src={user.photoURL} alt="Avatar" className="w-8 h-8 sm:w-8.5 sm:h-8.5 md:w-9 md:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
                 ) : (
-                  <img src={avatarUri || '/profile.png'} alt="Avatar" className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
+                  <img src={avatarUri || '/profile.png'} alt="Avatar" className="w-8 h-8 sm:w-8.5 sm:h-8.5 md:w-9 md:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
                 )}
                 {isPro && (
                   <div className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-[#FF9F43] to-[#FFD93D] text-white rounded-full p-0.5 shadow-sm ring-1 ring-white">
@@ -673,10 +673,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         ) : (
           <button
             onClick={handleLogin}
-            className="btn-bubbly flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#4D96FF] text-white font-bold rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-1 cursor-pointer shrink-0"
+            className="btn-bubbly flex items-center gap-1.5 px-3 sm:px-3.5 md:px-4 h-8 sm:h-9 md:h-9.5 bg-[#4D96FF] text-white font-bold rounded-xl sm:rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-0.5 sm:ml-1 cursor-pointer shrink-0"
           >
-            <LogIn className="w-4 h-4" />
-            <span>Login</span>
+            <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="whitespace-nowrap font-black">Login</span>
           </button>
         )}
         </div>

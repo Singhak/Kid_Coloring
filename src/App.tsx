@@ -53,6 +53,7 @@ import EducationalArticlesModal from './components/EducationalArticlesModal';
 import ColoroChatBotModal from './components/ColoroChatBotModal';
 import AnalyticsDashboardModal from './components/AnalyticsDashboardModal';
 import PinterestStudioModal from './components/PinterestStudioModal';
+import { autoPublishArtworkSilently } from './services/autoPinterestPublisher';
 import { tracker } from './services/tracker';
 import {
   createCashfreeOrder,
@@ -104,6 +105,8 @@ export default function App() {
   const [viewBox, setViewBox] = useState("0 0 1000 1000");
   const [fillCount, setFillCount] = useState(0);
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [currentTemplateName, setCurrentTemplateName] = useState<string>('Happy House');
+  const isAiGeneratedRef = useRef<boolean>(false);
 
   // Listen for direct URL routing: query params (?category=animals), hash (#category=animals), and paths
   useEffect(() => {
@@ -156,6 +159,8 @@ export default function App() {
           vehicles: 'vehicles',
           festival: 'festivals',
           festivals: 'festivals',
+          holiday: 'festivals',
+          holidays: 'festivals',
           weekly: 'weekly',
           object: 'object',
           objects: 'object',
@@ -163,15 +168,50 @@ export default function App() {
           random: 'random',
         };
 
-        const resolvedCat = categoryMap[normalized];
+        const resolvedCat = categoryMap[normalized] || normalized;
         if (resolvedCat) {
           setSelectedCategory(resolvedCat);
           setShowTemplates(true);
+          
+          // Pre-load the first matching template in canvas state
+          const matchingTemplate = STATIC_TEMPLATES.find(t => t.category === resolvedCat) || STATIC_TEMPLATES[0];
+          if (matchingTemplate) {
+            isAiGeneratedRef.current = false;
+            setCurrentTemplateName(matchingTemplate.name || 'Coloring Page');
+            setCurrentImageUrl(null);
+            const newPaths = (matchingTemplate.paths || []).map(p => ({
+              ...p,
+              fill: '#FFFFFF',
+              stroke: p.stroke || '#1A1A1A',
+              strokeWidth: p.strokeWidth || 4
+            }));
+            setPaths(newPaths);
+            setViewBox(matchingTemplate.viewBox || "0 0 1000 1000");
+          }
+
           tracker.event('acquisition', 'pinterest_landing', resolvedCat, undefined, {
             url: window.location.href,
             source: 'pinterest_direct_link',
             category: resolvedCat
           });
+        }
+      } else {
+        // Default entry without category deep-link: load a random template onto the canvas
+        const randomTemplate = STATIC_TEMPLATES[Math.floor(Math.random() * STATIC_TEMPLATES.length)];
+        if (randomTemplate) {
+          isAiGeneratedRef.current = false;
+          setCurrentTemplateName(randomTemplate.name || 'Coloring Page');
+          setCurrentImageUrl(null);
+          const newPaths = (randomTemplate.paths || []).map(p => ({
+            ...p,
+            fill: '#FFFFFF',
+            stroke: p.stroke || '#1A1A1A',
+            strokeWidth: p.strokeWidth || 4
+          }));
+          setPaths(newPaths);
+          setViewBox(randomTemplate.viewBox || "0 0 1000 1000");
+          setSelectedCategory(randomTemplate.category);
+          setShowTemplates(false);
         }
       }
 
@@ -239,11 +279,21 @@ export default function App() {
   const paintCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const lineArtCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // Initialize with a random template
+  // Silent Auto-Publish to Pinterest RSS Feed when user colors an artwork (debounced 12s)
   useEffect(() => {
-    const randomTemplate = STATIC_TEMPLATES[Math.floor(Math.random() * STATIC_TEMPLATES.length)];
-    selectTemplate(randomTemplate);
-  }, []);
+    if (fillCount < 5) return;
+    const timer = setTimeout(() => {
+      autoPublishArtworkSilently({
+        paintCanvas: paintCanvasRef.current,
+        lineArtCanvas: lineArtCanvasRef.current,
+        category: selectedCategory,
+        templateName: currentTemplateName,
+        isAi: isAiGeneratedRef.current,
+        fillCount
+      });
+    }, 12000);
+    return () => clearTimeout(timer);
+  }, [fillCount, selectedCategory, currentTemplateName]);
 
   // Sync user profile & grant 15-day free trial on login
   useEffect(() => {
@@ -756,6 +806,20 @@ export default function App() {
   }, [historyIndex, history]);
 
   const selectTemplate = (template: Template) => {
+    // If previous artwork was colored, silently auto-publish to Pinterest RSS feed
+    if (fillCount >= 4) {
+      autoPublishArtworkSilently({
+        paintCanvas: paintCanvasRef.current,
+        lineArtCanvas: lineArtCanvasRef.current,
+        category: selectedCategory,
+        templateName: currentTemplateName,
+        isAi: isAiGeneratedRef.current,
+        fillCount
+      });
+    }
+
+    isAiGeneratedRef.current = false;
+    setCurrentTemplateName(template.name || 'Coloring Page');
     tracker.trackTemplate(template.name || template.category, template.category, 'select_template');
     setCurrentImageUrl(null);
     const newPaths = (template.paths || []).map(p => ({
@@ -783,7 +847,7 @@ export default function App() {
       const randomIndex = Math.floor(Math.random() * available.length);
       selectTemplate(available[randomIndex]);
     }
-  }, []);
+  }, [fillCount, selectedCategory, currentTemplateName]);
 
   // AI generation: Prioritize PHP Backend SVG vector paths with fallback to diffusion line art
   const handleGenerateAiImage = async (customPrompt?: string) => {
@@ -793,6 +857,8 @@ export default function App() {
       return;
     }
 
+    isAiGeneratedRef.current = true;
+    setCurrentTemplateName(customPrompt && customPrompt.trim().length > 0 ? `AI Art: ${customPrompt.trim()}` : 'AI Magical Art');
     tracker.trackAI('magic_prompt', customPrompt, selectedCategory);
 
     if (isGenerating) return;
@@ -944,6 +1010,18 @@ export default function App() {
     const paintCanvas = paintCanvasRef.current;
     const lineArtCanvas = lineArtCanvasRef.current;
     if (!paintCanvas || !lineArtCanvas) return;
+
+    // Silent background auto-publish on download
+    if (fillCount >= 3) {
+      autoPublishArtworkSilently({
+        paintCanvas,
+        lineArtCanvas,
+        category: selectedCategory,
+        templateName: currentTemplateName,
+        isAi: isAiGeneratedRef.current,
+        fillCount
+      });
+    }
 
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = 1000;
