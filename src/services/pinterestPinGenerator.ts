@@ -509,10 +509,11 @@ export function batchGeneratePins(templates: Template[], options: PinGenerationO
 
 /**
  * Exports generated pins metadata strictly following Pinterest's Official Bulk Create CSV standard:
- * Headers: Title, Media URL, Pinterest board, Thumbnail, Description, Link, Publish date, Keywords
+ * Headers: Title, Media URL, Pinterest board, Description, Link, Publish date, Keywords
+ * Note: 'Thumbnail' must NOT be included for Image Pins as Pinterest treats CSVs with 'Thumbnail' as Video Pins.
  */
 export function exportPinsToPinterestCsv(pins: GeneratedPinData[], baseUrl: string = 'https://coloro.in'): string {
-  const headers = ['Title', 'Media URL', 'Pinterest board', 'Thumbnail', 'Description', 'Link', 'Publish date', 'Keywords'];
+  const headers = ['Title', 'Media URL', 'Pinterest board', 'Description', 'Link', 'Publish date', 'Keywords'];
   
   const rows = pins.map(pin => {
     // Pinterest constraints:
@@ -526,9 +527,6 @@ export function exportPinsToPinterestCsv(pins: GeneratedPinData[], baseUrl: stri
     // Board: Exact column name "Pinterest board"
     const cleanBoard = `"${pin.boardName.replace(/"/g, '""')}"`;
 
-    // Thumbnail: Empty for images
-    const thumbnail = '""';
-
     // Description <= 500 chars
     const rawDesc = pin.description.length > 480 ? pin.description.substring(0, 480) + '...' : pin.description;
     const cleanDesc = `"${rawDesc.replace(/"/g, '""')}"`;
@@ -536,8 +534,10 @@ export function exportPinsToPinterestCsv(pins: GeneratedPinData[], baseUrl: stri
     // Link: Destination category URL
     const cleanLink = `"${pin.destinationUrl}"`;
 
-    // Publish date: ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ)
-    const publishDate = `"${pin.scheduledDate}T${pin.scheduledTime}:00Z"`;
+    // Publish date: ISO 8601 format without trailing 'Z' (YYYY-MM-DDTHH:MM:SS)
+    const publishDate = pin.scheduledDate && pin.scheduledTime 
+      ? `"${pin.scheduledDate}T${pin.scheduledTime}:00"`
+      : '""';
 
     // Keywords
     const cleanKeywords = `"${(pin.keywords || []).join(', ').replace(/"/g, '""')}"`;
@@ -546,7 +546,6 @@ export function exportPinsToPinterestCsv(pins: GeneratedPinData[], baseUrl: stri
       cleanTitle,
       mediaUrl,
       cleanBoard,
-      thumbnail,
       cleanDesc,
       cleanLink,
       publishDate,

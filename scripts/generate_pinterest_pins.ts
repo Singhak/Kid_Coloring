@@ -194,7 +194,9 @@ function run() {
   const postingSlots = ['08:00', '10:00', '12:00', '14:30', '16:45', '18:30', '20:15'];
   const pinsPerDay = postingSlots.length; // 7 pins daily (meets requirement: 5–8 daily)
 
+  // Start scheduling starting from tomorrow so no time slot is in the past
   const startDate = new Date();
+  startDate.setDate(startDate.getDate() + 1);
   const queryPins: GeneratedPinData[] = [];
   const hashPins: GeneratedPinData[] = [];
 
