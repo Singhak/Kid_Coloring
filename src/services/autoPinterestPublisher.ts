@@ -114,7 +114,7 @@ export async function autoPublishArtworkSilently(options: AutoPublishOptions): P
     ctx.fillText('Download & Color Online Now!', 500, 1245);
 
     const catSlug = (category || 'animal').toLowerCase();
-    const destUrl = `coloro.in/?category=${catSlug}`;
+    const destUrl = `coloro.in/app?category=${catSlug}`;
 
     // Red CTA Button
     ctx.fillStyle = '#FF5252';

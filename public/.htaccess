@@ -29,11 +29,24 @@
     # Ensure all calls to /api/ are handled directly by public/api/.htaccess and PHP
     RewriteRule ^api/ - [L]
 
-    # Dynamically serve Community RSS Feed
+    # Dynamically serve Community & Pinterest RSS Feeds
     RewriteRule ^community-feed\.xml$ api/pinterest-community-feed.php [L]
+    RewriteRule ^pinterest-feed\.xml$ api/pinterest-feed.php [L]
+    RewriteRule ^feed\.xml$ api/pinterest-feed.php [L]
 
     # --------------------------------------------------------------------------
-    # 4. SPA (Single Page Application) Routing Fallback
+    # 4. Canonical 301 Redirect for Legacy Category URLs -> /app?category=$1
+    # --------------------------------------------------------------------------
+    RewriteRule ^category/(.*)$ /app?category=$1 [R=301,QSA,L]
+
+    # --------------------------------------------------------------------------
+    # 5. Direct App Studio Routing (/app and /app/*)
+    # --------------------------------------------------------------------------
+    # Ensure direct visits to /app or /app/* route cleanly to index.html
+    RewriteRule ^app(/.*)?$ index.html [QSA,L]
+
+    # --------------------------------------------------------------------------
+    # 6. SPA (Single Page Application) Routing Fallback
     # --------------------------------------------------------------------------
     # If the requested resource is an existing file or directory, serve it directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]
@@ -133,3 +146,15 @@
     ExpiresByType application/font-woff "access plus 1 year"
     ExpiresByType application/font-woff2 "access plus 1 year"
 </IfModule>
+
+# ------------------------------------------------------------------------------
+# 9. Never Cache index.html (Ensures Instant Deployment Updates for Users)
+# ------------------------------------------------------------------------------
+<Files "index.html">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </IfModule>
+</Files>
+

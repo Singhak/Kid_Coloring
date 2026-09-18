@@ -64,16 +64,17 @@ export function getCategoryMeta(catKey: string) {
 
 /**
  * Builds destination URL for Pinterest pin based on user's preferred format
+ * Target is the coloring app studio at https://coloro.in/app
  */
 export function buildPinDestinationUrl(categoryKey: string, format: 'query' | 'hash' | 'path' = 'query', baseUrl: string = 'https://coloro.in'): string {
   const meta = getCategoryMeta(categoryKey);
   const slug = meta.querySlug;
   if (format === 'query') {
-    return `${baseUrl}/?category=${slug}`;
+    return `${baseUrl}/app?category=${slug}`;
   } else if (format === 'path') {
-    return `${baseUrl}/category/${slug}`;
+    return `${baseUrl}/app/category/${slug}`;
   }
-  return `${baseUrl}/#category=${slug}`;
+  return `${baseUrl}/app#category=${slug}`;
 }
 
 /**

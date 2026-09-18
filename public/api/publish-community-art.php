@@ -73,7 +73,7 @@ if (file_put_contents($filePath, $decodedImage) === false) {
 
 $baseUrl = 'https://coloro.in';
 $publicImageUrl = "{$baseUrl}/community-pins/{$filename}";
-$destinationUrl = "{$baseUrl}/?category={$category}";
+$destinationUrl = "{$baseUrl}/app?category={$category}";
 
 // Title & SEO description
 $categoryLabel = ucfirst($category);

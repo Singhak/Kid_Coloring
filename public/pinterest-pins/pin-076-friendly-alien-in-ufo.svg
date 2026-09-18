@@ -213,12 +213,12 @@
     <g transform="translate(60, 220)">
       <rect x="0" y="0" width="780" height="84" rx="42" fill="#FF5252" filter="url(#badgeShadow)" />
       <text x="390" y="52" text-anchor="middle" font-size="28" class="font-title" fill="#FFFFFF">
-        👉 Tap To Open: coloro.in/?category=space
+        👉 Tap To Open: coloro.in/app?category=space
       </text>
     </g>
 
     <text x="450" y="348" text-anchor="middle" font-size="17" class="font-medium" fill="#CBD5E1">
-      Direct Link: <tspan class="font-mono" fill="#38BDF8">https://coloro.in/?category=space</tspan>
+      Direct Link: <tspan class="font-mono" fill="#38BDF8">https://coloro.in/app?category=space</tspan>
     </text>
   </g>
 </svg>

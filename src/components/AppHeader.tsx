@@ -25,7 +25,8 @@ import {
   ShieldCheck,
   FileText,
   CreditCard,
-  Mail
+  Mail,
+  Home
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -63,6 +64,7 @@ interface AppHeaderProps {
   onOpenChatBot?: () => void;
   onOpenArticles?: () => void;
   onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund' | 'contact') => void;
+  onNavigateHome?: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
@@ -94,7 +96,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   onPrintSheet,
   onOpenChatBot,
   onOpenArticles,
-  onOpenLegalPage
+  onOpenLegalPage,
+  onNavigateHome,
 }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -161,16 +164,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   return (
     <header className="relative flex flex-col bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50 w-full">
       {/* Primary Top Bar */}
-      <div className="w-full px-2.5 py-1.5 sm:px-4 md:px-5 lg:px-6 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 md:gap-3">
+      <div className="w-full px-2 py-1.5 sm:px-3 md:px-4 sm:py-2 flex items-center justify-between gap-1 sm:gap-1.5 md:gap-2 shrink-0">
         {/* Brand & Mode Switcher */}
-        <div id="tour-nav-brand" className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0 min-w-0">
+        <div id="tour-nav-brand" className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 min-w-0">
           <button
             onClick={() => {
               playClick();
-              setShowTemplates(true);
+              if (onNavigateHome) {
+                onNavigateHome();
+              } else {
+                setShowTemplates(true);
+              }
             }}
             className="flex items-center gap-1.5 sm:gap-2 group cursor-pointer focus:outline-none shrink-0"
-            title="Coloro: Kids Digital Art Studio"
+            title={onNavigateHome ? "Coloro: Return to Home Landing Page" : "Coloro: Kids Digital Art Studio"}
           >
             <img
               src="/coloro-web-logo.png"
@@ -178,6 +185,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               className="h-7 sm:h-8 md:h-9 lg:h-10 w-auto object-contain drop-shadow-xs group-hover:scale-105 group-active:scale-95 transition-transform duration-200"
             />
           </button>
+
+          {onNavigateHome && (
+            <button
+              onClick={() => {
+                playClick();
+                onNavigateHome();
+              }}
+              className="flex items-center gap-1 px-2 py-1 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Return to Coloro Home"
+            >
+              <Home className="w-3.5 h-3.5 text-[#FF6B6B]" />
+              <span className="hidden xl:inline">Home</span>
+            </button>
+          )}
 
           {/* Mobile Back to Active Canvas button (Shown when browsing Library on mobile) */}
           {showTemplates && (
@@ -324,7 +345,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenPhotoArt();
                   }}
-                  className="hidden lg:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  className="hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
                   title="Convert real photo into coloring page"
                 >
                   <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
@@ -340,7 +361,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onOpenChatBot();
                   }}
-                  className="hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#1D4ED8] border border-[#93C5FD] rounded-xl text-xs sm:text-sm font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#1D4ED8] border border-[#93C5FD] rounded-xl text-xs sm:text-sm font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
                   title="Chat with Coloro AI Buddy for coloring ideas"
                 >
                   <Bot className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
@@ -363,7 +384,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     playClick();
                     onToggleColorByNumber();
                   }}
-                  className={`hidden sm:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                  className={`hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
                     isColorByNumber
                       ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
                       : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
@@ -371,7 +392,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   title={isPro ? "Toggle Educational Color-by-Number Learning Mode" : "VIP Superpower: Color-by-Number Mode"}
                 >
                   <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
-                  <span className="hidden md:inline">Numbers</span>
+                  <span className="hidden 2xl:inline">Numbers</span>
                   {!isPro ? (
                     <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
                       <Crown className="w-2.5 h-2.5 fill-current" />
@@ -417,7 +438,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
 
         {/* Action Controls Cluster */}
-        <div id="tour-save-actions" className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
+        <div id="tour-save-actions" className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 min-w-max ml-auto">
           {/* Undo / Redo (Only active on Canvas - Desktop) */}
           {!showTemplates && (
             <div className="hidden md:flex items-center bg-[#F7F5EC] px-1 h-8 sm:h-9 md:h-9.5 rounded-xl sm:rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
@@ -678,7 +699,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         ) : (
           <button
             onClick={handleLogin}
-            className="btn-bubbly flex items-center gap-1.5 px-3 sm:px-3.5 md:px-4 h-8 sm:h-9 md:h-9.5 bg-[#4D96FF] text-white font-bold rounded-xl sm:rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-0.5 sm:ml-1 cursor-pointer shrink-0"
+            className="btn-bubbly flex items-center gap-1.5 px-3 sm:px-3.5 h-8 sm:h-9 md:h-9.5 bg-[#4D96FF] text-white font-black rounded-xl sm:rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-0.5 sm:ml-1 cursor-pointer shrink-0 whitespace-nowrap min-w-max"
           >
             <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             <span className="whitespace-nowrap font-black">Login</span>
