@@ -32,6 +32,7 @@ interface UpgradeModalProps {
   handleSubscribe: (plan?: 'annual' | 'monthly') => void;
   onOpenPricingPage?: () => void;
   onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund') => void;
+  defaultPlan?: 'annual' | 'monthly';
 }
 
 const COMPARISON_FEATURES = [
@@ -55,6 +56,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   handleSubscribe,
   onOpenPricingPage,
   onOpenLegalPage,
+  defaultPlan = 'annual',
 }) => {
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [showParentGate, setShowParentGate] = useState(false);
@@ -71,6 +73,9 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   useEffect(() => {
     if (showUpgradeModal) {
       playChime();
+      if (defaultPlan) {
+        setSelectedPlan(defaultPlan);
+      }
       setShowParentGate(false);
       setGateAnswer('');
       setGateError(false);
@@ -80,7 +85,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
       setGateNum1(n1);
       setGateNum2(n2);
     }
-  }, [showUpgradeModal]);
+  }, [showUpgradeModal, defaultPlan]);
 
   const handleStartCheckout = () => {
     playClick();

@@ -27,7 +27,7 @@ interface FreeVsPaidPageProps {
   isPro: boolean;
   user: any;
   handleLogin: () => void;
-  onOpenUpgradeModal: () => void;
+  onOpenUpgradeModal: (plan?: 'annual' | 'monthly') => void;
   onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund') => void;
 }
 
@@ -100,12 +100,12 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
 }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const handleCtaClick = () => {
+  const handleCtaClick = (plan: 'annual' | 'monthly' = 'annual') => {
     playPop();
     if (!user) {
       handleLogin();
     } else {
-      onOpenUpgradeModal();
+      onOpenUpgradeModal(plan);
     }
   };
 
@@ -134,7 +134,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
             Kid<span className="text-[#FF6B6B]">Color</span> VIP Pass
           </span>
           <button
-            onClick={handleCtaClick}
+            onClick={() => handleCtaClick('annual')}
             className="btn-bubbly flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] text-white font-black text-xs sm:text-sm rounded-xl shadow-md cursor-pointer hover:brightness-105"
           >
             <Crown className="w-4 h-4 fill-current" />
@@ -323,7 +323,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
               </div>
 
               <button
-                onClick={handleCtaClick}
+                onClick={() => handleCtaClick('annual')}
                 className="btn-bubbly w-full py-3.5 bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] text-white font-black rounded-2xl shadow-md text-sm cursor-pointer hover:brightness-105 flex items-center justify-center gap-2"
               >
                 <span>Start 15-Day Free Trial</span>
@@ -348,7 +348,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
               </div>
 
               <button
-                onClick={handleCtaClick}
+                onClick={() => handleCtaClick('monthly')}
                 className="btn-bubbly w-full py-3.5 bg-[#4D96FF] hover:bg-[#3B82F6] text-white font-black rounded-2xl shadow-md text-sm cursor-pointer flex items-center justify-center gap-2"
               >
                 <span>Subscribe Monthly</span>

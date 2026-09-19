@@ -107,6 +107,9 @@ export default function App() {
         onOpenPricing={() => {
           navigateTo('/app#pricing');
         }}
+        onOpenUpgrade={(plan = 'annual') => {
+          navigateTo(`/app#upgrade-${plan}`);
+        }}
       />
     );
   }

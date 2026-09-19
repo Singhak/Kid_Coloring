@@ -34,6 +34,7 @@ import LegalPolicyPage, { LegalTabType } from './LegalPolicyPage';
 interface LandingPageProps {
   onLaunchApp: (category?: string) => void;
   onOpenPricing?: () => void;
+  onOpenUpgrade?: (plan?: 'annual' | 'monthly') => void;
 }
 
 // 6 Fun Interactive Crayons for the Live Demo Easel
@@ -52,7 +53,7 @@ const DEMO_CRAYONS: CrayonColor[] = [
   { name: 'Bubblegum Pink', hex: '#FF70A6', bgTailwind: 'bg-[#FF70A6]' },
 ];
 
-export default function LandingPage({ onLaunchApp, onOpenPricing }: LandingPageProps) {
+export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade }: LandingPageProps) {
   // Mobile navigation drawer toggle
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -1145,47 +1146,69 @@ export default function LandingPage({ onLaunchApp, onOpenPricing }: LandingPageP
             {/* VIP Superpowers Card */}
             <div className="relative rounded-3xl p-7 bg-gradient-to-b from-[#FFF9E6] to-[#FFF1BF] border-2 border-[#FFD93D] shadow-xl flex flex-col justify-between">
               {/* Most Popular Badge */}
-              <div className="absolute -top-3.5 right-6 bg-[#FF6B6B] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+              <div className="absolute -top-3.5 right-6 bg-gradient-to-r from-[#FF6B6B] to-[#FA8231] text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
                 <Crown className="w-3 h-3 fill-current" />
-                <span>VIP Superpower</span>
+                <span>Save 60% • Most Popular</span>
               </div>
 
               <div className="space-y-5">
                 <div>
                   <h3 className="text-xl font-black text-[#8C5B00] font-display flex items-center gap-2">
-                    <span>VIP Lifetime Pass</span>
+                    <span>VIP Annual Magic Pass</span>
                     <Sparkles className="w-4 h-4 text-amber-600" />
                   </h3>
-                  <p className="text-xs text-[#9B6E00] mt-1">Unlimited AI creative superpowers for the whole family</p>
-                  <div className="mt-4">
-                    <span className="text-4xl font-black text-[#7A4B00]">₹199</span>
-                    <span className="text-xs font-bold text-[#8C5B00] ml-1.5 line-through">₹499</span>
-                    <span className="text-[11px] font-black bg-[#FFD93D] text-[#7A4B00] px-2 py-0.5 rounded-full ml-2">
-                      One-Time Deal
+                  <p className="text-xs text-[#9B6E00] mt-1">Unlimited AI creative superpowers for the whole family • Full 1-Year Pass</p>
+                  <div className="mt-3 flex flex-wrap items-baseline gap-2">
+                    <span className="text-4xl font-black text-[#7A4B00]">₹499</span>
+                    <span className="text-xs font-bold text-[#8C5B00]">/ year (just ~₹41/mo)</span>
+                    <span className="text-[11px] font-black bg-[#10B981] text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                      15-Day Free Trial Included
                     </span>
                   </div>
                 </div>
 
                 <div className="space-y-3 text-xs font-bold text-[#6D4900]">
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00]" />
+                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00] shrink-0" />
                     <span>Unlimited Gemini AI Coloring Prompt Generation</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00]" />
-                    <span>Photo-to-Line-Art Conversion</span>
+                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00] shrink-0" />
+                    <span>Photo-to-Line-Art Conversion (Unlimited Photos)</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00]" />
-                    <span>Educational Color-by-Number Guided Mode</span>
+                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00] shrink-0" />
+                    <span>Educational Color-by-Number Guided Learning Mode</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00]" />
-                    <span>4K Ultra-Resolution PDF Sheet Exporter</span>
+                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00] shrink-0" />
+                    <span>4K Ultra-Resolution PDF Sheet Exporter (No Watermarks)</span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00]" />
-                    <span>VIP Golden Brush, Stamp Sets &amp; Color Palettes</span>
+                    <CheckCircle2 className="w-4 h-4 text-[#8C5B00] shrink-0" />
+                    <span>VIP Golden Brush, 50+ Stamps &amp; Pro Magic Palettes</span>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <div className="p-2.5 bg-white/70 border border-[#FFE082] rounded-xl flex items-center justify-between text-xs text-[#8C5B00]">
+                    <span>Monthly VIP Pass also available:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        playClick();
+                        if (onOpenUpgrade) {
+                          onOpenUpgrade('monthly');
+                        } else if (onOpenPricing) {
+                          onOpenPricing();
+                        } else {
+                          onLaunchApp();
+                        }
+                      }}
+                      className="font-black text-[#E17055] hover:underline cursor-pointer"
+                    >
+                      ₹99/mo (Cancel anytime) →
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1193,16 +1216,18 @@ export default function LandingPage({ onLaunchApp, onOpenPricing }: LandingPageP
               <button
                 onClick={() => {
                   playFanfare();
-                  if (onOpenPricing) {
+                  if (onOpenUpgrade) {
+                    onOpenUpgrade('annual');
+                  } else if (onOpenPricing) {
                     onOpenPricing();
                   } else {
                     onLaunchApp();
                   }
                 }}
-                className="btn-bubbly mt-8 w-full py-3.5 bg-gradient-to-r from-[#FF9F43] to-[#FF5252] hover:from-[#FA8231] hover:to-[#EB3B5A] text-white rounded-2xl font-black text-sm shadow-md cursor-pointer transition-all flex items-center justify-center gap-2"
+                className="btn-bubbly mt-6 w-full py-3.5 bg-gradient-to-r from-[#FF9F43] via-[#FF6B6B] to-[#FF5252] hover:from-[#FA8231] hover:to-[#EB3B5A] text-white rounded-2xl font-black text-sm shadow-md cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 <Crown className="w-4 h-4 fill-current" />
-                <span>Get VIP Lifetime Superpower</span>
+                <span>Unlock VIP Annual Pass (₹499/yr)</span>
               </button>
             </div>
           </div>

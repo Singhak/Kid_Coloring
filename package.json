@@ -11,6 +11,13 @@
     "lint": "tsc --noEmit",
     "test:mail": "tsx scripts/test-mail.ts",
     "generate:pins": "tsx scripts/generate_pinterest_pins.ts",
+    "generate:video": "tsx scripts/publish_video.ts --generate-only",
+    "generate:short": "tsx scripts/publish_video.ts --generate-only --aspect=9:16 --duration=15",
+    "generate:long": "tsx scripts/publish_video.ts --generate-only --aspect=16:9 --duration=60",
+    "social:publish": "tsx scripts/publish_video.ts",
+    "youtube:publish": "tsx scripts/publish_video.ts --target=youtube",
+    "youtube:publish:long": "tsx scripts/publish_video.ts --target=youtube --aspect=16:9 --duration=60",
+    "instagram:publish": "tsx scripts/publish_video.ts --target=instagram",
     "deploy": "deploy.bat"
   },
   "dependencies": {
@@ -28,7 +35,9 @@
     "canvas-confetti": "^1.9.4",
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
+    "ffmpeg-static": "^5.3.0",
     "firebase": "^12.11.0",
+    "googleapis": "^181.0.0",
     "jszip": "^3.10.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",

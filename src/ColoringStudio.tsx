@@ -79,6 +79,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
   const [trialEndDate, setTrialEndDate] = useState<Date | null>(null); // User's trial end date
   const [isSubscribed, setIsSubscribed] = useState(false); // User's subscription status
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeModalPlan, setUpgradeModalPlan] = useState<'annual' | 'monthly'>('annual');
   const [showPricingPage, setShowPricingPage] = useState(false);
   const [legalTab, setLegalTab] = useState<LegalTabType | null>(null);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
@@ -236,7 +237,15 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         setLegalTab('contact');
         setShowPricingPage(false);
         tracker.pageView('#contact', 'Contact Us');
-      } else if (hash === '#pricing' || hash === '#upgrade') {
+      } else if (hash.startsWith('#upgrade') || hash.startsWith('#subscribe')) {
+        const plan = hash.includes('monthly') ? 'monthly' : 'annual';
+        setUpgradeModalPlan(plan);
+        setShowUpgradeModal(true);
+        setShowPricingPage(false);
+        setLegalTab(null);
+        tracker.trackMonetization('open_upgrade_modal', plan);
+        tracker.pageView(hash, 'VIP Upgrade Checkout');
+      } else if (hash === '#pricing') {
         setShowPricingPage(true);
         setLegalTab(null);
         tracker.trackMonetization('view_pricing');
@@ -1197,7 +1206,11 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         isPro={isPro}
         user={user}
         handleLogin={handleLogin}
-        onOpenUpgradeModal={() => setShowUpgradeModal(true)}
+        onOpenUpgradeModal={(plan = 'annual') => {
+          setUpgradeModalPlan(plan);
+          setShowPricingPage(false);
+          setShowUpgradeModal(true);
+        }}
         onOpenLegalPage={(tab) => setLegalTab(tab)}
       />
     );
@@ -1406,6 +1419,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         handleSubscribe={handleSubscribe}
         onOpenPricingPage={() => setShowPricingPage(true)}
         onOpenLegalPage={(tab) => setLegalTab(tab)}
+        defaultPlan={upgradeModalPlan}
       />
 
       {/* Cashfree Payment Status Modal */}
