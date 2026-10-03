@@ -110,13 +110,40 @@ if (!$subject || trim($subject) === '') {
 $subject = trim($subject);
 $category = trim($category);
 
+// Color-by-number mode: shapes are drawn back-to-front with a "slot" (color role) per shape.
+// These pictures are cached per SUBJECT (not per category) and never mixed with normal coloring pages.
+$numbered = !empty($input["numbered"]);
+// "custom" = the child typed their own idea (cache per exact subject); otherwise the category cache is used.
+$custom = !empty($input["custom"]);
+// Category cache policy for numbered pictures: only serve from cache once it holds MORE than 5 pictures,
+// and after serving, quietly generate one more in the background so the pool keeps growing.
+$minCachedToServe = ($numbered && !$custom) ? 6 : 1;
+$refillInBackground = $numbered && !$custom;
+
+// A numbered picture needs enough closed shapes, each with a slot, or the next model is tried.
+function numberedLooksValid($img)
+{
+    if (!is_array($img) || empty($img['paths']) || !is_array($img['paths'])) {
+        return false;
+    }
+    $closed = 0;
+    foreach ($img['paths'] as $p) {
+        $d = isset($p['d']) ? trim($p['d']) : '';
+        if ($d !== '' && preg_match('/[zZ]$/', $d) && !empty($p['slot'])) {
+            $closed++;
+        }
+    }
+    return $closed >= 5 && $closed <= 24;
+}
+
 // --- Caching Logic ---
 $cacheDir = __DIR__ . '/cache';
 if (!is_dir($cacheDir)) {
     @mkdir($cacheDir, 0777, true);
 }
 
-$safeSubject = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($category));
+$cacheKey = $numbered ? ('num_' . substr($custom ? $subject : $category, 0, 60)) : $category;
+$safeSubject = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($cacheKey));
 $cacheFile = $cacheDir . '/' . $safeSubject . '.json';
 $servedFromCache = false;
 
@@ -124,39 +151,65 @@ $servedFromCache = false;
 if (file_exists($cacheFile)) {
     $cacheContent = @file_get_contents($cacheFile);
     $cacheData = json_decode($cacheContent, true);
-    if (is_array($cacheData) && count($cacheData) >= 1) {
+    if (is_array($cacheData) && count($cacheData) >= $minCachedToServe) {
         $randomIndex = array_rand($cacheData);
         $selectedImage = $cacheData[$randomIndex];
         if (isset($selectedImage['paths']) && is_array($selectedImage['paths'])) {
-            logApiCall("Coloring page served from cache (Gemini)", ["subject" => $subject, "category" => $category]);
-            echo json_encode($selectedImage);
+            logApiCall("Coloring page served from cache (Gemini)", ["subject" => $subject, "category" => $category, "numbered" => $numbered]);
+            $cachedBody = json_encode($selectedImage);
+            if ($refillInBackground) {
+                // Tell the browser the response is complete so it doesn't wait for the background work below
+                header('Content-Length: ' . strlen($cachedBody));
+                header('Connection: close');
+            }
+            echo $cachedBody;
             $servedFromCache = true;
 
             // Queue a task for the cron job to add more variations in the background
-            $queueDir = __DIR__ . '/queue';
-            if (!is_dir($queueDir)) {
-                @mkdir($queueDir, 0777, true);
-            }
-            $queueFile = $queueDir . '/tasks.txt';
-            $task = json_encode(["provider" => "gemini", "subject" => $subject, "category" => $category]) . PHP_EOL;
-            if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
-                @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+            // (not for numbered pictures: the queue worker only builds normal coloring pages)
+            if (!$numbered) {
+                $queueDir = __DIR__ . '/queue';
+                if (!is_dir($queueDir)) {
+                    @mkdir($queueDir, 0777, true);
+                }
+                $queueFile = $queueDir . '/tasks.txt';
+                $task = json_encode(["provider" => "gemini", "subject" => $subject, "category" => $category]) . PHP_EOL;
+                if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
+                    @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+                }
             }
 
-            exit;
+            if ($refillInBackground) {
+                // Send the cached picture now, close the connection, then keep going below to
+                // generate one more picture and add it to the category cache.
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
+                } elseif (function_exists('litespeed_finish_request')) {
+                    litespeed_finish_request();
+                } else {
+                    while (ob_get_level() > 0) {
+                        @ob_end_flush();
+                    }
+                    @flush();
+                }
+            } else {
+                exit;
+            }
         }
     }
 }
 
 // If fetching live, queue a backup task in case request gets interrupted
-$queueDir = __DIR__ . '/queue';
-if (!is_dir($queueDir)) {
-    @mkdir($queueDir, 0777, true);
-}
-$queueFile = $queueDir . '/tasks.txt';
-$task = json_encode(["provider" => "gemini", "subject" => $subject, "category" => $category]) . PHP_EOL;
-if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
-    @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+if (!$numbered) {
+    $queueDir = __DIR__ . '/queue';
+    if (!is_dir($queueDir)) {
+        @mkdir($queueDir, 0777, true);
+    }
+    $queueFile = $queueDir . '/tasks.txt';
+    $task = json_encode(["provider" => "gemini", "subject" => $subject, "category" => $category]) . PHP_EOL;
+    if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
+        @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+    }
 }
 
 // Load API key securely
@@ -200,6 +253,29 @@ Return ONLY a valid JSON object matching:
   ]
 }";
 
+if ($numbered) {
+    $prompt = "You are designing a COLOR-BY-NUMBER page for children ages 3 to 7. Subject: {$subject}.
+Build the picture from 8 to 16 BIG, simple, closed SVG shapes, like cut-out paper pieces. Use viewBox \"0 0 1000 1000\".
+
+RULES:
+- Draw BACK TO FRONT. The first shape is the full background: \"M 40,40 L 960,40 L 960,960 L 40,960 Z\". Later shapes are painted on top of earlier ones and MAY overlap (a head over a body, a wheel over a car). The child colors the visible part of each shape, so never try to cut holes.
+- Every shape is ONE closed path ending in Z, made of smooth simple curves or straight lines (at most about 12 commands). No tiny details: every shape must stay at least 60 x 60 units after overlaps. No thin strips, no lines, no whiskers, no hair, no text, no numbers.
+- Give every shape a 'slot': a short lowercase word for its role (body, head, ear, eye, nose, wing, petal, wheel, sky, water, grass, sand, sun, cloud...). Shapes that should naturally share one color (both ears, all petals, both wheels) MUST share the same slot. Use 4 to 9 different slots in total.
+- Use slot 'sky', 'water' or 'bg' for the background, 'grass' or 'sand' for the ground, 'sun' for a sun, and 'eye' for dark pupils.
+- Center the main subject and fill about 60 percent of the frame.
+
+EXAMPLE (a fish):
+{\"viewBox\":\"0 0 1000 1000\",\"paths\":[
+{\"id\":\"background\",\"slot\":\"water\",\"d\":\"M 40,40 L 960,40 L 960,960 L 40,960 Z\"},
+{\"id\":\"tail\",\"slot\":\"fin\",\"d\":\"M 640,500 L 900,340 L 900,660 Z\"},
+{\"id\":\"top-fin\",\"slot\":\"fin\",\"d\":\"M 380,350 C 410,210 540,210 560,340 Z\"},
+{\"id\":\"body\",\"slot\":\"body\",\"d\":\"M 120,500 C 220,280 560,260 720,500 C 560,740 220,720 120,500 Z\"},
+{\"id\":\"eye\",\"slot\":\"eye\",\"d\":\"M 222,450 a 38,38 0 1,0 76,0 a 38,38 0 1,0 -76,0 Z\"}
+]}
+
+Return ONLY a valid JSON object like the example: {\"viewBox\": ..., \"paths\": [{\"id\", \"slot\", \"d\"}]}.";
+}
+
 // Prepare request payload targeting Gemini API schema
 $requestData = [
     "contents" => [
@@ -221,6 +297,7 @@ $requestData = [
                         "type" => "OBJECT",
                         "properties" => [
                             "id" => ["type" => "STRING"],
+                            "slot" => ["type" => "STRING"],
                             "d" => ["type" => "STRING"],
                             "stroke" => ["type" => "STRING"],
                             "strokeWidth" => ["type" => "NUMBER"]
@@ -302,7 +379,7 @@ foreach ($modelsToTry as $model) {
             }
 
             $parsedImage = json_decode($cleanJson, true);
-            if (is_array($parsedImage) && !empty($parsedImage['paths'])) {
+            if (is_array($parsedImage) && !empty($parsedImage['paths']) && (!$numbered || numberedLooksValid($parsedImage))) {
                 $successfulResponse = $parsedImage;
                 break; // Successfully generated!
             }
@@ -331,19 +408,27 @@ foreach ($successfulResponse['paths'] as $index => $p) {
     if (empty($p['d']))
         continue;
     $d = trim($p['d']);
-    $sanitizedPaths[] = [
+    $entry = [
         'id' => !empty($p['id']) ? strval($p['id']) : 'part-' . ($index + 1),
         'd' => $d,
         'fill' => '#FFFFFF',
         'stroke' => !empty($p['stroke']) ? strval($p['stroke']) : '#000000',
         'strokeWidth' => !empty($p['strokeWidth']) ? floatval($p['strokeWidth']) : 3
     ];
+    if ($numbered) {
+        $entry['slot'] = !empty($p['slot']) ? strtolower(preg_replace('/[^a-zA-Z0-9_-]/', '', strval($p['slot']))) : 'part';
+        $entry['strokeWidth'] = 6;
+    }
+    $sanitizedPaths[] = $entry;
 }
 
 $finalOutput = [
-    'viewBox' => $successfulResponse['viewBox'] ?? '0 0 500 500',
+    'viewBox' => $successfulResponse['viewBox'] ?? ($numbered ? '0 0 1000 1000' : '0 0 500 500'),
     'paths' => $sanitizedPaths
 ];
+if ($numbered) {
+    $finalOutput['numbered'] = true;
+}
 
 // Save to cache
 if (!empty($sanitizedPaths)) {
@@ -355,8 +440,9 @@ if (!empty($sanitizedPaths)) {
         }
     }
 
-    if (count($cacheData) >= 30) {
-        array_shift($cacheData); // Keep latest 30
+    $cacheLimit = $numbered ? 24 : 30; // keep the latest N pictures per cache file
+    if (count($cacheData) >= $cacheLimit) {
+        array_shift($cacheData); // Keep latest N
     }
 
     $cacheData[] = $finalOutput;
@@ -370,6 +456,8 @@ logApiCall("Gemini coloring page generated successfully", [
     "paths_count" => count($finalOutput['paths'] ?? [])
 ]);
 
-// Return clean JSON
-http_response_code(200);
-echo json_encode($finalOutput, JSON_UNESCAPED_SLASHES);
+// Return clean JSON (skipped when a cached picture was already sent and this run was only refilling the cache)
+if (!$servedFromCache) {
+    http_response_code(200);
+    echo json_encode($finalOutput, JSON_UNESCAPED_SLASHES);
+}

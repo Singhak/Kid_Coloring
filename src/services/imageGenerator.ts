@@ -13,7 +13,7 @@ export const generateProceduralPaths = (category: string): { paths: SvgPath[], v
   return generateProceduralRealisticScene(category);
 };
 
-export const getImageUsingAPI = async (subject: string, category: string): Promise<{ paths: SvgPath[], viewBox: string }> => {
+export const getImageUsingAPI = async (subject: string, category: string, numbered = false, custom = false): Promise<{ paths: SvgPath[], viewBox: string }> => {
   if (subject === 'random') {
     subject = ALL_SUBJECTS[Math.floor(Math.random() * ALL_SUBJECTS.length)];
   }
@@ -43,14 +43,15 @@ export const getImageUsingAPI = async (subject: string, category: string): Promi
     response = await fetchWithTimeout(geminiEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subject, category })
+      body: JSON.stringify({ subject, category, numbered, custom })
     }, 35000); // 35 seconds for live Gemini generation or fast cached return
   } catch (e) {
     console.warn("Primary Gemini PHP endpoint timed out or failed, trying secondary endpoint...", e);
   }
 
   // 2. Fallback to OpenRouter PHP endpoint if Gemini failed
-  if (!response || !response.ok) {
+  // (numbered pictures need the "slot" data that only the Gemini endpoint returns, so no fallback)
+  if (!numbered && (!response || !response.ok)) {
     try {
       response = await fetchWithTimeout(openRouterEndpoint, {
         method: "POST",
@@ -73,6 +74,7 @@ export const getImageUsingAPI = async (subject: string, category: string): Promi
 
   const newPaths: SvgPath[] = data.paths.map((p: any, idx: number) => ({
     id: p.id || `part-${idx + 1}`,
+    slot: p.slot || undefined,
     d: p.d,
     fill: '#FFFFFF',
     stroke: p.stroke || '#000000',
@@ -80,4 +82,4 @@ export const getImageUsingAPI = async (subject: string, category: string): Promi
   }));
 
   return { paths: newPaths, viewBox: data.viewBox || "0 0 500 500" };
-};
+};

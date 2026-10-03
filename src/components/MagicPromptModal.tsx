@@ -6,7 +6,9 @@ import { playChime, playClick, playPop } from '../services/soundEffects';
 interface MagicPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onGeneratePrompt: (prompt: string) => void;
+  onGeneratePrompt: (prompt: string, options?: { numbered?: boolean }) => void;
+  /** Start with "Make it Color by Number" switched on (e.g. opened from that library category). */
+  defaultNumbered?: boolean;
   onInstantRealistic?: () => void;
   isGenerating: boolean;
 }
@@ -28,21 +30,24 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
   onClose,
   onGeneratePrompt,
   onInstantRealistic,
-  isGenerating
+  isGenerating,
+  defaultNumbered = false
 }) => {
   const [customPrompt, setCustomPrompt] = useState('');
+  const [numbered, setNumbered] = useState(defaultNumbered);
 
   useEffect(() => {
     if (isOpen) {
       playChime();
+      setNumbered(defaultNumbered);
     }
-  }, [isOpen]);
+  }, [isOpen, defaultNumbered]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (customPrompt.trim().length > 0) {
       playPop();
-      onGeneratePrompt(customPrompt.trim());
+      onGeneratePrompt(customPrompt.trim(), { numbered });
       onClose();
     }
   };
@@ -50,7 +55,7 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
   const handleChipClick = (promptText: string) => {
     playPop();
     const cleanPrompt = promptText.replace(/^[^\w]+/, '');
-    onGeneratePrompt(cleanPrompt);
+    onGeneratePrompt(cleanPrompt, { numbered });
     onClose();
   };
 
@@ -58,7 +63,7 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
     playPop();
     const randomChip = SAMPLE_PROMPTS[Math.floor(Math.random() * SAMPLE_PROMPTS.length)];
     const cleanPrompt = randomChip.replace(/^[^\w]+/, '');
-    onGeneratePrompt(cleanPrompt);
+    onGeneratePrompt(cleanPrompt, { numbered });
     onClose();
   };
 
@@ -151,6 +156,17 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
               </span>
               <div className="flex-1 h-px bg-[#EBE8DC]" />
             </div>
+
+            {/* Color by Number switch */}
+            <label className="mb-3 flex items-center gap-2 cursor-pointer select-none text-xs sm:text-sm font-black text-[#2D3436]">
+              <input
+                type="checkbox"
+                checked={numbered}
+                onChange={(e) => setNumbered(e.target.checked)}
+                className="w-4 h-4 accent-[#EC4899] cursor-pointer"
+              />
+              <span>🔢 Make it Color by Number</span>
+            </label>
 
             {/* Prompt Input Form */}
             <form onSubmit={handleSubmit} className="mb-4">

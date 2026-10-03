@@ -262,7 +262,7 @@ class TelemetryTracker {
     this.event('canvas', action, details?.target || undefined, details?.count || undefined, details);
   }
 
-  public trackAI(action: 'magic_prompt' | 'instant_realistic' | 'photo_art', prompt?: string, category?: string): void {
+  public trackAI(action: 'magic_prompt' | 'instant_realistic' | 'photo_art' | 'number_ai', prompt?: string, category?: string): void {
     this.event('ai_generation', action, prompt ? prompt.substring(0, 100) : category, undefined, {
       fullPrompt: prompt,
       category

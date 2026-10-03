@@ -16,6 +16,7 @@ interface TemplateGridProps {
   setShowUpgradeModal: (show: boolean) => void;
   onOpenPhotoArt?: () => void;
   onSelectCategory?: (category: string) => void;
+  onCreateNumberedAi?: () => void;
 }
 
 const TemplateGrid: React.FC<TemplateGridProps> = ({
@@ -26,7 +27,8 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
   selectTemplate,
   setShowUpgradeModal,
   onOpenPhotoArt,
-  onSelectCategory
+  onSelectCategory,
+  onCreateNumberedAi
 }) => {
   const [selectedFestival, setSelectedFestival] = useState<string>('all');
   const currentCategory = CATEGORIES.find(c => c.id === selectedCategory);
@@ -355,6 +357,36 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
             </div>
           )}
         </button>
+
+        {/* Color by Number: AI-made numbered picture (surprise subject) */}
+        {selectedCategory === 'colorbynumber' && onCreateNumberedAi && (
+          <button
+            onClick={() => {
+              playPop();
+              onCreateNumberedAi();
+            }}
+            disabled={isGenerating}
+            className="col-span-2 sm:col-span-1 flex flex-row sm:flex-col items-center justify-start sm:justify-center gap-3 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#F9A8D4] bg-gradient-to-r sm:bg-gradient-to-b from-[#FDF2F8] to-[#FCE7F3] hover:shadow-xl hover:-translate-y-1 transition-all group/num relative overflow-hidden cursor-pointer active:scale-95 min-h-[90px] sm:min-h-[220px] disabled:opacity-50"
+          >
+            <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-[#EC4899] to-[#F472B6] text-white flex items-center justify-center shadow-md sm:shadow-lg group-hover/num:scale-110 group-hover/num:rotate-6 transition-transform relative z-10 shrink-0 text-2xl sm:text-3xl">
+              🔢
+            </div>
+            <div className="text-left sm:text-center relative z-10 flex-1 min-w-0">
+              <span className="block font-black text-[#2D3436] text-sm sm:text-lg font-display truncate">
+                ✨ Surprise Number Picture
+              </span>
+              <span className="text-[11px] sm:text-xs font-bold text-[#BE185D] mt-0.5 block truncate">
+                A brand new picture to color
+              </span>
+            </div>
+            {!isPro && (
+              <div className="flex items-center gap-1 bg-[#FFD93D] text-[#7A4B00] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-black shadow-sm shrink-0">
+                <Crown className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-current" />
+                VIP Magic
+              </div>
+            )}
+          </button>
+        )}
 
         {/* Photo to Line Art Card */}
         {onOpenPhotoArt && (

@@ -81,6 +81,8 @@ function computeLabelSpots(svg: SVGSVGElement, ids: string[]): Record<string, La
 
 const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, resetTrigger, onBackToLibrary, printRef }) => {
   const svgRef = useRef<SVGSVGElement>(null);
+  // Badge sizes are tuned for a 1000-wide picture; scale them for other viewBox sizes (e.g. AI pictures)
+  const vbScale = (Number(template.viewBox.split(/[\s,]+/)[2]) || 1000) / 1000;
   const [scheme, setScheme] = useState<ColorScheme | undefined>(() => pickScheme(template));
   const [filled, setFilled] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<number | null>(null);
@@ -131,7 +133,7 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
           pathId,
           x: s.x,
           y: s.y,
-          r: Math.max(MIN_BADGE_R, Math.min(MAX_BADGE_R, s.r * 0.75)),
+          r: Math.max(MIN_BADGE_R * vbScale, Math.min(MAX_BADGE_R * vbScale, s.r * 0.75)),
         })),
         scheme.name
       );
@@ -225,7 +227,7 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
             const spot = spots[p.id];
             const num = numberByPath[p.id];
             if (!spot || !num || filled.has(p.id)) return null;
-            const r = Math.max(MIN_BADGE_R, Math.min(MAX_BADGE_R, spot.r * 0.75));
+            const r = Math.max(MIN_BADGE_R * vbScale, Math.min(MAX_BADGE_R * vbScale, spot.r * 0.75));
             const isCurrent = selected === num;
             return (
               <g key={`badge-${p.id}`} pointerEvents="none">
@@ -235,7 +237,7 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
                   r={r}
                   fill={isCurrent ? '#FFD93D' : '#FFFFFF'}
                   stroke="#2D3436"
-                  strokeWidth={3}
+                  strokeWidth={3 * vbScale}
                 />
                 <text
                   x={spot.x}

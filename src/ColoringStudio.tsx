@@ -31,6 +31,8 @@ import {
 } from './constants'; 
 import { generateDynamicAiColoringImage } from './services/dynamicAiGenerator';
 import { generateProceduralPaths, getImageUsingAPI } from './services/imageGenerator';
+import { buildNumberTemplateFromAi, NUMBER_AI_SUBJECTS } from './services/numberedFromAi';
+import { COLOR_BY_NUMBER_TEMPLATES } from './constants/colorByNumberTemplates';
 import { printColoringSheet } from './services/pdfExporter';
 import { playSwish } from './services/soundEffects';
 import AppHeader from './components/AppHeader';
@@ -897,7 +899,59 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
   }, [fillCount, selectedCategory, currentTemplateName]);
 
   // AI generation: Prioritize PHP Backend SVG vector paths with fallback to diffusion line art
-  const handleGenerateAiImage = async (customPrompt?: string) => {
+  // Color by Number AI: a numbered picture from a typed prompt, or a random simple subject.
+  // Category taps use curated subjects (cacheable on the server); typed prompts are the child's own idea.
+  const handleGenerateNumberedAi = async (customPrompt?: string) => {
+    if (!isPro) {
+      tracker.trackMonetization('open_upgrade_modal');
+      setShowUpgradeModal(true);
+      return;
+    }
+    if (isGenerating) return;
+
+    const typed = customPrompt?.trim();
+    const subject = typed || NUMBER_AI_SUBJECTS[Math.floor(Math.random() * NUMBER_AI_SUBJECTS.length)];
+    tracker.trackAI('number_ai', subject, 'colorbynumber');
+
+    const generationId = ++currentGenerationId.current;
+    setIsGenerating(true);
+    setShowTemplates(false);
+
+    try {
+      let template: Template | null = null;
+      // The AI is not always usable (broken or too-tiny shapes), so try twice before falling back
+      for (let attempt = 0; attempt < 2 && !template; attempt++) {
+        try {
+          const result = await getImageUsingAPI(subject, 'colorbynumber', true, Boolean(typed));
+          template = buildNumberTemplateFromAi(result.paths, result.viewBox, subject);
+        } catch (e) {
+          console.warn('Numbered AI attempt failed:', e);
+        }
+        if (generationId !== currentGenerationId.current) return;
+      }
+
+      if (template) {
+        selectTemplate(template);
+        return;
+      }
+
+      // Fallback: a ready-made numbered picture, so the child is never left with nothing
+      tracker.event('color_by_number', 'ai_fallback', subject);
+      const pool = COLOR_BY_NUMBER_TEMPLATES.filter(t => !t.isVip);
+      selectTemplate(pool[Math.floor(Math.random() * pool.length)]);
+      alert("That one was too tricky to draw this time, so here's a ready-made number picture instead!");
+    } finally {
+      if (generationId === currentGenerationId.current) {
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  const handleGenerateAiImage = async (customPrompt?: string, options?: { numbered?: boolean }) => {
+    if (options?.numbered) {
+      await handleGenerateNumberedAi(customPrompt);
+      return;
+    }
     if (!isPro) {
       tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
@@ -1314,6 +1368,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             resetTrigger={resetTrigger}
             numberTemplate={numberTemplate}
             numberPrintRef={numberPrintRef}
+            onCreateNumberedAi={() => handleGenerateNumberedAi()}
             setSelectedCategory={setSelectedCategory}
           />
         </div>
@@ -1399,7 +1454,8 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       <MagicPromptModal
         isOpen={showMagicPromptModal}
         onClose={() => setShowMagicPromptModal(false)}
-        onGeneratePrompt={(prompt) => handleGenerateAiImage(prompt)}
+        defaultNumbered={selectedCategory === 'colorbynumber'}
+        onGeneratePrompt={(prompt, options) => handleGenerateAiImage(prompt, options)}
         onInstantRealistic={handleGenerateProceduralRealistic}
         isGenerating={isGenerating}
       />

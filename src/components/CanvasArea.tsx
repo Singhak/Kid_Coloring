@@ -35,6 +35,7 @@ interface CanvasAreaProps {
   isColorByNumber?: boolean;
   numberTemplate?: Template | null;
   numberPrintRef?: React.MutableRefObject<(() => boolean) | null>;
+  onCreateNumberedAi?: () => void;
   onToggleColorByNumber?: () => void;
   onOpenStickers?: () => void;
   onQuickNext?: () => void;
@@ -70,6 +71,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   isColorByNumber = false,
   numberTemplate = null,
   numberPrintRef,
+  onCreateNumberedAi,
   onToggleColorByNumber,
   onOpenStickers,
   onQuickNext,
@@ -151,6 +153,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
               setShowUpgradeModal={setShowUpgradeModal}
               onOpenPhotoArt={onOpenPhotoArt}
               onSelectCategory={setSelectedCategory}
+              onCreateNumberedAi={onCreateNumberedAi}
             />
           ) : isGenerating ? (
             <LoadingSpinner key="loading-view" />

@@ -5,6 +5,8 @@
 
 export interface SvgPath {
   id: string;
+  /** Color role (e.g. 'body', 'sky'); only set on AI pictures made for Color by Number. */
+  slot?: string;
   d: string;
   fill: string;
   stroke: string;
