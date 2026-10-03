@@ -16,6 +16,24 @@ const ell = (cx: number, cy: number, rx: number, ry: number) =>
 const rect = (x: number, y: number, w: number, h: number) => `M ${x},${y} L ${x + w},${y} L ${x + w},${y + h} L ${x},${y + h} Z`;
 const poly = (...pts: number[]) => pts.reduce((d, v, i) => d + (i % 2 === 0 ? `${i === 0 ? 'M' : ' L'} ${v}` : `,${v}`), '') + ' Z';
 const P = (id: string, d: string) => ({ id, d, strokeWidth: S });
+/** n-pointed star centered on (cx, cy): outer radius R, inner radius r. */
+const star = (cx: number, cy: number, R: number, r: number, n = 5) =>
+  poly(
+    ...Array.from({ length: n * 2 }, (_, i) => {
+      const a = -Math.PI / 2 + (i * Math.PI) / n;
+      const rad = i % 2 === 0 ? R : r;
+      return [Math.round(cx + rad * Math.cos(a)), Math.round(cy + rad * Math.sin(a))];
+    }).flat()
+  );
+
+interface PictureDef {
+  id: string;
+  name: string;
+  isVip: boolean;
+  difficulty?: 'Easy' | 'Medium' | 'Detailed';
+  paths: { id: string; d: string; strokeWidth: number }[];
+  slots: Record<string, string>;
+}
 const BG = rect(40, 40, 920, 920);
 
 export const COLOR_BY_NUMBER_TEMPLATES: Template[] = [
@@ -96,7 +114,7 @@ export const COLOR_BY_NUMBER_TEMPLATES: Template[] = [
       ],
     },
   },
-  ...[
+  ...([
     // ---------- FREE ----------
     {
       id: 'cbn-butterfly',
@@ -325,11 +343,179 @@ export const COLOR_BY_NUMBER_TEMPLATES: Template[] = [
       ],
       slots: { bg: 'bg', leaf: 'green', 'leg-l1': 'legs', 'leg-l2': 'legs', 'leg-l3': 'legs', 'leg-r1': 'legs', 'leg-r2': 'legs', 'leg-r3': 'legs', head: 'head', 'shell-l': 'shell', 'shell-r': 'shell', 'spot-l1': 'spot', 'spot-l2': 'spot', 'spot-r1': 'spot', 'spot-r2': 'spot', 'eye-l': 'eye', 'eye-r': 'eye' },
     },
-  ].map(({ id, name, isVip, paths, slots }) => ({
+    // ---------- MEDIUM (more regions, still big and simple) ----------
+    {
+      id: 'cbn-birthday-cake',
+      name: 'Birthday Cake',
+      isVip: false,
+      difficulty: 'Medium',
+      paths: [
+        P('bg', BG),
+        P('flag-1', poly(190, 70, 290, 70, 240, 160)),
+        P('flag-2', poly(330, 70, 430, 70, 380, 160)),
+        P('flag-3', poly(470, 70, 570, 70, 520, 160)),
+        P('flag-4', poly(610, 70, 710, 70, 660, 160)),
+        P('flag-5', poly(750, 70, 850, 70, 800, 160)),
+        P('balloon-l', ell(140, 340, 62, 78)),
+        P('balloon-r', ell(860, 340, 62, 78)),
+        P('table', rect(40, 800, 920, 160)),
+        P('plate', ell(500, 815, 330, 45)),
+        P('cake-bottom', rect(250, 640, 500, 175)),
+        P('cake-mid', rect(320, 500, 360, 140)),
+        P('cake-top', rect(390, 380, 220, 120)),
+        P('icing-bottom', rect(250, 640, 500, 40)),
+        P('icing-mid', rect(320, 500, 360, 36)),
+        P('icing-top', rect(390, 380, 220, 32)),
+        P('candle-l', rect(415, 300, 34, 80)),
+        P('candle-c', rect(483, 300, 34, 80)),
+        P('candle-r', rect(551, 300, 34, 80)),
+        P('flame-l', ell(432, 268, 20, 30)),
+        P('flame-c', ell(500, 268, 20, 30)),
+        P('flame-r', ell(568, 268, 20, 30)),
+      ],
+      slots: { bg: 'bg', 'flag-1': 'flagA', 'flag-2': 'flagB', 'flag-3': 'flagA', 'flag-4': 'flagB', 'flag-5': 'flagA', 'balloon-l': 'balloon', 'balloon-r': 'balloon', table: 'table', plate: 'plate', 'cake-bottom': 'cakeA', 'cake-mid': 'cakeB', 'cake-top': 'cakeA', 'icing-bottom': 'icing', 'icing-mid': 'icing', 'icing-top': 'icing', 'candle-l': 'candle', 'candle-c': 'candle', 'candle-r': 'candle', 'flame-l': 'flame', 'flame-c': 'flame', 'flame-r': 'flame' },
+    },
+    {
+      id: 'cbn-sea-friends',
+      name: 'Sea Friends',
+      isVip: true,
+      difficulty: 'Medium',
+      paths: [
+        P('water', BG),
+        P('bubble-1', circle(560, 160, 38)),
+        P('bubble-2', circle(630, 250, 30)),
+        P('bubble-3', circle(180, 300, 32)),
+        P('bubble-4', circle(240, 200, 42)),
+        P('sand', 'M 40,830 C 250,780 450,880 650,820 C 800,780 900,820 960,810 L 960,960 L 40,960 Z'),
+        P('weed-1', 'M 150,850 C 80,740 200,700 130,600 C 220,640 240,740 190,850 Z'),
+        P('weed-2', 'M 320,850 C 250,760 350,720 300,650 C 380,690 390,780 350,850 Z'),
+        P('weed-3', 'M 850,850 C 780,740 900,700 830,600 C 920,640 940,740 890,850 Z'),
+        P('fish1-tail', poly(470, 300, 580, 235, 580, 365)),
+        P('fish1-body', ell(380, 300, 115, 68)),
+        P('fish1-eye', circle(320, 285, 20)),
+        P('fish2-tail', poly(640, 530, 530, 470, 530, 590)),
+        P('fish2-body', ell(730, 530, 95, 58)),
+        P('fish2-eye', circle(775, 515, 18)),
+        P('starfish', star(560, 895, 62, 26)),
+        P('shell', 'M 380,935 C 380,860 500,860 500,935 Z'),
+      ],
+      slots: { water: 'water', 'bubble-1': 'bubble', 'bubble-2': 'bubble', 'bubble-3': 'bubble', 'bubble-4': 'bubble', sand: 'sand', 'weed-1': 'green', 'weed-2': 'green', 'weed-3': 'green', 'fish1-tail': 'finA', 'fish1-body': 'fishA', 'fish1-eye': 'eye', 'fish2-tail': 'finB', 'fish2-body': 'fishB', 'fish2-eye': 'eye', starfish: 'star', shell: 'shell' },
+    },
+    {
+      id: 'cbn-farm-barn',
+      name: 'Farm Barn',
+      isVip: true,
+      difficulty: 'Medium',
+      paths: [
+        P('sky', BG),
+        P('sun', circle(850, 150, 70)),
+        P('cloud', 'M 150,230 C 90,230 90,160 150,160 C 160,100 260,100 280,160 C 340,160 340,230 280,230 Z'),
+        P('grass', rect(40, 640, 920, 320)),
+        P('trunk', rect(130, 520, 50, 200)),
+        P('crown', circle(155, 470, 92)),
+        P('silo', rect(730, 390, 110, 330)),
+        P('silo-roof', 'M 730,390 C 730,300 840,300 840,390 Z'),
+        P('wall', rect(280, 420, 420, 300)),
+        P('roof', poly(250, 430, 490, 260, 730, 430)),
+        P('window', circle(490, 365, 34)),
+        P('door-top', poly(400, 560, 580, 560, 490, 640)),
+        P('door-left', poly(400, 560, 490, 640, 400, 720)),
+        P('door-right', poly(580, 560, 490, 640, 580, 720)),
+        P('door-bottom', poly(400, 720, 490, 640, 580, 720)),
+        P('flower-1', circle(250, 820, 30)),
+        P('flower-2', circle(450, 870, 30)),
+        P('flower-3', circle(650, 830, 30)),
+        P('flower-4', circle(820, 880, 30)),
+      ],
+      slots: { sky: 'sky', sun: 'sun', cloud: 'cloud', grass: 'grass', trunk: 'trunk', crown: 'green', silo: 'silo', 'silo-roof': 'roof', wall: 'barn', roof: 'roof', window: 'doorB', 'door-top': 'doorA', 'door-bottom': 'doorA', 'door-left': 'doorB', 'door-right': 'doorB', 'flower-1': 'flower', 'flower-2': 'flower', 'flower-3': 'flower', 'flower-4': 'flower' },
+    },
+    {
+      id: 'cbn-space-adventure',
+      name: 'Space Adventure',
+      isVip: true,
+      difficulty: 'Medium',
+      paths: [
+        P('bg', BG),
+        P('star-1', star(150, 170, 58, 25)),
+        P('star-2', star(860, 140, 52, 22)),
+        P('star-3', star(120, 520, 46, 20)),
+        P('ring', ell(500, 420, 310, 72)),
+        P('planet', circle(500, 420, 150)),
+        P('crater-1', circle(450, 380, 30)),
+        P('crater-2', circle(560, 455, 38)),
+        P('moon', circle(180, 790, 95)),
+        P('moon-crater-1', circle(150, 765, 26)),
+        P('moon-crater-2', circle(210, 825, 22)),
+        P('beam', poly(760, 720, 840, 720, 910, 920, 690, 920)),
+        P('dome', 'M 740,690 C 740,600 860,600 860,690 Z'),
+        P('saucer', ell(800, 700, 125, 40)),
+        P('flame', poly(470, 880, 500, 950, 530, 880)),
+        P('fin-l', poly(455, 820, 395, 905, 455, 885)),
+        P('fin-r', poly(545, 820, 605, 905, 545, 885)),
+        P('rocket', 'M 500,640 C 565,690 565,810 555,885 L 445,885 C 435,810 435,690 500,640 Z'),
+        P('rocket-window', circle(500, 750, 28)),
+      ],
+      slots: { bg: 'bg', 'star-1': 'star', 'star-2': 'star', 'star-3': 'star', ring: 'ring', planet: 'planet', 'crater-1': 'crater', 'crater-2': 'crater', moon: 'moon', 'moon-crater-1': 'crater', 'moon-crater-2': 'crater', beam: 'beam', dome: 'dome', saucer: 'saucer', flame: 'flame', 'fin-l': 'fin', 'fin-r': 'fin', rocket: 'rocket', 'rocket-window': 'dome' },
+    },
+    {
+      id: 'cbn-dino-land',
+      name: 'Dino Land',
+      isVip: true,
+      difficulty: 'Medium',
+      paths: [
+        P('sky', BG),
+        P('sun', circle(160, 150, 70)),
+        P('cloud', 'M 600,200 C 540,200 540,130 600,130 C 610,70 710,70 730,130 C 790,130 790,200 730,200 Z'),
+        P('grass', rect(40, 720, 920, 240)),
+        P('volcano', poly(630, 720, 760, 400, 890, 720)),
+        P('lava', poly(725, 440, 760, 400, 795, 440, 780, 475, 760, 455, 740, 475)),
+        P('leg-1', rect(350, 660, 74, 115)),
+        P('leg-2', rect(480, 660, 74, 115)),
+        P('tail', poly(580, 545, 730, 665, 570, 655)),
+        P('spike-1', poly(375, 495, 410, 425, 445, 490)),
+        P('spike-2', poly(450, 482, 485, 412, 520, 482)),
+        P('spike-3', poly(525, 492, 558, 430, 590, 510)),
+        P('neck', poly(310, 560, 245, 360, 345, 360, 395, 520)),
+        P('body', ell(450, 595, 170, 115)),
+        P('head', ell(250, 335, 85, 58)),
+        P('eye', circle(222, 318, 17)),
+        P('egg-1', ell(180, 835, 45, 58)),
+        P('egg-2', ell(270, 870, 40, 50)),
+      ],
+      slots: { sky: 'sky', sun: 'sun', cloud: 'cloud', grass: 'grass', volcano: 'volcano', lava: 'lava', 'leg-1': 'legs', 'leg-2': 'legs', tail: 'dino', 'spike-1': 'spike', 'spike-2': 'spike', 'spike-3': 'spike', neck: 'dino', body: 'dino', head: 'dino', eye: 'eye', 'egg-1': 'egg', 'egg-2': 'egg' },
+    },
+    {
+      id: 'cbn-princess-castle',
+      name: 'Princess Castle',
+      isVip: true,
+      difficulty: 'Medium',
+      paths: [
+        P('sky', BG),
+        P('sun', circle(850, 140, 65)),
+        P('cloud', 'M 70,220 C 20,220 20,150 80,150 C 90,90 200,90 220,150 C 280,150 290,220 230,220 Z'),
+        P('grass', rect(40, 780, 920, 180)),
+        P('wall', rect(300, 460, 400, 320)),
+        P('keep', rect(410, 330, 180, 160)),
+        P('tower-l', rect(210, 400, 130, 380)),
+        P('tower-r', rect(660, 400, 130, 380)),
+        P('roof-keep', poly(390, 330, 500, 190, 610, 330)),
+        P('roof-l', poly(190, 400, 275, 260, 360, 400)),
+        P('roof-r', poly(640, 400, 725, 260, 810, 400)),
+        P('flag-keep', poly(500, 190, 500, 115, 570, 152)),
+        P('flag-l', poly(275, 260, 275, 195, 335, 228)),
+        P('flag-r', poly(725, 260, 725, 195, 785, 228)),
+        P('door', 'M 440,780 L 440,650 C 440,570 560,570 560,650 L 560,780 Z'),
+        P('window-keep', circle(500, 410, 32)),
+        P('window-l', circle(275, 520, 32)),
+        P('window-r', circle(725, 520, 32)),
+      ],
+      slots: { sky: 'sky', sun: 'sun', cloud: 'cloud', grass: 'grass', wall: 'wall', keep: 'wall2', 'tower-l': 'tower', 'tower-r': 'tower', 'roof-keep': 'roof', 'roof-l': 'roof', 'roof-r': 'roof', 'flag-keep': 'flag', 'flag-l': 'flag', 'flag-r': 'flag', door: 'door', 'window-keep': 'glass', 'window-l': 'glass', 'window-r': 'glass' },
+    },
+  ] as PictureDef[]).map(({ id, name, isVip, difficulty, paths, slots }) => ({
     id,
     name,
     category: 'colorbynumber',
-    difficulty: 'Easy' as const,
+    difficulty: difficulty ?? ('Easy' as const),
     isVip,
     viewBox: '0 0 1000 1000',
     paths,
@@ -390,6 +576,11 @@ const NATURAL_SLOTS: Record<string, string[]> = {
   eyewhite: ['White', 'Light Yellow'],
   sand: ['Light Yellow', 'Orange'],
   trunk: ['Brown', 'Dark Brown'],
+  star: ['Yellow', 'Orange'],
+  flame: ['Orange', 'Yellow', 'Red'],
+  lava: ['Orange', 'Red'],
+  volcano: ['Brown', 'Dark Brown'],
+  bubble: ['Light Blue', 'Lavender', 'Light Pink'],
 };
 
 const shuffled = <T,>(arr: T[]): T[] => {
