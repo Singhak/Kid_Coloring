@@ -5,11 +5,14 @@ import { Template, ColorScheme } from '../types';
 import { buildNumberPalette, pickScheme } from '../constants/colorByNumberTemplates';
 import { playPop, playFanfare } from '../services/soundEffects';
 import { tracker } from '../services/tracker';
+import { printNumberSheet } from '../services/pdfExporter';
 
 interface NumberColoringPlayerProps {
   template: Template;
   resetTrigger?: number;
   onBackToLibrary?: () => void;
+  /** The player registers its print action here so the app's Print button can call it. */
+  printRef?: React.MutableRefObject<(() => boolean) | null>;
 }
 
 interface LabelSpot {
@@ -76,7 +79,7 @@ function computeLabelSpots(svg: SVGSVGElement, ids: string[]): Record<string, La
   return spots;
 }
 
-const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, resetTrigger, onBackToLibrary }) => {
+const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, resetTrigger, onBackToLibrary, printRef }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [scheme, setScheme] = useState<ColorScheme | undefined>(() => pickScheme(template));
   const [filled, setFilled] = useState<Set<string>>(new Set());
@@ -116,6 +119,26 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
   useLayoutEffect(() => {
     if (svgRef.current) setSpots(computeLabelSpots(svgRef.current, template.paths.map(p => p.id)));
   }, [template]);
+
+  // Print action: blank numbered page with a number -> color name key
+  useEffect(() => {
+    if (!printRef || !scheme) return;
+    printRef.current = () =>
+      printNumberSheet(
+        template,
+        palette,
+        (Object.entries(spots) as [string, LabelSpot][]).map(([pathId, s]) => ({
+          pathId,
+          x: s.x,
+          y: s.y,
+          r: Math.max(MIN_BADGE_R, Math.min(MAX_BADGE_R, s.r * 0.75)),
+        })),
+        scheme.name
+      );
+    return () => {
+      printRef.current = null;
+    };
+  }, [printRef, template, scheme, palette, spots]);
 
   const total = template.paths.filter(p => numberByPath[p.id]).length;
   const isDone = total > 0 && filled.size === total;

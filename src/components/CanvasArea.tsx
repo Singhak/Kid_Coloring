@@ -34,6 +34,7 @@ interface CanvasAreaProps {
   onClearSticker?: () => void;
   isColorByNumber?: boolean;
   numberTemplate?: Template | null;
+  numberPrintRef?: React.MutableRefObject<(() => boolean) | null>;
   onToggleColorByNumber?: () => void;
   onOpenStickers?: () => void;
   onQuickNext?: () => void;
@@ -68,6 +69,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   onClearSticker,
   isColorByNumber = false,
   numberTemplate = null,
+  numberPrintRef,
   onToggleColorByNumber,
   onOpenStickers,
   onQuickNext,
@@ -157,6 +159,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
               <NumberColoringPlayer
                 template={numberTemplate}
                 resetTrigger={resetTrigger}
+                printRef={numberPrintRef}
                 onBackToLibrary={() => setShowTemplates(true)}
               />
             </div>

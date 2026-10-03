@@ -91,6 +91,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
   const [selectedSticker, setSelectedSticker] = useState<StickerItem | null>(null);
   const [isColorByNumber, setIsColorByNumber] = useState(false);
   const [numberTemplate, setNumberTemplate] = useState<Template | null>(null);
+  const numberPrintRef = useRef<(() => boolean) | null>(null);
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
   const [showHelpFlow, setShowHelpFlow] = useState(false);
   const [isTourActive, setIsTourActive] = useState(false);
@@ -1162,6 +1163,10 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       return;
     }
     tracker.trackCanvas('print_sheet', { isPro });
+    if (numberTemplate && numberPrintRef.current) {
+      numberPrintRef.current();
+      return;
+    }
     const lineArtCanvas = lineArtCanvasRef.current;
     if (!lineArtCanvas) return;
     printColoringSheet(lineArtCanvas, 'Coloring Masterpiece');
@@ -1309,6 +1314,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             onIncrementFillCount={() => setFillCount((prev) => prev + 1)}
             resetTrigger={resetTrigger}
             numberTemplate={numberTemplate}
+            numberPrintRef={numberPrintRef}
             setSelectedCategory={setSelectedCategory}
           />
         </div>
