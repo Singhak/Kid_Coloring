@@ -40,6 +40,24 @@ export interface Template {
   imageUrl?: string;
   previewSvg?: string;
   isVip?: boolean;
+  numberMode?: {
+    /** path id -> slot name (what the region is, e.g. 'body', 'sky') */
+    slots: Record<string, string>;
+    schemes: ColorScheme[];
+  };
+}
+
+/** A color assignment for a picture's slots. The numbered palette is derived from it. */
+export interface ColorScheme {
+  id: string;
+  name: string;
+  colors: Record<string, string>;
+}
+
+export interface NumberPaletteEntry {
+  number: number;
+  color: string;
+  pathIds: string[];
 }
 
 export interface ViewportTransform {

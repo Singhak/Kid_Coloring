@@ -11,6 +11,7 @@ import {
 import { Category, Template } from './types';
 import { REALISTIC_TEMPLATES } from './constants/realisticTemplates';
 import { EDUCATIONAL_TEMPLATES } from './constants/educationalTemplates';
+import { COLOR_BY_NUMBER_TEMPLATES } from './constants/colorByNumberTemplates';
 import { THEMATIC_TEMPLATES } from './constants/thematicTemplates';
 import { getAllWeeklyDropTemplates } from './constants/weeklyDrops';
 import { getAllFestivalTemplates } from './constants/festivalPacks';
@@ -215,6 +216,7 @@ export const CATEGORIES: Category[] = [
   { id: 'random', label: 'All Magic', icon: Sparkles, color: '#FFD93D', emoji: '✨' },
   { id: 'festivals', label: 'Festivals & Holidays', icon: Sparkles, color: '#FF3838', emoji: '🎉' },
   { id: 'weekly', label: 'Weekly Drops', icon: Sparkles, color: '#FF4757', emoji: '🔥' },
+  { id: 'colorbynumber', label: 'Color by Number', icon: ImageIcon, color: '#EC4899', emoji: '🔢' },
   { id: 'alphabet', label: 'Alphabets', icon: ImageIcon, color: '#FF6B6B', emoji: '🔤' },
   { id: 'numbers', label: 'Numbers', icon: ImageIcon, color: '#4D96FF', emoji: '🔢' },
   { id: 'fruits', label: 'Fruits', icon: ImageIcon, color: '#FF9F43', emoji: '🍎' },
@@ -256,6 +258,7 @@ export const SUBJECTS_BY_CATEGORY: Record<string, string[]> = {
 export const STATIC_TEMPLATES: Template[] = [
   ...getAllFestivalTemplates(),
   ...getAllWeeklyDropTemplates(),
+  ...COLOR_BY_NUMBER_TEMPLATES,
   ...EDUCATIONAL_TEMPLATES,
   ...REALISTIC_TEMPLATES,
   ...THEMATIC_TEMPLATES,
