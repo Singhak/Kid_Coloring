@@ -47,6 +47,42 @@ interface AnalyticsData {
   }>;
 }
 
+// tracking-stats.php returns the richer dashboard shape; map it to what this modal renders.
+const toModalData = (j: any): AnalyticsData => {
+  const o = j.overview || {};
+  const m = j.monetization_funnel || [];
+  const canvas: Array<{ action: string; count: number }> = j.canvas_actions || [];
+  return {
+    overview: {
+      total_visitors: o.visitors || 0,
+      total_sessions: o.sessions || 0,
+      total_pageviews: o.pageviews || 0,
+      total_events: o.events || 0,
+      active_visitors_now: o.active_now || 0,
+      avg_duration_seconds: o.avg_duration_seconds || 0,
+      pro_visitors: o.pro_visitors || 0,
+    },
+    top_templates: (j.top_templates || []).map((t: any) => ({ template_name: t.name, selects_count: t.opens, unique_artists: t.artists })),
+    top_tools: [
+      ...(j.tools || []).map((t: any) => ({ tool_action: 'use_tool', tool_name: t.name, count: t.uses })),
+      ...canvas.map((c) => ({ tool_action: c.action, tool_name: '', count: c.count })),
+    ],
+    top_colors: (j.colors || []).map((c: any) => ({ color_or_pattern: c.name, pick_count: c.picks })),
+    canvas_exports: canvas
+      .filter((c) => ['download_image', 'print_sheet', 'clear', 'undo', 'redo'].includes(c.action))
+      .map((c) => ({ action: c.action, total_count: c.count })),
+    creative_features: (j.ai || []).map((a: any) => ({ action: a.action, count: a.count })),
+    funnel: {
+      total_visits: m[0]?.users || 0,
+      viewed_pricing: m[1]?.users || 0,
+      started_checkout: m[2]?.users || 0,
+      completed_payment: m[3]?.users || 0,
+    },
+    devices: (j.devices || []).map((d: any) => ({ device_type: d.name, count: d.count })),
+    live_stream: j.live_stream || [],
+  };
+};
+
 interface AnalyticsDashboardModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -90,7 +126,7 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
       }
       const json = await res.json();
       if (json.success) {
-        setData(json);
+        setData(toModalData(json));
         setIsUnlocked(true);
         sessionStorage.setItem('coloro_telemetry_key', key);
         setAdminKey(key);

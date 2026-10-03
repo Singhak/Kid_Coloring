@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 require_once __DIR__ . '/tracking-db.php';
 
 // Read raw POST body (supports application/json and navigator.sendBeacon text/plain)
-$rawBody = file_get_contents('php://input');
+$rawBody = file_get_contents('php://input', false, null, 0, 262144); // 256 KB cap
 $payload = json_decode($rawBody, true);
 
 if (!is_array($payload)) {
@@ -42,13 +42,25 @@ if (empty($payload)) {
 
 try {
     $pdo = getTrackingDb();
-    $now = date('Y-m-d H:i:s');
+    $now = gmdate('Y-m-d H:i:s');
     $clientIp = getTrackingClientIp();
     $ipHash = hashClientIp($clientIp);
     $country = $_SERVER['HTTP_CF_IPCOUNTRY'] ?? $_SERVER['GEOIP_COUNTRY_CODE'] ?? null;
     $city = $_SERVER['HTTP_CF_IPCITY'] ?? null;
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown';
     $uaInfo = parseTrackingUserAgent($userAgent);
+
+    // Ignore crawlers/uptime monitors so they don't inflate visitor numbers
+    if (preg_match('/bot|crawl|spider|slurp|facebookexternalhit|headless|lighthouse|pingdom|uptime|curl|wget/i', $userAgent)) {
+        echo json_encode(['success' => true, 'processed' => 0, 'ignored' => 'bot']);
+        exit;
+    }
+
+    // Small helper: bounded string from untrusted input
+    $clip = function ($v, int $max) {
+        if ($v === null) return null;
+        return function_exists('mb_substr') ? mb_substr((string)$v, 0, $max) : substr((string)$v, 0, $max);
+    };
 
     // Normalize into a batch of events
     $items = [];
@@ -59,6 +71,7 @@ try {
     } else {
         $items = [$payload];
     }
+    $items = array_slice($items, 0, 50); // max 50 items per request
 
     $processedCount = 0;
 
@@ -72,12 +85,20 @@ try {
         ) VALUES (
             :session_id, :visitor_id, :user_id, :ip_hash, :country, :city, :user_agent,
             :device_type, :browser, :os, :screen_res, :referrer, :utm_source, :utm_medium,
-            :utm_campaign, :landing_page, :created_at, :last_heartbeat_at, 0, 1, 0, :is_pro
+            :utm_campaign, :landing_page, :created_at, :last_heartbeat_at, 0, 0, 0, :is_pro
         )
         ON CONFLICT(session_id) DO UPDATE SET
             last_heartbeat_at = :last_heartbeat_at,
             user_id = COALESCE(:user_id, tracking_sessions.user_id),
-            is_pro = COALESCE(:is_pro, tracking_sessions.is_pro)
+            is_pro = MAX(:is_pro, tracking_sessions.is_pro)
+    ");
+
+    $stmtIdentify = $pdo->prepare("
+        UPDATE tracking_sessions
+        SET user_id = :user_id,
+            is_pro = MAX(:is_pro, is_pro),
+            last_heartbeat_at = :now
+        WHERE session_id = :session_id
     ");
 
     $stmtHeartbeat = $pdo->prepare("
@@ -131,7 +152,10 @@ try {
         $sessionId = (string)($item['session_id'] ?? $item['sessionId'] ?? '');
         $visitorId = (string)($item['visitor_id'] ?? $item['visitorId'] ?? '');
         $userId = isset($item['user_id']) ? (string)$item['user_id'] : (isset($item['userId']) ? (string)$item['userId'] : null);
-        $itemTime = isset($item['timestamp']) ? date('Y-m-d H:i:s', strtotime($item['timestamp'])) : $now;
+        $sessionId = $clip($sessionId, 64);
+        $visitorId = $clip($visitorId, 64);
+        $userId = $clip($userId, 128);
+        $itemTime = $now; // server time (UTC) only: client clocks are not trusted
 
         if (empty($sessionId) || empty($visitorId)) {
             continue; // Must have session and visitor ID
@@ -139,15 +163,16 @@ try {
 
         switch ($type) {
             case 'session_start':
-                $deviceType = $item['device_type'] ?? $uaInfo['device'];
-                $browser = $item['browser'] ?? $uaInfo['browser'];
-                $os = $item['os'] ?? $uaInfo['os'];
-                $screenRes = $item['screen_res'] ?? null;
-                $referrer = $item['referrer'] ?? '';
-                $utmSource = $item['utm_source'] ?? null;
-                $utmMedium = $item['utm_medium'] ?? null;
-                $utmCampaign = $item['utm_campaign'] ?? null;
-                $landingPage = $item['landing_page'] ?? '/';
+                $deviceType = in_array($item['device_type'] ?? '', ['mobile', 'tablet', 'desktop'], true)
+                    ? $item['device_type'] : $uaInfo['device'];
+                $browser = $uaInfo['browser'];
+                $os = $uaInfo['os'];
+                $screenRes = $clip($item['screen_res'] ?? null, 20);
+                $referrer = $clip($item['referrer'] ?? '', 300);
+                $utmSource = $clip($item['utm_source'] ?? null, 80);
+                $utmMedium = $clip($item['utm_medium'] ?? null, 80);
+                $utmCampaign = $clip($item['utm_campaign'] ?? null, 120);
+                $landingPage = $clip($item['landing_page'] ?? '/', 300);
                 $isPro = !empty($item['is_pro']) ? 1 : 0;
 
                 $stmtInsertSession->execute([
@@ -174,6 +199,16 @@ try {
                 $processedCount++;
                 break;
 
+            case 'identify':
+                $stmtIdentify->execute([
+                    ':user_id' => $userId,
+                    ':is_pro' => !empty($item['is_pro']) ? 1 : 0,
+                    ':now' => $itemTime,
+                    ':session_id' => $sessionId
+                ]);
+                $processedCount++;
+                break;
+
             case 'heartbeat':
                 $deltaSeconds = isset($item['delta_seconds']) ? (int)$item['delta_seconds'] : 30;
                 if ($deltaSeconds < 0 || $deltaSeconds > 600) $deltaSeconds = 30; // Clamp sensible limits
@@ -187,9 +222,9 @@ try {
                 break;
 
             case 'pageview':
-                $pagePath = (string)($item['page_path'] ?? $item['path'] ?? '/');
-                $pageTitle = (string)($item['page_title'] ?? $item['title'] ?? '');
-                $ref = (string)($item['referrer'] ?? '');
+                $pagePath = $clip($item['page_path'] ?? $item['path'] ?? '/', 300);
+                $pageTitle = $clip($item['page_title'] ?? $item['title'] ?? '', 200);
+                $ref = $clip($item['referrer'] ?? '', 300);
                 $duration = isset($item['duration_seconds']) ? (int)$item['duration_seconds'] : 0;
 
                 $stmtInsertPageview->execute([
@@ -212,14 +247,15 @@ try {
 
             case 'event':
             default:
-                $category = (string)($item['category'] ?? 'general');
-                $action = (string)($item['action'] ?? 'action');
-                $label = isset($item['label']) ? (string)$item['label'] : null;
+                $category = $clip($item['category'] ?? 'general', 60);
+                $action = $clip($item['action'] ?? 'action', 60);
+                $label = isset($item['label']) ? $clip($item['label'], 150) : null;
                 $value = isset($item['value']) ? (float)$item['value'] : null;
                 
                 $metadata = null;
                 if (isset($item['metadata'])) {
                     $metadata = is_string($item['metadata']) ? $item['metadata'] : json_encode($item['metadata']);
+                    $metadata = $clip($metadata, 2000);
                 }
 
                 $stmtInsertEvent->execute([
@@ -258,6 +294,7 @@ try {
     http_response_code(500);
     echo json_encode([
         'success' => false,
-        'error' => 'Failed to record tracking telemetry: ' . $e->getMessage()
+        'error' => 'Failed to record tracking telemetry'
     ]);
+    error_log('[track.php] ' . $e->getMessage());
 }

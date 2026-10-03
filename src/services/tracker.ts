@@ -13,7 +13,7 @@
  */
 
 interface QueuedTelemetryItem {
-  type: 'session_start' | 'heartbeat' | 'pageview' | 'event';
+  type: 'session_start' | 'identify' | 'heartbeat' | 'pageview' | 'event';
   session_id: string;
   visitor_id: string;
   user_id?: string | null;
@@ -50,6 +50,9 @@ class TelemetryTracker {
   private lastActivityTime: number = Date.now();
   private sessionTimeoutMs: number = 30 * 60 * 1000; // 30 minutes idle timeout
   private isInitialized: boolean = false;
+  private lastIdentity: string = '';
+  private lastPageKey: string = '';
+  private lastPageTime: number = 0;
 
   constructor() {
     // Lazy initialize on first browser run
@@ -78,7 +81,13 @@ class TelemetryTracker {
 
     // Activity listeners to maintain session liveness
     const onUserActivity = () => {
-      this.lastActivityTime = Date.now();
+      const now = Date.now();
+      // Back after 30+ minutes idle: start a fresh session instead of stretching the old one
+      if (now - this.lastActivityTime > this.sessionTimeoutMs) {
+        this.rotateSession();
+      }
+      this.lastActivityTime = now;
+      try { sessionStorage.setItem('coloro_sid_time', now.toString()); } catch { /* storage blocked */ }
     };
     window.addEventListener('pointerdown', onUserActivity, { passive: true });
     window.addEventListener('keydown', onUserActivity, { passive: true });
@@ -136,6 +145,24 @@ class TelemetryTracker {
     }
     sessionStorage.setItem(timeKey, now.toString());
     return sid;
+  }
+
+  private rotateSession(): void {
+    this.sessionId = this.generateId('sess');
+    try { sessionStorage.setItem('coloro_sid', this.sessionId); } catch { /* storage blocked */ }
+    this.trackSessionStart();
+    if (this.userId) this.sendIdentify();
+  }
+
+  private sendIdentify(): void {
+    this.enqueue({
+      type: 'identify',
+      session_id: this.sessionId,
+      visitor_id: this.visitorId,
+      user_id: this.userId,
+      timestamp: new Date().toISOString(),
+      is_pro: this.isPro ? 1 : 0
+    });
   }
 
   private getDeviceType(): string {
@@ -197,6 +224,14 @@ class TelemetryTracker {
     if (properties && typeof properties.isPro === 'boolean') {
       this.isPro = properties.isPro;
     }
+    // Only report real changes: Firestore snapshots call this repeatedly with the same values
+    const identity = `${userId || ''}|${this.isPro ? 1 : 0}`;
+    if (identity === this.lastIdentity) return;
+    const prevUser = this.lastIdentity.split('|')[0];
+    this.lastIdentity = identity;
+    // Attach the user / plan to the running session (session_start fires before auth resolves)
+    if (userId) this.sendIdentify();
+    if (userId && prevUser === userId) return; // plan change only, not a new login
     this.event('auth', userId ? 'user_login' : 'user_logout', userId || undefined, undefined, {
       isPro: this.isPro
     });
@@ -205,6 +240,12 @@ class TelemetryTracker {
   public pageView(path?: string, title?: string): void {
     const p = path || (typeof window !== 'undefined' ? window.location.pathname + window.location.hash : '/');
     const t = title || (typeof document !== 'undefined' ? document.title : '');
+    // Several callers report the same navigation (init + router); ignore repeats within 3s
+    const key = p;
+    const nowMs = Date.now();
+    if (key === this.lastPageKey && nowMs - this.lastPageTime < 3000) return;
+    this.lastPageKey = key;
+    this.lastPageTime = nowMs;
     this.enqueue({
       type: 'pageview',
       session_id: this.sessionId,

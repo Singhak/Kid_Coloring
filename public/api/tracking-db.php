@@ -13,6 +13,9 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'tracking-db.php') {
     exit;
 }
 
+// All telemetry timestamps are stored in UTC so SQLite's datetime('now'), PHP and the dashboard agree.
+date_default_timezone_set('UTC');
+
 define('TRACKING_DB_DIR', __DIR__ . '/data');
 define('TRACKING_DB_PATH', TRACKING_DB_DIR . '/tracking.db');
 
@@ -105,6 +108,14 @@ function initTrackingSchema(PDO $pdo): void {
             metadata TEXT,
             created_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS tracking_login_attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ip_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_login_attempts ON tracking_login_attempts(ip_hash, created_at);
+        CREATE INDEX IF NOT EXISTS idx_events_action ON tracking_events(action);
 
         CREATE INDEX IF NOT EXISTS idx_sessions_session_id ON tracking_sessions(session_id);
         CREATE INDEX IF NOT EXISTS idx_sessions_visitor_id ON tracking_sessions(visitor_id);
@@ -208,7 +219,9 @@ function parseTrackingUserAgent(string $userAgent): array {
 }
 
 /**
- * Discover configured Telemetry Admin Key from .env or server environment
+ * Discover configured Telemetry Admin Key from the server environment or a .env file.
+ * Returns '' when none is configured, in which case the dashboard stays locked
+ * (there is deliberately no built-in default key).
  */
 function getTelemetryAdminKey(): string {
     static $adminKey = null;
@@ -219,39 +232,80 @@ function getTelemetryAdminKey(): string {
     $envVal = getenv('TELEMETRY_ADMIN_KEY');
     if ($envVal !== false && $envVal !== '') return $adminKey = (string)$envVal;
 
-    // Search .env files
     $envFiles = [__DIR__ . '/.env', __DIR__ . '/../.env', dirname(__DIR__) . '/.env'];
     foreach ($envFiles as $file) {
         if (file_exists($file)) {
             $parsed = @parse_ini_file($file, false, INI_SCANNER_RAW);
             if (!empty($parsed['TELEMETRY_ADMIN_KEY'])) {
-                return $adminKey = (string)$parsed['TELEMETRY_ADMIN_KEY'];
+                return $adminKey = trim((string)$parsed['TELEMETRY_ADMIN_KEY'], " \t\"'");
             }
         }
     }
 
-    return $adminKey = 'coloro_admin_2026';
+    return $adminKey = '';
+}
+
+/**
+ * Cookie value derived from the key, so the raw passcode is never stored in the browser.
+ */
+function telemetryCookieToken(): string {
+    return hash_hmac('sha256', 'coloro_telemetry_cookie', getTelemetryAdminKey());
+}
+
+function telemetrySetAuthCookie(): void {
+    $secure = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    @setcookie('coloro_admin_token', telemetryCookieToken(), [
+        'expires' => time() + 86400 * 30,
+        'path' => '/',
+        'secure' => $secure,
+        'httponly' => true,
+        'samesite' => 'Strict',
+    ]);
+}
+
+function telemetryClearAuthCookie(): void {
+    @setcookie('coloro_admin_token', '', ['expires' => time() - 3600, 'path' => '/']);
+}
+
+/**
+ * Login throttling: max 5 failed passcode attempts per IP per 15 minutes.
+ */
+function telemetryLoginLocked(): bool {
+    try {
+        $pdo = getTrackingDb();
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM tracking_login_attempts WHERE ip_hash = :ip AND created_at >= :since");
+        $stmt->execute([':ip' => hashClientIp(getTrackingClientIp()), ':since' => gmdate('Y-m-d H:i:s', time() - 900)]);
+        return (int)$stmt->fetchColumn() >= 5;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+function telemetryRecordLoginFailure(): void {
+    try {
+        $pdo = getTrackingDb();
+        $pdo->prepare("INSERT INTO tracking_login_attempts (ip_hash, created_at) VALUES (:ip, :now)")
+            ->execute([':ip' => hashClientIp(getTrackingClientIp()), ':now' => gmdate('Y-m-d H:i:s')]);
+        $pdo->prepare("DELETE FROM tracking_login_attempts WHERE created_at < :old")
+            ->execute([':old' => gmdate('Y-m-d H:i:s', time() - 86400)]);
+    } catch (Throwable $e) {
+    }
+    usleep(500000);
 }
 
 /**
  * Validates whether the incoming request is authorized to view analytics
+ * (X-Admin-Key header for scripts, or a logged-in session / signed cookie for the dashboard).
  */
 function isTelemetryAuthorized(): bool {
     $expected = getTelemetryAdminKey();
+    if ($expected === '') return false;
 
-    // 1. Check HTTP header X-Admin-Key
     $headerKey = $_SERVER['HTTP_X_ADMIN_KEY'] ?? '';
     if ($headerKey !== '' && hash_equals($expected, $headerKey)) {
         return true;
     }
 
-    // 2. Check query string ?key=... or POST param key
-    $paramKey = $_GET['key'] ?? ($_POST['key'] ?? '');
-    if ($paramKey !== '' && hash_equals($expected, $paramKey)) {
-        return true;
-    }
-
-    // 3. Check session authentication
     if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
         @session_start();
     }
@@ -259,8 +313,7 @@ function isTelemetryAuthorized(): bool {
         return true;
     }
 
-    // 4. Check cookie
-    if (!empty($_COOKIE['coloro_admin_key']) && hash_equals($expected, $_COOKIE['coloro_admin_key'])) {
+    if (!empty($_COOKIE['coloro_admin_token']) && hash_equals(telemetryCookieToken(), (string)$_COOKIE['coloro_admin_token'])) {
         return true;
     }
 
