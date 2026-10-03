@@ -160,7 +160,10 @@ export function printNumberSheet(
 
   const paths = template.paths
     .map(p => `<path d="${p.d}" fill="#fff" stroke="#1A1A1A" stroke-width="${p.strokeWidth ?? 6}" stroke-linejoin="round"/>`)
-    .join('');
+    .join('') +
+    (template.decor ?? [])
+      .map(p => `<path d="${p.d}" fill="none" stroke="#1A1A1A" stroke-width="${p.strokeWidth ?? 4}" stroke-linecap="round" stroke-linejoin="round"/>`)
+      .join('');
   const badgeSvg = badges
     .filter(b => numberByPath[b.pathId])
     .map(

@@ -222,6 +222,20 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
             );
           })}
 
+          {/* Open strokes of auto-numbered pictures (necks, legs, whiskers): drawn over the regions, not tappable */}
+          {template.decor?.map((p, i) => (
+            <path
+              key={`decor-${i}`}
+              d={p.d}
+              fill="none"
+              stroke="#1A1A1A"
+              strokeWidth={p.strokeWidth ?? 4}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              pointerEvents="none"
+            />
+          ))}
+
           {/* Number badges: centered in each region's visible area, hidden once filled */}
           {template.paths.map(p => {
             const spot = spots[p.id];

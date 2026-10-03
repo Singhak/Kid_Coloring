@@ -1,8 +1,10 @@
 /**
  * Turns ANY picture on the canvas into a Color by Number page at run time.
- *  - vector pictures (library, AI and procedural SVG paths): every closed shape becomes a numbered region
- *  - raster pictures (Photo Art / AI line-art images): the white areas between the lines are found with a
- *    flood fill, then traced into vector regions
+ * Every picture is reduced to "lines", the white areas between the lines are found with a flood fill, and
+ * each area is traced into a numbered vector region:
+ *  - vector pictures (library, AI and procedural SVG paths): the strokes are drawn onto a canvas first, so
+ *    open lines (necks, legs, whiskers) act as walls and stay visible on top of the regions
+ *  - raster pictures (Photo Art / AI line-art images): dark pixels are the lines
  * Neighbouring regions are always given different color slots, so the numbered palette stays small and clear.
  */
 
@@ -12,8 +14,6 @@ export const AUTO_NUMBER_ID_PREFIX = 'auto-number-';
 
 const MAX_REGIONS = 40;
 const MAX_SLOTS = 8;
-const OWNER_GRID = 64; // sampling grid for vector pictures
-const MIN_VECTOR_CELLS = 6; // visible area (of 64x64) below which a shape is too small to tap
 const RASTER_GRID = 320; // working resolution for raster pictures
 const MIN_RASTER_CELLS = 150; // smaller white areas are treated as part of the lines
 const LINE_LUMINANCE = 150; // darker than this = a line
@@ -64,14 +64,16 @@ function buildTemplate(
   adjacency: Set<number>[],
   areas: number[],
   bgIndex: number,
-  strokeWidth: number
+  strokeWidth: number,
+  decor?: Template['decor']
 ): Template {
   const slotNames = assignSlots(regions.length, adjacency, areas, bgIndex);
   const slots: Record<string, string> = {};
   const paths = regions.map((r, i) => {
     const id = `region-${i}`;
     slots[id] = slotNames[i];
-    return { id, d: r.d, strokeWidth };
+    // the background region has no outline of its own (it would only draw a frame around the page)
+    return { id, d: r.d, strokeWidth: i === bgIndex ? 0 : strokeWidth };
   });
   return {
     id: `${AUTO_NUMBER_ID_PREFIX}${Date.now()}`,
@@ -80,108 +82,45 @@ function buildTemplate(
     difficulty: paths.length > 24 ? 'Detailed' : paths.length > 12 ? 'Medium' : 'Easy',
     viewBox,
     paths,
+    ...(decor ? { decor } : {}),
     numberMode: { slots, schemes: [] },
   };
 }
 
-/** Vector pictures: closed shapes -> numbered regions. */
+/** Vector pictures: draw the strokes, find the areas they enclose, number those. */
 export function autoNumberFromPaths(paths: SvgPath[], viewBox: string, name: string): Template | null {
   const [vx, vy, vw, vh] = viewBox.split(/[\s,]+/).map(Number);
-  if (![vx, vy, vw, vh].every(Number.isFinite) || vw <= 0 || vh <= 0) return null;
+  if (![vx, vy, vw, vh].every(Number.isFinite) || vw <= 0 || vh <= 0 || paths.length === 0) return null;
 
-  const closed = paths.filter((p) => p.d && /z\s*$/i.test(p.d.trim()));
-  if (closed.length === 0) return null;
-
-  const ns = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(ns, 'svg');
-  svg.setAttribute('viewBox', viewBox);
-  svg.setAttribute('width', '10');
-  svg.setAttribute('height', '10');
-  svg.style.cssText = 'position:absolute;left:-9999px;top:0;opacity:0;pointer-events:none';
-  const els = closed.map((p) => {
-    const el = document.createElementNS(ns, 'path');
-    el.setAttribute('d', p.d);
-    svg.appendChild(el);
-    return el;
-  });
-  document.body.appendChild(svg);
-
-  // owner[j][i] = index of the topmost shape at that sample point (-1 = bare paper)
-  const owner: number[][] = [];
+  const N = RASTER_GRID;
+  const canvas = document.createElement('canvas');
+  canvas.width = N;
+  canvas.height = N;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, N, N);
+  ctx.scale(N / vw, N / vh);
+  ctx.translate(-vx, -vy);
+  ctx.strokeStyle = '#000000';
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  // Lines are drawn a little thicker than on screen so small gaps between strokes do not leak
+  ctx.lineWidth = vw * 0.016;
   try {
-    const pt = svg.createSVGPoint();
-    for (let j = 0; j < OWNER_GRID; j++) {
-      const row: number[] = [];
-      for (let i = 0; i < OWNER_GRID; i++) {
-        pt.x = vx + ((i + 0.5) / OWNER_GRID) * vw;
-        pt.y = vy + ((j + 0.5) / OWNER_GRID) * vh;
-        let hit = -1;
-        for (let k = els.length - 1; k >= 0; k--) {
-          if (els[k].isPointInFill(pt)) {
-            hit = k;
-            break;
-          }
-        }
-        row.push(hit);
-      }
-      owner.push(row);
-    }
+    for (const p of paths) ctx.stroke(new Path2D(p.d));
   } catch {
-    return null;
-  } finally {
-    document.body.removeChild(svg);
+    return null; // bad path data
   }
 
-  const visible = new Array(closed.length).fill(0);
-  let bare = 0;
-  owner.forEach((row) => row.forEach((o) => (o >= 0 ? visible[o]++ : bare++)));
+  const { data } = ctx.getImageData(0, 0, N, N);
+  const isLine = new Uint8Array(N * N);
+  for (let c = 0; c < N * N; c++) isLine[c] = data[c * 4] < LINE_LUMINANCE ? 1 : 0;
 
-  // Largest visible shapes first, then restore painting order
-  let keep = closed
-    .map((_, i) => i)
-    .filter((i) => visible[i] >= MIN_VECTOR_CELLS)
-    .sort((a, b) => visible[b] - visible[a])
-    .slice(0, MAX_REGIONS)
-    .sort((a, b) => a - b);
-
-  const needsBackground = bare > OWNER_GRID * OWNER_GRID * 0.1;
-  const regions: { d: string }[] = [];
-  const areas: number[] = [];
-  const indexOf = new Map<number, number>();
-  let bgIndex = -1;
-
-  if (needsBackground) {
-    const m = vw * 0.04;
-    regions.push({
-      d: `M ${vx + m},${vy + m} L ${vx + vw - m},${vy + m} L ${vx + vw - m},${vy + vh - m} L ${vx + m},${vy + vh - m} Z`,
-    });
-    areas.push(bare);
-    bgIndex = 0;
-  }
-  for (const i of keep) {
-    indexOf.set(i, regions.length);
-    regions.push({ d: closed[i].d });
-    areas.push(visible[i]);
-  }
-  if (regions.length < 3) return null;
-
-  const adjacency: Set<number>[] = regions.map(() => new Set<number>());
-  const link = (a: number, b: number) => {
-    if (a === b) return;
-    const ra = a < 0 ? bgIndex : indexOf.get(a) ?? -1;
-    const rb = b < 0 ? bgIndex : indexOf.get(b) ?? -1;
-    if (ra < 0 || rb < 0 || ra === rb) return;
-    adjacency[ra].add(rb);
-    adjacency[rb].add(ra);
-  };
-  for (let j = 0; j < OWNER_GRID; j++) {
-    for (let i = 0; i < OWNER_GRID; i++) {
-      if (i + 1 < OWNER_GRID) link(owner[j][i], owner[j][i + 1]);
-      if (j + 1 < OWNER_GRID) link(owner[j][i], owner[j + 1][i]);
-    }
-  }
-
-  return buildTemplate(name, viewBox, regions, adjacency, areas, bgIndex, 6 * (vw / 1000));
+  const decor = paths
+    .filter((p) => p.d)
+    .map((p) => ({ d: p.d, strokeWidth: Math.max(2, (p.strokeWidth || 4) * (vw / 500)) }));
+  return numberFromLineMask(isLine, name, viewBox, decor);
 }
 
 /** Raster pictures: white areas between the lines -> numbered regions. */
@@ -211,6 +150,12 @@ export async function autoNumberFromImage(imageUrl: string, name: string): Promi
     const lum = 0.299 * data[c * 4] + 0.587 * data[c * 4 + 1] + 0.114 * data[c * 4 + 2];
     isLine[c] = lum < LINE_LUMINANCE ? 1 : 0;
   }
+  return numberFromLineMask(isLine, name, '0 0 1000 1000');
+}
+
+/** Finds the areas enclosed by lines on the RASTER_GRID mask and turns them into a numbered template. */
+function numberFromLineMask(isLine: Uint8Array, name: string, viewBox: string, decor?: Template['decor']): Template | null {
+  const N = RASTER_GRID;
 
   // 1. Connected white areas
   const comp = new Int32Array(N * N).fill(-1);
@@ -291,12 +236,13 @@ export async function autoNumberFromImage(imageUrl: string, name: string): Promi
   }
 
   // 5. Trace each region's outline into a path
-  const SIZE = 1000;
-  const k = SIZE / N;
+  const [, , vbW] = viewBox.split(/[\s,]+/).map(Number);
+  const [vbX, vbY, , vbH] = viewBox.split(/[\s,]+/).map(Number);
+  const k = vbW / N;
   const regionCells: number[][] = Array.from({ length: count }, () => []);
   for (let c = 0; c < N * N; c++) if (label[c] >= 0) regionCells[label[c]].push(c);
 
-  const regions = regionCells.map((cells, r) => ({ d: traceOutline(cells, label, r, N, k) }));
+  const regions = regionCells.map((cells, r) => ({ d: traceOutline(cells, label, r, N, k, vbX, vbY) }));
   if (regions.some((r) => !r.d)) return null;
 
   // The region touching the picture's edge with the most area is treated as the background
@@ -310,11 +256,11 @@ export async function autoNumberFromImage(imageUrl: string, name: string): Promi
     }
   }
 
-  return buildTemplate(name, `0 0 ${SIZE} ${SIZE}`, regions, adjacency, areas, bgIndex, 5);
+  return buildTemplate(name, viewBox, regions, adjacency, areas, bgIndex, decor ? 3 * (vbW / 1000) : 5, decor);
 }
 
 /** Boundary of a set of grid cells as a closed SVG path (holes included), with straight runs merged. */
-function traceOutline(cells: number[], label: Int32Array, r: number, N: number, k: number): string {
+function traceOutline(cells: number[], label: Int32Array, r: number, N: number, k: number, ox = 0, oy = 0): string {
   // directed edges, clockwise around every cell, only where the neighbour is a different region
   const out = new Map<number, number[]>(); // start vertex -> end vertices
   const V = N + 1;
@@ -356,7 +302,7 @@ function traceOutline(cells: number[], label: Int32Array, r: number, N: number, 
         if (cross !== 0) simple.push(cur2);
       }
       if (simple.length < 3) continue;
-      d += 'M ' + simple.map(([x, y]) => `${+(x * k).toFixed(1)},${+(y * k).toFixed(1)}`).join(' L ') + ' Z ';
+      d += 'M ' + simple.map(([x, y]) => `${+(ox + x * k).toFixed(1)},${+(oy + y * k).toFixed(1)}`).join(' L ') + ' Z ';
     }
   }
   return d.trim();

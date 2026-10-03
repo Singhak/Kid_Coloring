@@ -42,6 +42,8 @@ export interface Template {
   imageUrl?: string;
   previewSvg?: string;
   isVip?: boolean;
+  /** Non-tappable lines drawn on top of the regions (e.g. the open strokes of an auto-numbered picture). */
+  decor?: { d: string; strokeWidth?: number }[];
   numberMode?: {
     /** path id -> slot name (what the region is, e.g. 'body', 'sky') */
     slots: Record<string, string>;
