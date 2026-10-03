@@ -1162,7 +1162,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                     <span className="text-4xl font-black text-[#7A4B00]">₹499</span>
                     <span className="text-xs font-bold text-[#8C5B00]">/ year (just ~₹41/mo)</span>
                     <span className="text-[11px] font-black bg-[#10B981] text-white px-2.5 py-0.5 rounded-full shadow-2xs">
-                      15-Day Free Trial Included
+                      15-Day Free Trial on Sign-Up
                     </span>
                   </div>
                 </div>
@@ -1229,6 +1229,9 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 <Crown className="w-4 h-4 fill-current" />
                 <span>Unlock VIP Annual Pass (₹499/yr)</span>
               </button>
+              <p className="mt-2 text-center text-[11px] font-bold text-[#8C5B00]">
+                ✨ Sign in today and get a 15-day free VIP trial
+              </p>
             </div>
           </div>
         </div>

@@ -704,11 +704,6 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
               <span>🔢</span>
               <span>{completedTargets} / {numberTargets.length}</span>
             </div>
-          ) : activeFillCount > 0 ? (
-            <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/85 backdrop-blur-sm border border-[#EBE8DC] shadow-xs text-[9px] sm:text-[11px] font-black text-[#2D3436]">
-              <span>⭐</span>
-              <span>{activeFillCount} filled</span>
-            </div>
           ) : null}
         </div>
 

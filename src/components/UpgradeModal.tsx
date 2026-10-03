@@ -218,9 +218,6 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                       <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹499</span>
                       <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ year</span>
                     </div>
-                    <span className="block text-[10px] sm:text-[11px] font-black text-[#10B981] mt-0.5 sm:mt-1">
-                      ✨ 15-Day Free Trial Included
-                    </span>
                   </button>
 
                   {/* Monthly Plan */}
@@ -392,7 +389,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     <span>
                       {user 
                         ? (selectedPlan === 'annual' ? 'Get 1-Year VIP Pass (₹499 one-time)' : 'Get 1-Month VIP Pass (₹99 one-time)')
-                        : 'Sign In & Get VIP Pass'}
+                        : 'Sign In & Start 15-Day Free Trial'}
                     </span>
                     <ArrowRight className="w-5 h-5" />
                   </button>

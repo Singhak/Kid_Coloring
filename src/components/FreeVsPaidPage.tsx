@@ -315,7 +315,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
                   <span className="text-xs font-bold text-[#888]">/ year (just ~₹41/mo)</span>
                 </div>
                 <p className="text-xs font-black text-[#10B981] mt-1.5 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5" /> 15-Day Free Trial Included
+                  <Sparkles className="w-3.5 h-3.5" /> 15-Day Free Trial on Sign-Up
                 </p>
                 <p className="text-xs text-[#636E72] font-semibold mt-2">
                   Includes all superpowers, unlimited AI generation, photo conversion, and printable packs.
