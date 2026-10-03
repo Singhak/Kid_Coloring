@@ -18,4 +18,16 @@ firebase-service-account.json
 firebase-applet-config.json
 .deploy_staging/
 .deploy_manifest_pending.json
+output/*
+/pinterest-pins/pin-10*
+scripts/*
+public/pinterest-pins/pin-10*
+public/pinterest-pins/pin-11*
+public/pinterest-pins/pin-12*
+public/pinterest-pins/pin-13*
+public/pinterest-pins/pin-14*
+public/pinterest-pins/pin-15*
 
+deploy.bat
+post_instagram_daily.bat
+.deploy_manifest.json
