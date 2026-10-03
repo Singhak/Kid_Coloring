@@ -14,8 +14,11 @@ export const AUTO_NUMBER_ID_PREFIX = 'auto-number-';
 
 const MAX_REGIONS = 40;
 const MAX_SLOTS = 8;
-const RASTER_GRID = 320; // working resolution for raster pictures
-const MIN_RASTER_CELLS = 150; // smaller white areas are treated as part of the lines
+const RASTER_GRID = 400; // working resolution for raster pictures
+const MIN_RASTER_CELLS = 40; // smaller white areas are treated as part of the lines
+const MIN_INNER_RADIUS = 5; // roomy areas fit an 11x11-cell square
+const MIN_SMALL_INNER_RADIUS = 2; // small but compact areas (eyes, tongue) only need a 5x5 square
+const MIN_COMPACTNESS = 0.45; // area / bounding box: round shapes ~0.78, thin curved slivers well below 0.4
 const LINE_LUMINANCE = 150; // darker than this = a line
 
 const titleCase = (s: string) => s.replace(/\b\w/g, (c) => c.toUpperCase());
@@ -106,7 +109,7 @@ export function autoNumberFromPaths(paths: SvgPath[], viewBox: string, name: str
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   // Lines are drawn a little thicker than on screen so small gaps between strokes do not leak
-  ctx.lineWidth = vw * 0.016;
+  ctx.lineWidth = vw * 0.012;
   try {
     for (const p of paths) ctx.stroke(new Path2D(p.d));
   } catch {
@@ -180,10 +183,37 @@ function numberFromLineMask(isLine: Uint8Array, name: string, viewBox: string, d
     sizes.push(size);
   }
 
+  // Thin slivers (gaps between doubled lines) are not worth a region: a number would not fit. Roomy areas
+  // are kept; small areas are kept only if they are compact, round-ish shapes like an eye or a tongue.
+  const white = new Uint8Array(N * N);
+  for (let c = 0; c < N * N; c++) white[c] = comp[c] >= 0 ? 1 : 0;
+  const roomy = coreFlags(white, comp, sizes.length, N, MIN_INNER_RADIUS);
+  const small = coreFlags(white, comp, sizes.length, N, MIN_SMALL_INNER_RADIUS);
+  const minX = new Int32Array(sizes.length).fill(N);
+  const maxX = new Int32Array(sizes.length).fill(-1);
+  const minY = new Int32Array(sizes.length).fill(N);
+  const maxY = new Int32Array(sizes.length).fill(-1);
+  for (let c = 0; c < N * N; c++) {
+    const id = comp[c];
+    if (id < 0) continue;
+    const x = c % N;
+    const y = (c / N) | 0;
+    if (x < minX[id]) minX[id] = x;
+    if (x > maxX[id]) maxX[id] = x;
+    if (y < minY[id]) minY[id] = y;
+    if (y > maxY[id]) maxY[id] = y;
+  }
+  const hasCore = new Uint8Array(sizes.length);
+  for (let id = 0; id < sizes.length; id++) {
+    const box = (maxX[id] - minX[id] + 1) * (maxY[id] - minY[id] + 1);
+    const compact = box > 0 && sizes[id] / box >= MIN_COMPACTNESS;
+    hasCore[id] = roomy[id] || (small[id] && compact) ? 1 : 0;
+  }
+
   // 2. Keep the biggest areas; everything else becomes "line" and is absorbed below
   const kept = sizes
     .map((s, id) => ({ id, s }))
-    .filter((e) => e.s >= MIN_RASTER_CELLS)
+    .filter((e) => e.s >= MIN_RASTER_CELLS && hasCore[e.id])
     .sort((a, b) => b.s - a.s);
   // Too detailed (typical for photo art): numbering it would be tiny, fiddly spots, so skip it
   if (kept.length < 3 || kept.length > MAX_REGIONS) return null;
@@ -256,7 +286,7 @@ function numberFromLineMask(isLine: Uint8Array, name: string, viewBox: string, d
     }
   }
 
-  return buildTemplate(name, viewBox, regions, adjacency, areas, bgIndex, decor ? 3 * (vbW / 1000) : 5, decor);
+  return buildTemplate(name, viewBox, regions, adjacency, areas, bgIndex, decor ? 0 : 5, decor);
 }
 
 /** Boundary of a set of grid cells as a closed SVG path (holes included), with straight runs merged. */
@@ -306,4 +336,25 @@ function traceOutline(cells: number[], label: Int32Array, r: number, N: number, 
     }
   }
   return d.trim();
+}
+
+/** Per area: does it contain a (2R+1)x(2R+1) square of white cells? (separable erosion of the white mask) */
+function coreFlags(white: Uint8Array, comp: Int32Array, count: number, N: number, R: number): Uint8Array {
+  const horiz = new Uint8Array(N * N);
+  for (let y = 0; y < N; y++) {
+    for (let x = R; x < N - R; x++) {
+      let ok = 1;
+      for (let d = -R; d <= R && ok; d++) ok = white[y * N + x + d];
+      horiz[y * N + x] = ok;
+    }
+  }
+  const flags = new Uint8Array(count);
+  for (let y = R; y < N - R; y++) {
+    for (let x = 0; x < N; x++) {
+      let ok = 1;
+      for (let d = -R; d <= R && ok; d++) ok = horiz[(y + d) * N + x];
+      if (ok) flags[comp[y * N + x]] = 1;
+    }
+  }
+  return flags;
 }

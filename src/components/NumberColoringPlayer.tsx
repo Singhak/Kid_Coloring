@@ -23,7 +23,7 @@ interface LabelSpot {
 
 const GRID = 36;
 const MAX_BADGE_R = 34;
-const MIN_BADGE_R = 12;
+const MIN_BADGE_R = 9;
 
 /** Readable text color for a badge drawn on a given background hex. */
 const inkFor = (hex: string) => {
@@ -36,7 +36,8 @@ const inkFor = (hex: string) => {
  * Finds, for every path, the point deepest inside its *visible* area (not covered by paths painted
  * after it) so the number badge always sits inside the region the child will actually tap.
  */
-function computeLabelSpots(svg: SVGSVGElement, ids: string[]): Record<string, LabelSpot> {
+function computeLabelSpots(svg: SVGSVGElement, ids: string[], cornerIds: Set<string> = new Set()): Record<string, LabelSpot> {
+  const vb = svg.viewBox.baseVal;
   const els = ids.map(id => svg.querySelector<SVGGeometryElement>(`[data-region="${id}"]`));
   const spots: Record<string, LabelSpot> = {};
 
@@ -61,9 +62,16 @@ function computeLabelSpots(svg: SVGSVGElement, ids: string[]): Record<string, La
     }
     if (inside.length === 0) return;
 
-    let best = inside[0];
+    // A page-sized background badge is parked in the top-left corner so it is not mistaken for part of the picture
+    let candidates = inside;
+    if (cornerIds.has(id)) {
+      const corner = inside.filter(p => p.x < vb.x + vb.width * 0.4 && p.y < vb.y + vb.height * 0.4);
+      if (corner.length > 0) candidates = corner;
+    }
+
+    let best = candidates[0];
     let bestD = -1;
-    for (const p of inside) {
+    for (const p of candidates) {
       let d = Infinity;
       for (const o of outside) {
         const dd = (p.x - o.x) ** 2 + (p.y - o.y) ** 2;
@@ -119,7 +127,10 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
 
   // Place badges once the paths are in the DOM
   useLayoutEffect(() => {
-    if (svgRef.current) setSpots(computeLabelSpots(svgRef.current, template.paths.map(p => p.id)));
+    if (!svgRef.current) return;
+    const slots = template.numberMode?.slots ?? {};
+    const bgIds = new Set<string>(template.paths.filter(p => slots[p.id] === 'bg').map(p => p.id));
+    setSpots(computeLabelSpots(svgRef.current, template.paths.map(p => p.id), bgIds));
   }, [template]);
 
   // Print action: blank numbered page with a number -> color name key
