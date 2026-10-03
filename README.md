@@ -9,6 +9,8 @@ Coloro is a web and mobile coloring application designed for children. Built wit
 - **Firebase Integration**: Real-time data sync, authentication, and storage (firebase.ts, firestore.rules).
 - **Mobile-Ready**: Capacitor setup for Android/iOS deployment (capacitor.config.ts, android/).
 - **AI Path Generation**: PHP scripts (`generate-paths.php`, `generate-paths-gemini.php`) for generating coloring paths, possibly using Google Gemini.
+- **AI Artist**: The AI Artist button on a category page generates a picture straight from that category (no dialog, varied subjects, cached on the server). The header "Magic AI" button opens a dialog to type any idea, or pick a theme with one tap.
+- **Color by Number**: 18 ready-made numbered pictures plus AI-made ones (`numberedFromAi.ts`). The header Numbers button turns the picture on the canvas into a numbered page at run time (`autoNumber.ts`): the areas enclosed by the lines become numbered regions, touching regions get different colors, open lines stay visible, and very detailed pictures (e.g. most Photo Art) are skipped. From the library it opens the Color by Number category.
 - **Performance Optimized**: Vite for fast builds, service workers/cache for offline use.
 - **Responsive UI**: Custom header (Header.tsx), upgrade modal (UpgradeModal.tsx), and global styles (index.css).
 

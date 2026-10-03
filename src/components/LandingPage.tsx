@@ -207,7 +207,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
       icon: <Hash className="w-6 h-6 text-blue-500" />,
       title: 'Educational Color By Number',
       description:
-        'Interactive guided learning mode designed by early childhood educators. Strengthens number recognition, hand-eye coordination, and confidence.',
+        'Tap Numbers on any picture and Coloro adds the numbers for you, matching each number to a crayon. Or pick a ready-made numbered picture. Builds number recognition, hand-eye coordination, and confidence.',
       badge: 'Learning Mode',
       badgeColor: 'bg-blue-100 text-blue-800',
     },
@@ -1178,7 +1178,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                   </div>
                   <div className="flex items-center gap-2.5">
                     <CheckCircle2 className="w-4 h-4 text-[#8C5B00] shrink-0" />
-                    <span>Educational Color-by-Number Guided Learning Mode</span>
+                    <span>Color-by-Number on Any Picture, Plus AI-Made Number Pages</span>
                   </div>
                   <div className="flex items-center gap-2.5">
                     <CheckCircle2 className="w-4 h-4 text-[#8C5B00] shrink-0" />
@@ -1394,7 +1394,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 </li>
                 <li>
                   <button onClick={() => onLaunchApp()} className="hover:text-white cursor-pointer">
-                    🔢 Color By Number Mode
+                    🔢 Color By Number Any Picture
                   </button>
                 </li>
                 <li>
