@@ -21,9 +21,9 @@ export const COLOR_BY_NUMBER_TEMPLATES: Template[] = [
     viewBox: '0 0 1000 1000',
     paths: [
       { id: 'bg', d: 'M 40,40 L 960,40 L 960,960 L 40,960 Z', strokeWidth: S },
-      { id: 'tail', d: 'M 700,500 L 900,340 L 900,660 Z', strokeWidth: S },
+      { id: 'tail', d: 'M 640,500 L 900,340 L 900,660 Z', strokeWidth: S },
+      { id: 'fin', d: 'M 380,350 C 410,210 540,210 560,340 Z Z', strokeWidth: S },
       { id: 'body', d: 'M 120,500 C 220,280 560,260 720,500 C 560,740 220,720 120,500 Z', strokeWidth: S },
-      { id: 'fin', d: 'M 380,330 C 420,230 520,230 540,320 C 480,350 430,350 380,330 Z', strokeWidth: S },
       { id: 'eye', d: circle(260, 450, 38), strokeWidth: S },
       { id: 'cheek', d: circle(330, 560, 30), strokeWidth: S },
     ],

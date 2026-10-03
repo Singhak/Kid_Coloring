@@ -90,6 +90,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
   const [showStickerModal, setShowStickerModal] = useState(false);
   const [selectedSticker, setSelectedSticker] = useState<StickerItem | null>(null);
   const [isColorByNumber, setIsColorByNumber] = useState(false);
+  const [numberTemplate, setNumberTemplate] = useState<Template | null>(null);
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
   const [showHelpFlow, setShowHelpFlow] = useState(false);
   const [isTourActive, setIsTourActive] = useState(false);
@@ -191,6 +192,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
               strokeWidth: p.strokeWidth || 4
             }));
             setPaths(newPaths);
+            setNumberTemplate(matchingTemplate.numberMode ? matchingTemplate : null);
             setViewBox(matchingTemplate.viewBox || "0 0 1000 1000");
           }
 
@@ -214,6 +216,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             strokeWidth: p.strokeWidth || 4
           }));
           setPaths(newPaths);
+          setNumberTemplate(randomTemplate.numberMode ? randomTemplate : null);
           setViewBox(randomTemplate.viewBox || "0 0 1000 1000");
           setSelectedCategory(randomTemplate.category);
           setShowTemplates(false);
@@ -871,6 +874,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       strokeWidth: p.strokeWidth || 4
     }));
     setPaths(newPaths);
+    setNumberTemplate(template.numberMode ? template : null);
     setViewBox(template.viewBox || "0 0 1000 1000");
     setHistory([]);
     setHistoryIndex(-1);
@@ -927,6 +931,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
 
       if (svgResult && Array.isArray(svgResult.paths) && svgResult.paths.length > 0) {
         setPaths(svgResult.paths);
+        setNumberTemplate(null);
         setViewBox(svgResult.viewBox || "0 0 500 500");
         setCurrentImageUrl(null);
         setHistory([]);
@@ -954,6 +959,8 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       if (result && result.imageUrl) {
         setCurrentImageUrl(result.imageUrl);
         setPaths([]);
+    setNumberTemplate(null);
+        setNumberTemplate(null);
         setViewBox("0 0 1000 1000");
         setHistory([]);
         setHistoryIndex(-1);
@@ -976,6 +983,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       const procedural = generateProceduralPaths(selectedCategory);
       if (procedural && procedural.paths && procedural.paths.length > 0) {
         setPaths(procedural.paths);
+        setNumberTemplate(null);
         setViewBox(procedural.viewBox || "0 0 500 500");
         setCurrentImageUrl(null);
         setHistory([]);
@@ -1002,6 +1010,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     const result = generateProceduralPaths(selectedCategory);
     setCurrentImageUrl(null);
     setPaths(result.paths);
+    setNumberTemplate(null);
     setViewBox(result.viewBox || "0 0 1000 1000");
     setHistory([]);
     setHistoryIndex(-1);
@@ -1033,6 +1042,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     tracker.trackAI('photo_art');
     setCurrentImageUrl(dataUrl);
     setPaths([]);
+    setNumberTemplate(null);
     setViewBox("0 0 1000 1000");
     setHistory([]);
     setHistoryIndex(-1);
@@ -1298,12 +1308,13 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             fillCount={fillCount}
             onIncrementFillCount={() => setFillCount((prev) => prev + 1)}
             resetTrigger={resetTrigger}
+            numberTemplate={numberTemplate}
             setSelectedCategory={setSelectedCategory}
           />
         </div>
 
         {/* Bottom Palette Dock (Crayons & Tools) */}
-        {!showTemplates && (
+        {!showTemplates && !numberTemplate && (
           <div id="tour-palette-dock" className="w-full shrink-0">
             <ColorPaletteDock
               selectedColor={selectedColor}

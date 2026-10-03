@@ -4,6 +4,7 @@ import { SvgPath, Template } from '../types';
 import TemplateGrid from './TemplateGrid';
 import LoadingSpinner from './LoadingSpinner';
 import DualLayerCanvas from './DualLayerCanvas';
+import NumberColoringPlayer from './NumberColoringPlayer';
 import CanvasActionButtons from './CanvasActionButtons';
 import { StickerItem } from './StickerStampsModal';
 import { tracker } from '../services/tracker';
@@ -32,6 +33,7 @@ interface CanvasAreaProps {
   selectedSticker?: StickerItem | null;
   onClearSticker?: () => void;
   isColorByNumber?: boolean;
+  numberTemplate?: Template | null;
   onToggleColorByNumber?: () => void;
   onOpenStickers?: () => void;
   onQuickNext?: () => void;
@@ -65,6 +67,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   selectedSticker,
   onClearSticker,
   isColorByNumber = false,
+  numberTemplate = null,
   onToggleColorByNumber,
   onOpenStickers,
   onQuickNext,
@@ -149,6 +152,14 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             />
           ) : isGenerating ? (
             <LoadingSpinner key="loading-view" />
+          ) : numberTemplate ? (
+            <div key="number-player-view" className="w-full h-full flex items-center justify-center min-h-0 min-w-0 py-0.5 sm:py-1">
+              <NumberColoringPlayer
+                template={numberTemplate}
+                resetTrigger={resetTrigger}
+                onBackToLibrary={() => setShowTemplates(true)}
+              />
+            </div>
           ) : (
             <div key="canvas-drawing-view" className="w-full h-full flex items-center justify-center min-h-0 min-w-0 py-0.5 sm:py-1">
               <DualLayerCanvas
