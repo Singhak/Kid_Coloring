@@ -115,9 +115,10 @@ $category = trim($category);
 $numbered = !empty($input["numbered"]);
 // "custom" = the child typed their own idea (cache per exact subject); otherwise the category cache is used.
 $custom = !empty($input["custom"]);
-// Category cache policy for numbered pictures: only serve from cache once it holds MORE than 5 pictures,
-// and after serving, quietly generate one more in the background so the pool keeps growing.
-$minCachedToServe = ($numbered && !$custom) ? 6 : 1;
+// Category cache policy: only serve once it holds at least 3 pictures (so the same one doesn't keep repeating).
+// Typed prompts ("custom") have their own per-subject cache and are served from it as soon as it has one.
+// Numbered pictures also quietly generate one more picture after serving, so the pool keeps growing.
+$minCachedToServe = $custom ? 1 : 3;
 $refillInBackground = $numbered && !$custom;
 
 // A numbered picture needs enough closed shapes, each with a slot, or the next model is tried.
@@ -142,7 +143,7 @@ if (!is_dir($cacheDir)) {
     @mkdir($cacheDir, 0777, true);
 }
 
-$cacheKey = $numbered ? ('num_' . substr($custom ? $subject : $category, 0, 60)) : $category;
+$cacheKey = ($numbered ? 'num_' : ($custom ? 'sub_' : '')) . substr($custom ? $subject : $category, 0, 60);
 $safeSubject = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($cacheKey));
 $cacheFile = $cacheDir . '/' . $safeSubject . '.json';
 $servedFromCache = false;
@@ -166,8 +167,8 @@ if (file_exists($cacheFile)) {
             $servedFromCache = true;
 
             // Queue a task for the cron job to add more variations in the background
-            // (not for numbered pictures: the queue worker only builds normal coloring pages)
-            if (!$numbered) {
+            // (category pictures only: the queue worker only builds normal category coloring pages)
+            if (!$numbered && !$custom) {
                 $queueDir = __DIR__ . '/queue';
                 if (!is_dir($queueDir)) {
                     @mkdir($queueDir, 0777, true);
@@ -200,7 +201,7 @@ if (file_exists($cacheFile)) {
 }
 
 // If fetching live, queue a backup task in case request gets interrupted
-if (!$numbered) {
+if (!$numbered && !$custom) {
     $queueDir = __DIR__ . '/queue';
     if (!is_dir($queueDir)) {
         @mkdir($queueDir, 0777, true);

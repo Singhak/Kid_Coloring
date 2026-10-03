@@ -56,7 +56,7 @@ export const getImageUsingAPI = async (subject: string, category: string, number
       response = await fetchWithTimeout(openRouterEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subject, category })
+        body: JSON.stringify({ subject, category, custom })
       }, 25000);
     } catch (e) {
       console.warn("Secondary PHP endpoint failed:", e);

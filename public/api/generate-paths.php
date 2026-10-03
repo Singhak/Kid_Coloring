@@ -115,15 +115,22 @@ if (!is_dir($cacheDir)) {
     @mkdir($cacheDir, 0777, true);
 }
 
-$safeSubject = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($category));
+// "custom" = the child typed their own idea. Those are cached per exact subject and never served from
+// (or queued into) the category cache, so a typed prompt can't come back as a random category picture.
+$custom = !empty($input["custom"]);
+// Category cache: serve only once it holds at least 3 pictures, so the same picture doesn't keep repeating.
+$minCachedToServe = $custom ? 1 : 3;
+$cacheKey = $custom ? ('sub_' . substr($subject, 0, 60)) : $category;
+
+$safeSubject = preg_replace('/[^a-zA-Z0-9_-]/', '_', strtolower($cacheKey));
 $cacheFile = $cacheDir . '/' . $safeSubject . '.json';
 $servedFromCache = false;
 
-// If cache has at least 1 image, serve immediately
+// If the cache is deep enough, serve immediately
 if (file_exists($cacheFile)) {
     $cacheContent = @file_get_contents($cacheFile);
     $cacheData = json_decode($cacheContent, true);
-    if (is_array($cacheData) && count($cacheData) >= 1) {
+    if (is_array($cacheData) && count($cacheData) >= $minCachedToServe) {
         $randomIndex = array_rand($cacheData);
         $selectedImage = $cacheData[$randomIndex];
         if (isset($selectedImage['paths']) && is_array($selectedImage['paths'])) {
@@ -131,15 +138,17 @@ if (file_exists($cacheFile)) {
             echo json_encode($selectedImage);
             $servedFromCache = true;
 
-            // Queue background cron task
-            $queueDir = __DIR__ . '/queue';
-            if (!is_dir($queueDir)) {
-                @mkdir($queueDir, 0777, true);
-            }
-            $queueFile = $queueDir . '/tasks.txt';
-            $task = json_encode(["provider" => "openrouter", "subject" => $subject, "category" => $category]) . PHP_EOL;
-            if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
-                @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+            // Queue background cron task (category pictures only: the worker saves into the category cache)
+            if (!$custom) {
+                $queueDir = __DIR__ . '/queue';
+                if (!is_dir($queueDir)) {
+                    @mkdir($queueDir, 0777, true);
+                }
+                $queueFile = $queueDir . '/tasks.txt';
+                $task = json_encode(["provider" => "openrouter", "subject" => $subject, "category" => $category]) . PHP_EOL;
+                if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
+                    @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+                }
             }
 
             exit;
@@ -147,15 +156,17 @@ if (file_exists($cacheFile)) {
     }
 }
 
-// Queue backup task
-$queueDir = __DIR__ . '/queue';
-if (!is_dir($queueDir)) {
-    @mkdir($queueDir, 0777, true);
-}
-$queueFile = $queueDir . '/tasks.txt';
-$task = json_encode(["provider" => "openrouter", "subject" => $subject, "category" => $category]) . PHP_EOL;
-if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
-    @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+// Queue backup task (category pictures only)
+if (!$custom) {
+    $queueDir = __DIR__ . '/queue';
+    if (!is_dir($queueDir)) {
+        @mkdir($queueDir, 0777, true);
+    }
+    $queueFile = $queueDir . '/tasks.txt';
+    $task = json_encode(["provider" => "openrouter", "subject" => $subject, "category" => $category]) . PHP_EOL;
+    if (!file_exists($queueFile) || filesize($queueFile) < 500000) {
+        @file_put_contents($queueFile, $task, FILE_APPEND | LOCK_EX);
+    }
 }
 
 // Load API keys

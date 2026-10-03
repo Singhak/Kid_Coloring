@@ -977,7 +977,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       // 1. Try PHP AI Path Generator first (generates pure SVG closed vector paths)
       let svgResult: { paths: SvgPath[]; viewBox: string } | null = null;
       try {
-        svgResult = await getImageUsingAPI(subject, selectedCategory);
+        svgResult = await getImageUsingAPI(subject, selectedCategory, false, Boolean(customPrompt && customPrompt.trim()));
       } catch (phpError) {
         console.warn("PHP AI path generation returned error, falling back to dynamic image:", phpError);
       }
