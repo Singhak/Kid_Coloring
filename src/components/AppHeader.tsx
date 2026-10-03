@@ -389,7 +389,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
                       : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
                   }`}
-                  title={isPro ? "Toggle Educational Color-by-Number Learning Mode" : "VIP Superpower: Color-by-Number Mode"}
+                  title={isPro ? "Color by Number: open numbered pictures" : "VIP Superpower: Color-by-Number Mode"}
                 >
                   <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
                   <span className="hidden 2xl:inline">Numbers</span>

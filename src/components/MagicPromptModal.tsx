@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, X, Wand2, Shuffle, Flame, Zap } from 'lucide-react';
+import { CATEGORIES } from '../constants';
 import { playChime, playClick, playPop } from '../services/soundEffects';
 
 interface MagicPromptModalProps {
@@ -9,9 +10,14 @@ interface MagicPromptModalProps {
   onGeneratePrompt: (prompt: string, options?: { numbered?: boolean }) => void;
   /** Start with "Make it Color by Number" switched on (e.g. opened from that library category). */
   defaultNumbered?: boolean;
+  /** Generate from a category alone (no typed prompt). */
+  onGenerateCategory?: (category: string) => void;
   onInstantRealistic?: () => void;
   isGenerating: boolean;
 }
+
+const AI_CATEGORY_IDS = ['animal', 'fruits', 'vegetables', 'object', 'nature', 'space', 'vehicles', 'colorbynumber'];
+const AI_CATEGORIES = CATEGORIES.filter((c) => AI_CATEGORY_IDS.includes(c.id));
 
 const SAMPLE_PROMPTS = [
   '🦄 Rainbow Unicorn with Butterfly Wings',
@@ -30,6 +36,7 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
   onClose,
   onGeneratePrompt,
   onInstantRealistic,
+  onGenerateCategory,
   isGenerating,
   defaultNumbered = false
 }) => {
@@ -64,6 +71,13 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
     const randomChip = SAMPLE_PROMPTS[Math.floor(Math.random() * SAMPLE_PROMPTS.length)];
     const cleanPrompt = randomChip.replace(/^[^\w]+/, '');
     onGeneratePrompt(cleanPrompt, { numbered });
+    onClose();
+  };
+
+  const handleCategoryClick = (category: string) => {
+    if (!onGenerateCategory) return;
+    playPop();
+    onGenerateCategory(category);
     onClose();
   };
 
@@ -156,6 +170,28 @@ const MagicPromptModal: React.FC<MagicPromptModalProps> = ({
               </span>
               <div className="flex-1 h-px bg-[#EBE8DC]" />
             </div>
+
+            {/* Pick a category (no typing needed) */}
+            {onGenerateCategory && (
+              <div className="mb-4">
+                <span className="block mb-2 px-1 text-xs font-black text-[#2D3436] uppercase tracking-wider">
+                  Pick a theme
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {AI_CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      disabled={isGenerating}
+                      onClick={() => handleCategoryClick(cat.id)}
+                      className="px-2.5 py-1.5 bg-[#FAF9F5] hover:bg-[#FFFDF0] hover:border-[#FFD93D] border border-[#EBE8DC] rounded-xl text-xs font-bold text-[#2D3436] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-40 cursor-pointer"
+                    >
+                      {cat.emoji} {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Color by Number switch */}
             <label className="mb-3 flex items-center gap-2 cursor-pointer select-none text-xs sm:text-sm font-black text-[#2D3436]">

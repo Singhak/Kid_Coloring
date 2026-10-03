@@ -27,10 +27,12 @@ import {
   COLORS, 
   COLORS_LEFT, 
   COLORS_RIGHT, 
-  STATIC_TEMPLATES 
+  STATIC_TEMPLATES,
+  SUBJECTS_BY_CATEGORY 
 } from './constants'; 
 import { generateDynamicAiColoringImage } from './services/dynamicAiGenerator';
 import { generateProceduralPaths, getImageUsingAPI } from './services/imageGenerator';
+import { autoNumberFromImage, autoNumberFromPaths, AUTO_NUMBER_ID_PREFIX } from './services/autoNumber';
 import { buildNumberTemplateFromAi, NUMBER_AI_SUBJECTS } from './services/numberedFromAi';
 import { COLOR_BY_NUMBER_TEMPLATES } from './constants/colorByNumberTemplates';
 import { printColoringSheet } from './services/pdfExporter';
@@ -91,8 +93,9 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [showStickerModal, setShowStickerModal] = useState(false);
   const [selectedSticker, setSelectedSticker] = useState<StickerItem | null>(null);
-  const [isColorByNumber, setIsColorByNumber] = useState(false);
   const [numberTemplate, setNumberTemplate] = useState<Template | null>(null);
+  // The Numbers button is "on" while a real numbered picture is open (the old random-badge overlay is retired)
+  const isColorByNumber = Boolean(numberTemplate);
   const numberPrintRef = useRef<(() => boolean) | null>(null);
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
   const [showHelpFlow, setShowHelpFlow] = useState(false);
@@ -947,8 +950,21 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     }
   };
 
-  const handleGenerateAiImage = async (customPrompt?: string, options?: { numbered?: boolean }) => {
-    if (options?.numbered) {
+  // Category taps use a curated subject (varied, never the same twice in a row, cacheable on the server)
+  const lastSubjectByCategory = useRef<Record<string, string>>({});
+  const pickCategorySubject = (category: string): string => {
+    const pool = SUBJECTS_BY_CATEGORY[category];
+    if (!pool || pool.length === 0) return category;
+    const last = lastSubjectByCategory.current[category];
+    const choices = pool.length > 1 ? pool.filter((x) => x !== last) : pool;
+    const pick = choices[Math.floor(Math.random() * choices.length)];
+    lastSubjectByCategory.current[category] = pick;
+    return pick;
+  };
+
+  const handleGenerateAiImage = async (customPrompt?: string, options?: { numbered?: boolean; category?: string }) => {
+    const category = options?.category ?? selectedCategory;
+    if (options?.numbered || category === 'colorbynumber') {
       await handleGenerateNumberedAi(customPrompt);
       return;
     }
@@ -960,7 +976,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
 
     isAiGeneratedRef.current = true;
     setCurrentTemplateName(customPrompt && customPrompt.trim().length > 0 ? `AI Art: ${customPrompt.trim()}` : 'AI Magical Art');
-    tracker.trackAI('magic_prompt', customPrompt, selectedCategory);
+    tracker.trackAI('magic_prompt', customPrompt, category);
 
     if (isGenerating) return;
 
@@ -972,12 +988,12 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
 
       const subject = customPrompt && customPrompt.trim().length > 0
         ? customPrompt.trim()
-        : selectedCategory;
+        : pickCategorySubject(category);
 
       // 1. Try PHP AI Path Generator first (generates pure SVG closed vector paths)
       let svgResult: { paths: SvgPath[]; viewBox: string } | null = null;
       try {
-        svgResult = await getImageUsingAPI(subject, selectedCategory, false, Boolean(customPrompt && customPrompt.trim()));
+        svgResult = await getImageUsingAPI(subject, category, false, Boolean(customPrompt && customPrompt.trim()));
       } catch (phpError) {
         console.warn("PHP AI path generation returned error, falling back to dynamic image:", phpError);
       }
@@ -1007,7 +1023,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       }
 
       // 2. Secondary Fallback: Dynamic AI coloring image diffusion
-      const result = await generateDynamicAiColoringImage(selectedCategory, customPrompt);
+      const result = await generateDynamicAiColoringImage(category, customPrompt);
 
       if (generationId !== currentGenerationId.current) return;
 
@@ -1034,7 +1050,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       }
 
       // 3. Tertiary Fallback: Procedural drawing scene
-      const procedural = generateProceduralPaths(selectedCategory);
+      const procedural = generateProceduralPaths(category);
       if (procedural && procedural.paths && procedural.paths.length > 0) {
         setPaths(procedural.paths);
         setNumberTemplate(null);
@@ -1080,6 +1096,50 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         colors: COLORS
       });
     } catch (e) {}
+  };
+
+  // Category AI Artist button: no dialog, generate straight from the current category.
+  const handleGenerateFromCategory = () => {
+    handleGenerateAiImage(undefined, { category: selectedCategory });
+  };
+
+  // Numbers button: number the picture on the canvas, or switch back; from the library it opens Color by Number
+  const handleToggleColorByNumber = async () => {
+    // Auto-numbered picture -> back to normal coloring of the same picture
+    if (numberTemplate?.id?.startsWith(AUTO_NUMBER_ID_PREFIX)) {
+      tracker.event('color_by_number', 'auto_off', numberTemplate.name);
+      setNumberTemplate(null);
+      return;
+    }
+    const hasPicture = Boolean(currentImageUrl) || paths.length > 0;
+    // Library open, a ready-made numbered picture, or nothing on the canvas -> numbered library
+    if (showTemplates || numberTemplate || !hasPicture) {
+      tracker.event('color_by_number', 'open_library', numberTemplate ? 'from_numbered' : 'from_canvas');
+      setSelectedCategory('colorbynumber');
+      setShowTemplates(true);
+      return;
+    }
+    if (isGenerating) return;
+
+    tracker.event('color_by_number', 'auto_on', currentTemplateName);
+    setIsGenerating(true);
+    try {
+      const name = currentTemplateName.replace(/^AI Art:\s*/, '') || 'My Picture';
+      const template = currentImageUrl
+        ? await autoNumberFromImage(currentImageUrl, name)
+        : autoNumberFromPaths(paths, viewBox, name);
+      if (template) {
+        setNumberTemplate(template);
+        setResetTrigger((prev) => prev + 1);
+      } else {
+        alert("This picture is too detailed (or too plain) to number. Try a simpler picture, or open the Color by Number pictures!");
+      }
+    } catch (e) {
+      console.warn('Auto numbering failed:', e);
+      alert("Sorry, couldn't add numbers to this picture.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleOpenMagicPrompt = () => {
@@ -1309,7 +1369,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
           setShowTemplates(true);
         }}
         isColorByNumber={isColorByNumber}
-        onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
+        onToggleColorByNumber={handleToggleColorByNumber}
         onOpenPricingPage={() => setShowPricingPage(true)}
         onOpenMagicAI={handleOpenMagicPrompt}
         isGenerating={isGenerating}
@@ -1350,7 +1410,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             lineArtCanvasRef={lineArtCanvasRef}
             onHistoryPush={handleHistoryPush}
             restoredDataUrl={restoredDataUrl}
-            generateRandomImage={handleOpenMagicPrompt}
+            generateRandomImage={handleGenerateFromCategory}
             selectTemplate={selectTemplate}
             downloadImage={downloadImage}
             clearCanvas={clearCanvas}
@@ -1360,7 +1420,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             selectedSticker={selectedSticker}
             onClearSticker={() => setSelectedSticker(null)}
             isColorByNumber={isColorByNumber}
-            onToggleColorByNumber={() => setIsColorByNumber(prev => !prev)}
+            onToggleColorByNumber={handleToggleColorByNumber}
             onOpenStickers={() => setShowStickerModal(true)}
             onQuickNext={handleQuickNext}
             fillCount={fillCount}
@@ -1388,7 +1448,6 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
               setShowProColors={setShowProColors}
               selectedSticker={selectedSticker}
               onOpenStickers={() => setShowStickerModal(true)}
-              isColorByNumber={isColorByNumber}
             />
           </div>
         )}
@@ -1456,6 +1515,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         onClose={() => setShowMagicPromptModal(false)}
         defaultNumbered={selectedCategory === 'colorbynumber'}
         onGeneratePrompt={(prompt, options) => handleGenerateAiImage(prompt, options)}
+        onGenerateCategory={(category) => handleGenerateAiImage(undefined, { category })}
         onInstantRealistic={handleGenerateProceduralRealistic}
         isGenerating={isGenerating}
       />
@@ -1547,10 +1607,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         }}
         onOpenMagicAI={handleOpenMagicPrompt}
         onOpenPhotoArt={() => setShowPhotoModal(true)}
-        onToggleNumbers={() => {
-          setShowTemplates(false);
-          setIsColorByNumber(prev => !prev);
-        }}
+        onToggleNumbers={handleToggleColorByNumber}
         onOpenStickers={() => {
           setShowTemplates(false);
           setShowStickerModal(true);
