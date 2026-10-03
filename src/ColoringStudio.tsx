@@ -960,7 +960,6 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       if (result && result.imageUrl) {
         setCurrentImageUrl(result.imageUrl);
         setPaths([]);
-    setNumberTemplate(null);
         setNumberTemplate(null);
         setViewBox("0 0 1000 1000");
         setHistory([]);
