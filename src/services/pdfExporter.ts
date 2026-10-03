@@ -2,8 +2,8 @@
  * Printable Coloring Sheet Exporter (A4 / Letter Print-Ready)
  */
 
-import { MAGIC_COLORS } from '../constants';
 import { Template, NumberPaletteEntry } from '../types';
+import { basicColorName } from '../constants/colorByNumberTemplates';
 
 /** Prints an HTML document through a hidden iframe so the main UI is untouched. */
 function printHtml(html: string): boolean {
@@ -141,27 +141,6 @@ export function printColoringSheet(
   `);
 }
 
-const hexToRgb = (hex: string): [number, number, number] => {
-  const n = parseInt(hex.replace('#', ''), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-};
-
-/** Friendly name (and emoji) for any hex, via the nearest color in the app's named palette. */
-export function nearestColorName(hex: string): { name: string; emoji: string } {
-  const [r, g, b] = hexToRgb(hex);
-  let best = MAGIC_COLORS[0];
-  let bestD = Infinity;
-  for (const c of MAGIC_COLORS) {
-    const [cr, cg, cb] = hexToRgb(c.hex);
-    const d = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
-    if (d < bestD) {
-      bestD = d;
-      best = c;
-    }
-  }
-  return { name: best.name, emoji: best.emoji };
-}
-
 export interface NumberSheetBadge {
   pathId: string;
   x: number;
@@ -193,7 +172,7 @@ export function printNumberSheet(
 
   const legend = palette
     .map(e => {
-      const { name, emoji } = nearestColorName(e.color);
+      const { name, emoji } = basicColorName(e.color);
       return `<div class="key"><span class="num">${e.number}</span><span class="swatch" style="background:${e.color}"></span><span class="cname">${emoji} ${name}</span></div>`;
     })
     .join('');

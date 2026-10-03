@@ -106,9 +106,96 @@ export function buildNumberPalette(template: Template, scheme: ColorScheme): Num
   return [...byColor.values()];
 }
 
-/** Pick a scheme different from the last one played, so "Play again" always looks new. */
+/** Simple, kid-friendly color names. Used for random schemes and for the printed color key. */
+export interface BasicColor {
+  name: string;
+  hex: string;
+  emoji: string;
+  group: 'bright' | 'light' | 'dark' | 'neutral';
+}
+
+export const BASIC_COLORS: BasicColor[] = [
+  { name: 'Red', hex: '#E63946', emoji: '🍎', group: 'bright' },
+  { name: 'Orange', hex: '#FF922B', emoji: '🍊', group: 'bright' },
+  { name: 'Yellow', hex: '#FFD43B', emoji: '🌞', group: 'bright' },
+  { name: 'Green', hex: '#40C057', emoji: '🍏', group: 'bright' },
+  { name: 'Blue', hex: '#339AF0', emoji: '🔵', group: 'bright' },
+  { name: 'Purple', hex: '#9775FA', emoji: '🍇', group: 'bright' },
+  { name: 'Pink', hex: '#F783AC', emoji: '🌸', group: 'bright' },
+  { name: 'Brown', hex: '#8D5524', emoji: '🟤', group: 'bright' },
+  { name: 'Teal', hex: '#20C997', emoji: '🐢', group: 'bright' },
+  { name: 'Light Blue', hex: '#A5D8FF', emoji: '☁️', group: 'light' },
+  { name: 'Light Green', hex: '#B2F2BB', emoji: '🍃', group: 'light' },
+  { name: 'Light Yellow', hex: '#FFF3BF', emoji: '🍋', group: 'light' },
+  { name: 'Light Pink', hex: '#FFDEEB', emoji: '🎀', group: 'light' },
+  { name: 'Lavender', hex: '#E5DBFF', emoji: '💜', group: 'light' },
+  { name: 'Black', hex: '#212529', emoji: '⚫', group: 'dark' },
+  { name: 'Dark Brown', hex: '#5C3A21', emoji: '🌰', group: 'dark' },
+  { name: 'Gray', hex: '#ADB5BD', emoji: '🐘', group: 'neutral' },
+  { name: 'White', hex: '#FFFFFF', emoji: '🤍', group: 'neutral' },
+];
+
+const BACKGROUND_SLOTS = new Set(['sky', 'water', 'bg', 'background']);
+const DARK_SLOTS = new Set(['eye', 'eyes', 'pupil']);
+
+const shuffled = <T,>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+/**
+ * Random scheme from the basic crayon colors: every slot gets its own color (so neighbouring parts
+ * never match), backgrounds get a light color and eyes a dark one. Different on every call.
+ */
+export function randomScheme(template: Template): ColorScheme {
+  const slots = [...new Set(Object.values(template.numberMode?.slots ?? {}))];
+  const bright = shuffled(BASIC_COLORS.filter(c => c.group === 'bright'));
+  const light = shuffled(BASIC_COLORS.filter(c => c.group === 'light'));
+  const dark = shuffled(BASIC_COLORS.filter(c => c.group === 'dark'));
+  const take = (pool: BasicColor[], fallback: BasicColor[]) => pool.pop() ?? fallback.pop() ?? BASIC_COLORS[0];
+
+  const colors: Record<string, string> = {};
+  for (const slot of slots) {
+    const c = BACKGROUND_SLOTS.has(slot)
+      ? take(light, bright)
+      : DARK_SLOTS.has(slot)
+        ? take(dark, bright)
+        : take(bright, light);
+    colors[slot] = c.hex;
+  }
+  return { id: `random-${Math.random().toString(36).slice(2, 8)}`, name: 'Surprise Colors', colors };
+}
+
+/** Next scheme to play: usually a fresh random one, sometimes a hand-made one; never the same as the last. */
 export function pickScheme(template: Template, excludeId?: string): ColorScheme | undefined {
-  const all = template.numberMode?.schemes ?? [];
-  const pool = all.length > 1 ? all.filter(s => s.id !== excludeId) : all;
-  return pool[Math.floor(Math.random() * pool.length)];
+  if (!template.numberMode) return undefined;
+  const curated = template.numberMode.schemes.filter(s => s.id !== excludeId);
+  if (curated.length > 0 && Math.random() < 0.2) {
+    return curated[Math.floor(Math.random() * curated.length)];
+  }
+  return randomScheme(template);
+}
+
+/** Simple name for any hex (nearest basic color), e.g. "Red", "Light Blue". */
+export function basicColorName(hex: string): BasicColor {
+  const rgb = (h: string) => {
+    const n = parseInt(h.replace('#', ''), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const [r, g, b] = rgb(hex);
+  let best = BASIC_COLORS[0];
+  let bestD = Infinity;
+  for (const c of BASIC_COLORS) {
+    const [cr, cg, cb] = rgb(c.hex);
+    const d = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = c;
+    }
+  }
+  return best;
 }

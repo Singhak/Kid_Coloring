@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
 import { Template, ColorScheme } from '../types';
-import { buildNumberPalette, pickScheme } from '../constants/colorByNumberTemplates';
+import { buildNumberPalette, pickScheme, basicColorName } from '../constants/colorByNumberTemplates';
 import { playPop, playFanfare } from '../services/soundEffects';
 import { tracker } from '../services/tracker';
 import { printNumberSheet } from '../services/pdfExporter';
@@ -262,8 +262,8 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
           const done = remaining === 0;
           const isSel = selected === e.number;
           return (
+            <div key={e.number} className="flex flex-col items-center gap-0.5">
             <button
-              key={e.number}
               onClick={() => {
                 if (done) return;
                 playPop(520);
@@ -278,6 +278,8 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
             >
               {done ? '✓' : e.number}
             </button>
+            <span className="text-[10px] sm:text-xs font-black text-[#636E72]">{basicColorName(e.color).name}</span>
+            </div>
           );
         })}
       </div>
