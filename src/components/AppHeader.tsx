@@ -26,7 +26,8 @@ import {
   FileText,
   CreditCard,
   Mail,
-  Home
+  Home,
+  Instagram
 } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
 import { avataaars } from '@dicebear/collection';
@@ -680,6 +681,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
                         <span>Privacy Policy</span>
                       </button>
+                      <a
+                        href="https://www.instagram.com/kidscoloro"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Instagram className="w-3.5 h-3.5 text-[#EC4899]" />
+                        <span>Follow on Instagram</span>
+                      </a>
                     </div>
                   )}
 

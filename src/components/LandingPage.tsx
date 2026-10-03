@@ -26,7 +26,8 @@ import {
   Clock,
   Zap,
   Menu,
-  X
+  X,
+  Instagram
 } from 'lucide-react';
 import { playClick, playChime, playFanfare, playSwish } from '../services/soundEffects';
 import LegalPolicyPage, { LegalTabType } from './LegalPolicyPage';
@@ -309,6 +310,16 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
 
           {/* Header Action CTAs */}
           <div className="flex items-center gap-2.5 sm:gap-3">
+            <a
+              href="https://www.instagram.com/kidscoloro"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Coloro on Instagram"
+              className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-tr from-[#F9CE34] via-[#EE2A7B] to-[#6228D7] text-white font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
+            >
+              <Instagram className="w-4 h-4" />
+              <span className="hidden sm:inline">Instagram</span>
+            </a>
             <button
               onClick={() => {
                 playFanfare();
@@ -1324,6 +1335,28 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
       </section>
 
       {/* ------------------------------------------------------------- */}
+      {/* 10b. INSTAGRAM FOLLOW BANNER                                   */}
+      {/* ------------------------------------------------------------- */}
+      <section className="py-10 bg-[#FFFDF9]">
+        <div className="max-w-3xl mx-auto px-4">
+          <a
+            href="https://www.instagram.com/kidscoloro"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-gradient-to-tr from-[#F9CE34] via-[#EE2A7B] to-[#6228D7] text-white shadow-xl hover:scale-[1.02] transition-transform"
+          >
+            <div className="text-center sm:text-left">
+              <p className="text-lg sm:text-xl font-black font-display flex items-center justify-center sm:justify-start gap-2"><Instagram className="w-5 h-5" /> Follow us on Instagram</p>
+              <p className="text-xs sm:text-sm font-semibold opacity-90">New coloring pages, ideas &amp; kids' creations every week — @kidscoloro</p>
+            </div>
+            <span className="px-5 py-2.5 bg-white text-[#EE2A7B] rounded-2xl font-black text-sm shadow-md whitespace-nowrap">
+              Follow @kidscoloro →
+            </span>
+          </a>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------- */}
       {/* 11. COMPREHENSIVE FOOTER & LEGAL LINKS                         */}
       {/* ------------------------------------------------------------- */}
       <footer className="bg-[#2D3436] text-[#DFE6E9] py-14 border-t border-[#1E272E]">
@@ -1403,6 +1436,11 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 <li>
                   <a href="/pinterest-feed.xml" target="_blank" rel="noreferrer" className="hover:text-white">
                     📌 Pinterest RSS Feed
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.instagram.com/kidscoloro" target="_blank" rel="noopener noreferrer" className="hover:text-white">
+                    <span className="inline-flex items-center gap-1.5"><Instagram className="w-3.5 h-3.5" /> Follow us on Instagram</span>
                   </a>
                 </li>
               </ul>

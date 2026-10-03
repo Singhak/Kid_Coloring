@@ -1,5 +1,5 @@
 import React from 'react';
-import { Crown, Mail, ShieldCheck, FileText, CreditCard } from 'lucide-react';
+import { Crown, Mail, ShieldCheck, FileText, CreditCard, Instagram } from 'lucide-react';
 import { playClick } from '../services/soundEffects';
 
 interface AppFooterProps {
@@ -140,6 +140,16 @@ const AppFooter: React.FC<AppFooterProps> = ({
             >
               <span>support@coloro.in</span>
             </a>
+            <span className="text-[#CCC]">•</span>
+            <a
+              href="https://www.instagram.com/kidscoloro"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#EC4899] hover:underline inline-flex items-center gap-1"
+            >
+              <Instagram className="w-3 h-3 text-[#EC4899]" />
+              <span>Instagram</span>
+            </a>
           </>
         ) : (
           <>
@@ -152,6 +162,8 @@ const AppFooter: React.FC<AppFooterProps> = ({
             <a href="#privacy" className="hover:text-[#10B981] hover:underline">Privacy Policy</a>
             <span className="text-[#CCC]">•</span>
             <a href="mailto:support@coloro.in" className="hover:underline font-black">support@coloro.in</a>
+            <span className="text-[#CCC]">•</span>
+            <a href="https://www.instagram.com/kidscoloro" target="_blank" rel="noopener noreferrer" className="hover:text-[#EC4899] hover:underline inline-flex items-center gap-1"><Instagram className="w-3 h-3 text-[#EC4899]" /> Instagram</a>
           </>
         )}
       </div>
