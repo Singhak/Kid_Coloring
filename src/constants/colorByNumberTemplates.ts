@@ -137,6 +137,11 @@ export const BASIC_COLORS: BasicColor[] = [
 
 const BACKGROUND_SLOTS = new Set(['sky', 'water', 'bg', 'background']);
 const DARK_SLOTS = new Set(['eye', 'eyes', 'pupil']);
+const NATURAL_SLOTS: Record<string, string[]> = {
+  grass: ['Green', 'Light Green'],
+  green: ['Green', 'Teal'],
+  sun: ['Yellow', 'Orange'],
+};
 
 const shuffled = <T,>(arr: T[]): T[] => {
   const a = [...arr];
@@ -159,7 +164,23 @@ export function randomScheme(template: Template): ColorScheme {
   const take = (pool: BasicColor[], fallback: BasicColor[]) => pool.pop() ?? fallback.pop() ?? BASIC_COLORS[0];
 
   const colors: Record<string, string> = {};
+  // Natural parts keep natural colors (grass/stems green, sun warm); everything else is free.
   for (const slot of slots) {
+    const options = NATURAL_SLOTS[slot];
+    if (!options) continue;
+    const pick = shuffled(options)
+      .map(n => BASIC_COLORS.find(c => c.name === n)!)
+      .find(c => !Object.values(colors).includes(c.hex));
+    if (pick) {
+      colors[slot] = pick.hex;
+      for (const pool of [bright, light]) {
+        const i = pool.findIndex(c => c.hex === pick.hex);
+        if (i >= 0) pool.splice(i, 1);
+      }
+    }
+  }
+  for (const slot of slots) {
+    if (colors[slot]) continue;
     const c = BACKGROUND_SLOTS.has(slot)
       ? take(light, bright)
       : DARK_SLOTS.has(slot)
