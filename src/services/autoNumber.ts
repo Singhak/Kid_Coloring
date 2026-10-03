@@ -122,7 +122,7 @@ export function autoNumberFromPaths(paths: SvgPath[], viewBox: string, name: str
 
   const decor = paths
     .filter((p) => p.d)
-    .map((p) => ({ d: p.d, strokeWidth: Math.max(2, (p.strokeWidth || 4) * (vw / 500)) }));
+    .map((p) => ({ d: p.d, strokeWidth: (p.strokeWidth || 4) * 1.2 })); // same width the canvas draws these lines with
   return numberFromLineMask(isLine, name, viewBox, decor);
 }
 
