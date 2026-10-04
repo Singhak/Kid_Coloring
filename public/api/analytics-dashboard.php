@@ -595,6 +595,12 @@ endif;
   </div>
 
   <div class="card full">
+    <div class="card-header"><div class="card-title">👤 Signed-in users</div><span class="card-badge" id="users-badge">users</span></div>
+    <div style="color:var(--text-muted);font-size:11px;margin-bottom:8px">Active = clicking, typing or scrolling in the last 3 minutes, in any browser (an idle open tab does not count). Devices = distinct browsers/apps signed in on (all time).</div>
+    <div id="users" style="max-height:360px; overflow-y:auto"></div>
+  </div>
+
+  <div class="card full">
     <div class="card-header"><div class="card-title">⚡ Live activity</div><span class="card-badge">last 30 events</span></div>
     <div id="live" style="max-height:300px; overflow-y:auto"></div>
   </div>
@@ -749,6 +755,20 @@ endif;
 
       columns('hour-chart', d.sessions_by_hour_utc, (i, v) => `${String(i).padStart(2, '0')}:00 UTC: ${v} sessions`);
       barList('pages', d.top_pages.map(x => ({ label: x.page, value: n(x.views), title: `${x.visitors} visitors` })), 'var(--accent)');
+
+      setHtml('users-badge', `${fmt(o.active_users_now)} active now · ${fmt(o.signed_in_users)} in period`);
+      setHtml('users', (d.users || []).length ? d.users.map(u => {
+        const who = u.name || u.email || ('User ' + String(u.user_id).slice(0, 8));
+        const chips = u.devices.map(x => `<span style="display:inline-block;margin:4px 6px 0 0;padding:1px 8px;border-radius:99px;font-size:10px;border:1px solid ${x.active_now ? 'var(--success)' : 'var(--border)'};color:${x.active_now ? 'var(--success)' : 'var(--text-muted)'}">${esc(x.type)} · ${esc(x.browser || '?')} / ${esc(x.os || '?')}${x.active_now ? ' ● live' : ''}</span>`).join('');
+        return `<div class="stream-item">
+          <div><span style="color:${u.active_now ? 'var(--success)' : 'var(--text-muted)'}">●</span>
+            <strong style="margin-left:6px">${esc(who)}</strong>${u.is_pro ? ' 👑' : ''}
+            ${u.name && u.email ? `<span style="color:var(--text-muted)"> · ${esc(u.email)}</span>` : ''}
+            <div>${chips}</div></div>
+          <div style="color:var(--text-muted);font-size:11px;text-align:right">
+            <b>${u.device_count}</b> device${u.device_count === 1 ? '' : 's'} · ${u.active_now ? `<span style="color:var(--success)">${u.active_sessions} active session${u.active_sessions === 1 ? '' : 's'}</span>` : esc(ago(u.last_seen))}</div>
+        </div>`;
+      }).join('') : '<div class="empty">No signed-in users in this period</div>');
 
       setHtml('live', d.live_stream.length ? d.live_stream.map(ev => `
         <div class="stream-item">

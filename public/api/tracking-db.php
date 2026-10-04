@@ -115,6 +115,16 @@ function initTrackingSchema(PDO $pdo): void {
             created_at TEXT NOT NULL
         );
         CREATE INDEX IF NOT EXISTS idx_login_attempts ON tracking_login_attempts(ip_hash, created_at);
+
+        -- Cache of Firestore profile lookups (name / email) for signed-in users, admin dashboard only
+        CREATE TABLE IF NOT EXISTS tracking_users (
+            user_id TEXT PRIMARY KEY,
+            name TEXT,
+            email TEXT,
+            found INTEGER DEFAULT 0,
+            fetched_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON tracking_sessions(user_id);
         CREATE INDEX IF NOT EXISTS idx_events_action ON tracking_events(action);
 
         CREATE INDEX IF NOT EXISTS idx_sessions_session_id ON tracking_sessions(session_id);

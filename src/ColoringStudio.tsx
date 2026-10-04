@@ -7,7 +7,8 @@ import confetti from 'canvas-confetti';
 import { auth, db } from './firebase';
 import { 
   signInWithPopup, 
-  signInWithRedirect, 
+  signInWithRedirect,
+  signInWithCredential,
   GoogleAuthProvider, 
   signOut 
 } from 'firebase/auth';
@@ -68,6 +69,8 @@ import {
   PlanType,
 } from './services/paymentService';
 import { sendWelcomeEmail } from './services/emailService';
+import { claimTrial } from './services/authService';
+import { LoginModal } from './components/LoginModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { Crown, Sparkles, X } from 'lucide-react';
 
@@ -78,7 +81,7 @@ export interface ColoringStudioProps {
 }
 
 export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps = {}) {
-  const [user] = useAuthState(auth); // Firebase user object
+  const [user, loadingAuth] = useAuthState(auth); // Firebase user object
   const [isPro, setIsPro] = useState(false); // Derived state: true if subscribed or trial active
   const [trialEndDate, setTrialEndDate] = useState<Date | null>(null); // User's trial end date
   const [isSubscribed, setIsSubscribed] = useState(false); // User's subscription status
@@ -98,6 +101,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
   const isColorByNumber = Boolean(numberTemplate);
   const numberPrintRef = useRef<(() => boolean) | null>(null);
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showHelpFlow, setShowHelpFlow] = useState(false);
   const [isTourActive, setIsTourActive] = useState(false);
   const [showChatBotModal, setShowChatBotModal] = useState(false);
@@ -358,24 +362,24 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     const storageKey = `kidcolor_trial_${user.uid}`;
     const cachedTrialStr = localStorage.getItem(storageKey);
     const now = new Date();
-    let localTrialDate: Date;
 
-    // Free trial is granted exactly once per user account on first onboarding
+    // The trial is granted by the server (once per person). The local value is only
+    // a cache of what the server already told this device, so the UI is instant
+    // on reload; with no cache the user is not Pro until the server answers.
+    let localTrialDate: Date | null = null;
     if (cachedTrialStr) {
       const parsed = new Date(cachedTrialStr);
-      localTrialDate = !isNaN(parsed.getTime()) ? parsed : new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
-    } else {
-      localTrialDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000);
-      localStorage.setItem(storageKey, localTrialDate.toISOString());
+      if (!isNaN(parsed.getTime())) localTrialDate = parsed;
     }
 
-    const isLocalTrialActive = localTrialDate.getTime() > now.getTime();
+    const isLocalTrialActive = !!localTrialDate && localTrialDate.getTime() > now.getTime();
     setTrialEndDate(localTrialDate);
     setIsPro(isLocalTrialActive);
 
     // Show celebration banner once per session ONLY if trial is currently active
-    const sessionWelcomeKey = `trial_welcome_shown_${user.uid}`;
-    if (isLocalTrialActive && !sessionStorage.getItem(sessionWelcomeKey)) {
+    const showTrialCelebration = () => {
+      const sessionWelcomeKey = `trial_welcome_shown_${user.uid}`;
+      if (sessionStorage.getItem(sessionWelcomeKey)) return;
       sessionStorage.setItem(sessionWelcomeKey, 'true');
       setShowTrialWelcome(true);
       confetti({
@@ -385,7 +389,25 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         colors: ['#FFD93D', '#FF9F43', '#4D96FF', '#6BCB77']
       });
       setTimeout(() => setShowTrialWelcome(false), 6000);
-    }
+    };
+    if (isLocalTrialActive) showTrialCelebration();
+
+    let claiming = false;
+    const claimFromServer = async (): Promise<Date | null> => {
+      if (claiming) return null;
+      claiming = true;
+      try {
+        const { trialEndDate: serverTrial } = await claimTrial(user);
+        localStorage.setItem(storageKey, serverTrial.toISOString());
+        if (serverTrial.getTime() > Date.now()) showTrialCelebration();
+        return serverTrial;
+      } catch (err) {
+        console.warn('Trial claim failed:', err);
+        return null;
+      } finally {
+        claiming = false;
+      }
+    };
 
     const userRef = doc(db, 'users', user.uid);
     const unsubscribe = onSnapshot(
@@ -393,40 +415,14 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       async (snap) => {
         try {
           const userData = snap.data();
-          let currentTrialEndDate: Date = localTrialDate;
+          let currentTrialEndDate: Date | null = localTrialDate;
           let currentIsSubscribed = false;
 
           if (!userData || !userData.createdAt) {
-            const trialEndTimestamp = Timestamp.fromDate(localTrialDate);
-            await setDoc(
-              userRef,
-              {
-                uid: user.uid,
-                email: user.email || '',
-                displayName: user.displayName || 'Little Artist',
-                photoURL: user.photoURL || '',
-                createdAt: serverTimestamp(),
-                lastLoginAt: serverTimestamp(),
-                trialEndDate: trialEndTimestamp,
-                isSubscribed: false,
-                welcomeEmailSent: true,
-              },
-              { merge: true }
-            );
-
-            // Dispatch welcome email once on first-time login
-            if (user.email) {
-              const welcomeKey = `kidcolor_welcome_sent_${user.uid}`;
-              if (!localStorage.getItem(welcomeKey)) {
-                localStorage.setItem(welcomeKey, 'true');
-                sendWelcomeEmail({
-                  userId: user.uid,
-                  email: user.email,
-                  displayName: user.displayName || 'Little Artist',
-                  trialEndDate: localTrialDate,
-                }).catch((err) => console.warn('Welcome email error:', err));
-              }
-            }
+            // First login: the server creates the profile and grants the one-time trial.
+            // The snapshot fires again once the profile exists (welcome email is sent then).
+            const serverTrial = await claimFromServer();
+            if (serverTrial) currentTrialEndDate = serverTrial;
           } else {
             // Check if user has an active, unexpired subscription
             const subEndDate = userData.subscriptionEndDate?.toDate() || null;
@@ -434,22 +430,21 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             currentIsSubscribed = isSubValid;
             const firestoreTrial = userData.trialEndDate?.toDate() || null;
 
-            // Grant 15-day free trial ONCE on new user onboarding if trialEndDate is not set
             if (!firestoreTrial) {
-              const freshTrial = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-              await setDoc(
-                userRef,
-                {
-                  trialEndDate: Timestamp.fromDate(freshTrial),
-                  lastLoginAt: serverTimestamp(),
-                },
-                { merge: true }
-              );
-              currentTrialEndDate = freshTrial;
-              localStorage.setItem(storageKey, freshTrial.toISOString());
+              // Profile without a trial: ask the server (it grants at most one per person)
+              const serverTrial = await claimFromServer();
+              if (serverTrial) currentTrialEndDate = serverTrial;
             } else {
               currentTrialEndDate = firestoreTrial;
               localStorage.setItem(storageKey, firestoreTrial.toISOString());
+
+              // Once per device, make sure the server has a claim on record for this
+              // person (covers accounts created before server-side tracking).
+              const syncedKey = `kidcolor_trial_synced_${user.uid}`;
+              if (!localStorage.getItem(syncedKey)) {
+                localStorage.setItem(syncedKey, 'true');
+                claimFromServer().catch(() => {});
+              }
             }
 
             // Dispatch welcome email if not previously sent
@@ -461,7 +456,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
                   userId: user.uid,
                   email: user.email,
                   displayName: user.displayName || userData.displayName || 'Little Artist',
-                  trialEndDate: currentTrialEndDate,
+                  trialEndDate: currentTrialEndDate ?? undefined,
                 }).catch((err) => console.warn('Welcome email error:', err));
 
                 setDoc(userRef, { welcomeEmailSent: true }, { merge: true }).catch(() => {});
@@ -472,65 +467,84 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
           setTrialEndDate(currentTrialEndDate);
           setIsSubscribed(currentIsSubscribed);
 
-          const isTrialActive = currentTrialEndDate && currentTrialEndDate.getTime() > Date.now();
+          const isTrialActive = !!currentTrialEndDate && currentTrialEndDate.getTime() > Date.now();
           const effectivePro = currentIsSubscribed || isTrialActive;
           setIsPro(effectivePro);
           tracker.identify(user.uid, { isPro: effectivePro });
         } catch (err) {
-          console.warn('Firestore user profile sync warning (retaining 15-day local trial):', err);
+          console.warn('Firestore user profile sync warning (using cached trial only):', err);
           setTrialEndDate(localTrialDate);
-          setIsPro(true);
-          tracker.identify(user.uid, { isPro: true });
+          setIsPro(isLocalTrialActive);
+          tracker.identify(user.uid, { isPro: isLocalTrialActive });
         }
       },
       (error) => {
-        console.warn('Firestore onSnapshot error (retaining 15-day local trial):', error);
+        console.warn('Firestore onSnapshot error (using cached trial only):', error);
         setTrialEndDate(localTrialDate);
-        setIsPro(true);
-        tracker.identify(user.uid, { isPro: true });
+        setIsPro(isLocalTrialActive);
+        tracker.identify(user.uid, { isPro: isLocalTrialActive });
       }
     );
 
     return () => unsubscribe();
   }, [user]);
 
-  const handleLogin = async () => {
+  // Google sign-in. The free trial is claimed from the server by the profile-sync effect.
+  const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
       if (Capacitor.isNativePlatform()) {
         await signInWithRedirect(auth, provider);
       } else {
-        const result = await signInWithPopup(auth, provider);
-        if (result?.user) {
-          const userTrialKey = `kidcolor_trial_${result.user.uid}`;
-          const existingTrialStr = localStorage.getItem(userTrialKey);
-          let targetTrial: Date;
-          if (existingTrialStr) {
-            const parsed = new Date(existingTrialStr);
-            targetTrial = !isNaN(parsed.getTime()) ? parsed : new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-          } else {
-            targetTrial = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
-            localStorage.setItem(userTrialKey, targetTrial.toISOString());
-          }
-          const isTrialActive = targetTrial.getTime() > Date.now();
-          setTrialEndDate(targetTrial);
-          setIsPro(isTrialActive);
-          tracker.identify(result.user.uid, { isPro: isTrialActive });
-          if (isTrialActive) {
-            setShowTrialWelcome(true);
-            confetti({
-              particleCount: 75,
-              spread: 70,
-              origin: { y: 0.25 },
-              colors: ['#FFD93D', '#4D96FF', '#6BCB77', '#FF6B6B']
-            });
-          }
-        }
+        await signInWithPopup(auth, provider);
       }
     } catch (error) {
       console.error("Login failed:", error);
     }
   };
+
+  // Every "Sign in" button opens the chooser (Google or email code).
+  const handleLogin = () => setShowLoginModal(true);
+
+  // Google One Tap: when signed out, show the browser's Google account chooser popup.
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || loadingAuth || user || Capacitor.isNativePlatform()) return;
+
+    let cancelled = false;
+    const init = () => {
+      const gsi = window.google?.accounts?.id;
+      if (cancelled || !gsi) return;
+      gsi.initialize({
+        client_id: clientId,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        callback: async ({ credential }) => {
+          try {
+            await signInWithCredential(auth, GoogleAuthProvider.credential(credential));
+          } catch (error) {
+            console.error("One Tap login failed:", error);
+          }
+        },
+      });
+      gsi.prompt();
+    };
+
+    if (window.google?.accounts?.id) {
+      init();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = init;
+      document.head.appendChild(script);
+    }
+    return () => {
+      cancelled = true;
+      window.google?.accounts?.id?.cancel();
+    };
+  }, [user, loadingAuth]);
 
   const handleLogout = () => {
     signOut(auth);
@@ -1463,6 +1477,12 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
           onOpenPinterestStudio={() => setShowPinterestStudio(true)}
         />
       )}
+
+      <LoginModal
+        isOpen={showLoginModal && !user}
+        onClose={() => setShowLoginModal(false)}
+        onGoogleLogin={handleGoogleLogin}
+      />
 
       {/* Rate Limit Notification */}
       <RateLimitNotification isRateLimited={isRateLimited} />

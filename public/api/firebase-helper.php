@@ -118,13 +118,13 @@ function _fb_b64url(string $data): string
  * @return string      Signed JWT string
  * @throws RuntimeException if private key cannot be loaded
  */
-function firebaseCreateJWT(array $sa): string
+function firebaseCreateJWT(array $sa, string $scope = 'https://www.googleapis.com/auth/datastore'): string
 {
     $now     = time();
     $header  = _fb_b64url(json_encode(['alg' => 'RS256', 'typ' => 'JWT']));
     $payload = _fb_b64url(json_encode([
         'iss'   => $sa['client_email'],
-        'scope' => 'https://www.googleapis.com/auth/datastore',
+        'scope' => $scope,
         'aud'   => 'https://oauth2.googleapis.com/token',
         'iat'   => $now,
         'exp'   => $now + 3600,
@@ -154,10 +154,11 @@ function firebaseCreateJWT(array $sa): string
  * @return string      OAuth2 access token
  * @throws RuntimeException on network failure or auth rejection
  */
-function firebaseGetAccessToken(array $sa): string
+function firebaseGetAccessToken(array $sa, string $scope = 'https://www.googleapis.com/auth/datastore'): string
 {
     // Cache key is derived from client_email + key_id (unique per credential)
-    $cacheKey  = substr(md5($sa['client_email'] . ($sa['private_key_id'] ?? '')), 0, 14);
+    $isDefaultScope = ($scope === 'https://www.googleapis.com/auth/datastore');
+    $cacheKey  = substr(md5($sa['client_email'] . ($sa['private_key_id'] ?? '') . ($isDefaultScope ? '' : $scope)), 0, 14);
     $cacheFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'coloro_fb_' . $cacheKey . '.json';
 
     // Return cached token if still valid (60-second buffer before expiry)
@@ -173,7 +174,7 @@ function firebaseGetAccessToken(array $sa): string
     }
 
     // Mint a fresh token via Google OAuth2
-    $jwt = firebaseCreateJWT($sa);
+    $jwt = firebaseCreateJWT($sa, $scope);
 
     $ch = curl_init('https://oauth2.googleapis.com/token');
     curl_setopt_array($ch, [

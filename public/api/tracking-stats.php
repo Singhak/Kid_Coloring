@@ -11,6 +11,7 @@ header('Content-Type: application/json; charset=UTF-8');
 header('Cache-Control: no-store');
 
 require_once __DIR__ . '/tracking-db.php';
+require_once __DIR__ . '/tracking-users.php';
 
 // Strictly restrict access to admin only
 if (!isTelemetryAuthorized()) {
@@ -115,6 +116,76 @@ try {
         SELECT COUNT(DISTINCT visitor_id) FROM tracking_sessions
         WHERE last_heartbeat_at >= '" . gmdate('Y-m-d H:i:s', time() - 900) . "'
     ")->fetchColumn();
+
+    // ---- 1b. Signed-in users: who is active, and on how many devices -----
+    // "Active" = actually engaged: the tracker only sends heartbeats while the user is
+    // clicking / typing / scrolling, so a tab left open and idle drops out after ~3 minutes.
+    $activeSince = gmdate('Y-m-d H:i:s', time() - 180);
+    $signedInUsers = (int)$one("SELECT COUNT(DISTINCT user_id) FROM tracking_sessions WHERE $dateSql AND user_id IS NOT NULL AND user_id != ''");
+    $activeUsersNow = (int)$pdo->query("
+        SELECT COUNT(DISTINCT user_id) FROM tracking_sessions
+        WHERE user_id IS NOT NULL AND user_id != '' AND last_heartbeat_at >= '$activeSince'
+    ")->fetchColumn();
+
+    $userRows = $all("
+        SELECT user_id, COUNT(*) AS sessions, MAX(last_heartbeat_at) AS last_seen,
+               MAX(is_pro) AS is_pro, COALESCE(SUM(duration_seconds), 0) AS total_seconds
+        FROM tracking_sessions
+        WHERE $dateSql AND user_id IS NOT NULL AND user_id != ''
+        GROUP BY user_id ORDER BY last_seen DESC LIMIT 100
+    ");
+    $userIds = array_column($userRows, 'user_id');
+
+    // Devices are counted over all time (a device = one browser profile, i.e. visitor_id)
+    $devicesByUser = [];
+    $activeSessionsByUser = [];
+    if ($userIds) {
+        $marks = implode(',', array_fill(0, count($userIds), '?'));
+        $stmt = $pdo->prepare("
+            SELECT user_id, visitor_id, MAX(device_type) AS device_type, MAX(browser) AS browser,
+                   MAX(os) AS os, MAX(last_heartbeat_at) AS last_seen
+            FROM tracking_sessions WHERE user_id IN ($marks)
+            GROUP BY user_id, visitor_id ORDER BY last_seen DESC
+        ");
+        $stmt->execute($userIds);
+        foreach ($stmt->fetchAll() as $d) {
+            $devicesByUser[$d['user_id']][] = [
+                'type' => $d['device_type'], 'browser' => $d['browser'], 'os' => $d['os'],
+                'active_now' => $d['last_seen'] >= $activeSince,
+                'last_seen' => str_replace(' ', 'T', $d['last_seen']) . 'Z',
+            ];
+        }
+
+        // Currently engaged sessions (one per open, in-use tab/browser)
+        $stmt = $pdo->prepare("
+            SELECT user_id, COUNT(*) AS c FROM tracking_sessions
+            WHERE user_id IN ($marks) AND last_heartbeat_at >= ?
+            GROUP BY user_id
+        ");
+        $stmt->execute(array_merge($userIds, [$activeSince]));
+        foreach ($stmt->fetchAll() as $a) $activeSessionsByUser[$a['user_id']] = (int)$a['c'];
+    }
+
+    $profiles = trackingResolveUsers($pdo, $userIds);
+    $users = [];
+    foreach ($userRows as $r) {
+        $uid = $r['user_id'];
+        $devs = $devicesByUser[$uid] ?? [];
+        $users[] = [
+            'user_id'       => $uid,
+            'name'          => $profiles[$uid]['name'] ?? null,
+            'email'         => $profiles[$uid]['email'] ?? null,
+            'active_now'    => $r['last_seen'] >= $activeSince,
+            'active_sessions' => $activeSessionsByUser[$uid] ?? 0,
+            'active_devices'  => count(array_filter($devs, fn($x) => $x['active_now'])),
+            'last_seen'     => str_replace(' ', 'T', $r['last_seen']) . 'Z',
+            'sessions'      => (int)$r['sessions'],
+            'total_seconds' => (int)$r['total_seconds'],
+            'is_pro'        => (int)$r['is_pro'] === 1,
+            'device_count'  => count($devs),
+            'devices'       => array_slice($devs, 0, 6),
+        ];
+    }
 
     // ---- 2. Daily trend (zero-filled) -----------------------------------
     $byDay = [];
@@ -306,11 +377,14 @@ try {
             'avg_duration_seconds' => (int)round((float)$sess['avg_duration']),
             'pro_visitors' => (int)$sess['pro_visitors'],
             'signed_in_visitors' => (int)$sess['signed_in_visitors'],
+            'signed_in_users' => $signedInUsers,
+            'active_users_now' => $activeUsersNow,
             'activated_sessions' => $activatedSessions,
             'activation_rate' => $totalSessions > 0 ? round($activatedSessions / $totalSessions * 100, 1) : 0,
             'revenue' => $revenue,
             'payment_failures' => $paymentFailures,
         ],
+        'users' => $users,
         'trends' => $trends,
         'sources' => array_values($sources),
         'landing_pages' => $landingPages,

@@ -22,13 +22,31 @@ service cloud.firestore {
     // clients cannot forge subscription status because the backend service
     // account bypasses these rules — and without backend confirmation,
     // Cashfree never returns PAID so the user never reaches the write path.
+    //
+    // Trial and subscription fields are server-owned: the free trial is granted
+    // once per person by the PHP backend (claim-trial.php / otp-verify.php), so a
+    // client can neither extend its trial nor mark itself subscribed.
+    // The only client-side change allowed is isSubscribed -> false (cancel).
+    function touchesServerOwnedFields() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasAny(['trialEndDate', 'subscriptionStartDate', 'subscriptionEndDate', 'planType'])
+        || (changed.hasAny(['isSubscribed']) && request.resource.data.isSubscribed == true);
+    }
     match /users/{uid} {
       allow read:   if isOwner(uid);
       allow create: if isOwner(uid) &&
         request.resource.data.keys().hasAll(['uid', 'email', 'createdAt']) &&
-        request.resource.data.uid == uid;
-      allow update: if isOwner(uid);
+        request.resource.data.uid == uid &&
+        !request.resource.data.keys().hasAny(['trialEndDate', 'subscriptionStartDate', 'subscriptionEndDate', 'planType']) &&
+        request.resource.data.get('isSubscribed', false) == false;
+      allow update: if isOwner(uid) && !touchesServerOwnedFields();
     }
+
+    // ── Server-only collections (PHP backend via service account) ─────────
+    // trial_claims: one free trial per person.  otp_codes / otp_limits: email OTP login.
+    match /trial_claims/{id} { allow read, write: if false; }
+    match /otp_codes/{id}    { allow read, write: if false; }
+    match /otp_limits/{id}   { allow read, write: if false; }
 
     // ── Orders ────────────────────────────────────────────────────────────
     // Security model:

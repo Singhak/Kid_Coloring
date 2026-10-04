@@ -31,3 +31,6 @@ public/pinterest-pins/pin-15*
 deploy.bat
 post_instagram_daily.bat
 .deploy_manifest.json
+
+# Firebase service account keys (secret)
+*-firebase-adminsdk-*.json

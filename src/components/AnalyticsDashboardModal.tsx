@@ -13,8 +13,26 @@ import {
   ExternalLink,
   Layers,
   Palette,
-  Eye
+  Eye,
+  Monitor,
+  Smartphone,
+  Tablet
 } from 'lucide-react';
+
+interface SignedInUser {
+  user_id: string;
+  name: string | null;
+  email: string | null;
+  active_now: boolean;
+  active_sessions: number;
+  active_devices: number;
+  last_seen: string;
+  sessions: number;
+  total_seconds: number;
+  is_pro: boolean;
+  device_count: number;
+  devices: Array<{ type: string; browser: string | null; os: string | null; active_now: boolean; last_seen: string }>;
+}
 
 interface AnalyticsData {
   overview: {
@@ -25,7 +43,10 @@ interface AnalyticsData {
     active_visitors_now: number;
     avg_duration_seconds: number;
     pro_visitors: number;
+    signed_in_users: number;
+    active_users_now: number;
   };
+  users: SignedInUser[];
   top_templates: Array<{ template_name: string; selects_count: number; unique_artists: number }>;
   top_tools: Array<{ tool_action: string; tool_name: string; count: number }>;
   top_colors: Array<{ color_or_pattern: string; pick_count: number }>;
@@ -61,7 +82,10 @@ const toModalData = (j: any): AnalyticsData => {
       active_visitors_now: o.active_now || 0,
       avg_duration_seconds: o.avg_duration_seconds || 0,
       pro_visitors: o.pro_visitors || 0,
+      signed_in_users: o.signed_in_users || 0,
+      active_users_now: o.active_users_now || 0,
     },
+    users: j.users || [],
     top_templates: (j.top_templates || []).map((t: any) => ({ template_name: t.name, selects_count: t.opens, unique_artists: t.artists })),
     top_tools: [
       ...(j.tools || []).map((t: any) => ({ tool_action: 'use_tool', tool_name: t.name, count: t.uses })),
@@ -170,6 +194,16 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
   };
 
   const o = data?.overview;
+
+  const timeAgo = (iso: string) => {
+    const secs = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+    if (secs < 90) return 'just now';
+    if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+    if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+    return `${Math.floor(secs / 86400)}d ago`;
+  };
+  const DeviceIcon: React.FC<{ type: string }> = ({ type }) =>
+    type === 'mobile' ? <Smartphone className="w-3 h-3" /> : type === 'tablet' ? <Tablet className="w-3 h-3" /> : <Monitor className="w-3 h-3" />;
 
   return (
     <AnimatePresence>
@@ -363,6 +397,75 @@ export const AnalyticsDashboardModal: React.FC<AnalyticsDashboardModalProps> = (
                   {o?.pro_visitors || 0}
                 </div>
                 <div className="text-[10px] text-[#94A3B8] mt-0.5">Active VIP users</div>
+              </div>
+            </div>
+
+            {/* Signed-in users: who, when, and how many devices */}
+            <div className="p-4 rounded-2xl bg-[#1E293B] border border-[#334155]">
+              <h3 className="text-sm font-bold text-white mb-1 flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#34D399]" />
+                <span>Signed-in Users</span>
+                <span className="text-[10px] font-bold text-[#34D399] bg-[#34D399]/15 px-2 py-0.5 rounded-full">
+                  {o?.active_users_now || 0} active now
+                </span>
+                <span className="text-[10px] text-[#94A3B8] font-semibold">
+                  {o?.signed_in_users || 0} in this timeframe
+                </span>
+              </h3>
+              <p className="text-[10px] text-[#94A3B8] mb-3">
+                Active = clicking, typing or scrolling in the last 3 minutes, in any browser. An idle open tab is not counted. Devices = distinct browsers/apps the user signed in on (all time); clearing browser data counts as a new device.
+              </p>
+              <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                {(!data?.users || data.users.length === 0) ? (
+                  <p className="text-xs text-[#94A3B8] py-4 text-center">No signed-in users in this timeframe</p>
+                ) : (
+                  data.users.map((u) => (
+                    <div key={u.user_id} className="text-xs py-2 border-b border-[#334155]/40">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={`w-2 h-2 rounded-full shrink-0 ${u.active_now ? 'bg-[#34D399] animate-pulse' : 'bg-[#475569]'}`}
+                            title={u.active_now ? 'Engaged right now' : 'Not active'}
+                          />
+                          <div className="min-w-0">
+                            <div className="font-bold text-white truncate flex items-center gap-1.5">
+                              {u.name || u.email || `User ${u.user_id.slice(0, 8)}`}
+                              {u.is_pro && <Crown className="w-3 h-3 text-[#FBBF24] shrink-0" />}
+                            </div>
+                            {u.name && u.email && <div className="text-[10px] text-[#94A3B8] truncate">{u.email}</div>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0 text-[10px] text-[#94A3B8]">
+                          <span className="text-[#38BDF8] font-bold">
+                            {u.device_count} device{u.device_count === 1 ? '' : 's'}
+                          </span>
+                          <span className={u.active_now ? 'text-[#34D399] font-bold' : ''}>
+                            {u.active_now
+                              ? `${u.active_sessions} active session${u.active_sessions === 1 ? '' : 's'}`
+                              : timeAgo(u.last_seen)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5 pl-4">
+                        {u.devices.map((d, i) => (
+                          <span
+                            key={i}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                              d.active_now
+                                ? 'bg-[#34D399]/15 text-[#34D399] border-[#34D399]/40'
+                                : 'bg-[#0F172A] text-[#94A3B8] border-[#334155]'
+                            }`}
+                            title={d.active_now ? 'Actively using the app now' : `Last seen ${timeAgo(d.last_seen)}`}
+                          >
+                            <DeviceIcon type={d.type} />
+                            {d.browser || '?'} · {d.os || '?'}
+                            {d.active_now && <span className="font-black">● live</span>}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
