@@ -1,0 +1,198 @@
+import React, { useState } from 'react';
+import { AnimatePresence } from 'motion/react';
+import { SvgPath, Template } from '../types';
+import TemplateGrid from './TemplateGrid';
+import LoadingSpinner from './LoadingSpinner';
+import DualLayerCanvas from './DualLayerCanvas';
+import NumberColoringPlayer from './NumberColoringPlayer';
+import CanvasActionButtons from './CanvasActionButtons';
+import { StickerItem } from './StickerStampsModal';
+import { tracker } from '../services/tracker';
+
+interface CanvasAreaProps {
+  isPro: boolean;
+  isGenerating: boolean;
+  showTemplates: boolean;
+  setShowTemplates: (show: boolean) => void;
+  selectedCategory: string;
+  paths: SvgPath[];
+  viewBox: string;
+  imageUrl?: string | null;
+  selectedColor: string;
+  paintCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  lineArtCanvasRef: React.RefObject<HTMLCanvasElement | null>;
+  onHistoryPush: (dataUrl: string) => void;
+  restoredDataUrl: string | null;
+  generateRandomImage: () => void;
+  selectTemplate: (template: Template) => void;
+  downloadImage: () => void;
+  clearCanvas: () => void;
+  setShowUpgradeModal: (show: boolean) => void;
+  onPrintSheet?: () => void;
+  onOpenPhotoArt?: () => void;
+  selectedSticker?: StickerItem | null;
+  onClearSticker?: () => void;
+  isColorByNumber?: boolean;
+  numberTemplate?: Template | null;
+  numberPrintRef?: React.MutableRefObject<(() => boolean) | null>;
+  onCreateNumberedAi?: () => void;
+  onToggleColorByNumber?: () => void;
+  onOpenStickers?: () => void;
+  onQuickNext?: () => void;
+  fillCount?: number;
+  onIncrementFillCount?: () => void;
+  resetTrigger?: number;
+  setSelectedCategory?: (category: string) => void;
+}
+
+const CanvasArea: React.FC<CanvasAreaProps> = ({
+  isPro,
+  isGenerating,
+  showTemplates,
+  setShowTemplates,
+  selectedCategory,
+  paths,
+  viewBox,
+  imageUrl,
+  selectedColor,
+  paintCanvasRef,
+  lineArtCanvasRef,
+  onHistoryPush,
+  restoredDataUrl,
+  generateRandomImage,
+  selectTemplate,
+  downloadImage,
+  clearCanvas,
+  setShowUpgradeModal,
+  onPrintSheet,
+  onOpenPhotoArt,
+  selectedSticker,
+  onClearSticker,
+  isColorByNumber = false,
+  numberTemplate = null,
+  numberPrintRef,
+  onCreateNumberedAi,
+  onToggleColorByNumber,
+  onOpenStickers,
+  onQuickNext,
+  fillCount = 0,
+  onIncrementFillCount,
+  resetTrigger,
+  setSelectedCategory
+}) => {
+  const [scale, setScale] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+
+  const handleZoomIn = () => {
+    tracker.trackCanvas('zoom_in');
+    setScale((prev) => Math.min(5.0, prev + 0.3));
+  };
+
+  const handleZoomOut = () => {
+    tracker.trackCanvas('zoom_out');
+    setScale((prev) => {
+      const next = Math.max(1.0, prev - 0.3);
+      if (next <= 1.05) setPan({ x: 0, y: 0 });
+      return next;
+    });
+  };
+
+  const handleResetZoom = () => {
+    setScale(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleClearCanvas = () => {
+    handleResetZoom();
+    clearCanvas();
+  };
+
+  const handleSelectTemplate = (template: Template) => {
+    handleResetZoom();
+    selectTemplate(template);
+  };
+
+  return (
+    <div className="flex-1 w-full h-full flex flex-col overflow-hidden min-h-0 relative">
+      {/* Main Drawing Canvas / Library Container */}
+      <div className={`flex-1 relative rounded-2xl sm:rounded-3xl border-2 sm:border-3 border-[#EBE8DC] shadow-inner flex items-center justify-center overflow-hidden group min-h-0 min-w-0 p-1 sm:p-2.5 ${showTemplates ? 'bg-[#F7F5EC]' : 'art-studio-bg'}`}>
+        {/* Floating Utility Controls (Desktop >= md, where canvas is centered with ample margin) */}
+        {!showTemplates && !isGenerating && (
+          <div className="hidden md:block absolute top-2 sm:top-2.5 left-2 sm:left-2.5 z-20">
+            <CanvasActionButtons
+              isPro={isPro}
+              isGenerating={isGenerating}
+              downloadImage={downloadImage}
+              generateRandomImage={generateRandomImage}
+              clearCanvas={handleClearCanvas}
+              setShowUpgradeModal={setShowUpgradeModal}
+              onOpenGallery={() => setShowTemplates(true)}
+              onPrintSheet={onPrintSheet}
+              onOpenPhotoArt={onOpenPhotoArt}
+              isColorByNumber={isColorByNumber}
+              onToggleColorByNumber={onToggleColorByNumber}
+              onOpenStickers={onOpenStickers}
+              scale={scale}
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onResetZoom={handleResetZoom}
+              onQuickNext={onQuickNext}
+            />
+          </div>
+        )}
+
+        <AnimatePresence mode="wait">
+          {showTemplates ? (
+            <TemplateGrid
+              key="template-grid-view"
+              isPro={isPro}
+              isGenerating={isGenerating}
+              selectedCategory={selectedCategory}
+              generateRandomImage={generateRandomImage}
+              selectTemplate={handleSelectTemplate}
+              setShowUpgradeModal={setShowUpgradeModal}
+              onOpenPhotoArt={onOpenPhotoArt}
+              onSelectCategory={setSelectedCategory}
+              onCreateNumberedAi={onCreateNumberedAi}
+            />
+          ) : isGenerating ? (
+            <LoadingSpinner key="loading-view" />
+          ) : numberTemplate ? (
+            <div key="number-player-view" className="w-full h-full flex items-center justify-center min-h-0 min-w-0 py-0.5 sm:py-1">
+              <NumberColoringPlayer
+                template={numberTemplate}
+                resetTrigger={resetTrigger}
+                printRef={numberPrintRef}
+                onBackToLibrary={() => setShowTemplates(true)}
+              />
+            </div>
+          ) : (
+            <div key="canvas-drawing-view" className="w-full h-full flex items-center justify-center min-h-0 min-w-0 py-0.5 sm:py-1">
+              <DualLayerCanvas
+                paths={paths}
+                viewBox={viewBox}
+                imageUrl={imageUrl}
+                selectedColor={selectedColor}
+                paintCanvasRef={paintCanvasRef}
+                lineArtCanvasRef={lineArtCanvasRef}
+                onHistoryPush={onHistoryPush}
+                restoredDataUrl={restoredDataUrl}
+                scale={scale}
+                setScale={setScale}
+                pan={pan}
+                setPan={setPan}
+                selectedSticker={selectedSticker}
+                onClearSticker={onClearSticker}
+                fillCount={fillCount}
+                onIncrementFillCount={onIncrementFillCount}
+                resetTrigger={resetTrigger}
+              />
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+export default CanvasArea;

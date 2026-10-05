@@ -1,83 +1,464 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Zap, Crown } from 'lucide-react';
+import { 
+  Crown, 
+  Sparkles, 
+  Printer, 
+  X, 
+  Palette, 
+  CheckCircle2, 
+  ShieldCheck, 
+  HeartHandshake, 
+  Lock, 
+  ArrowRight,
+  Star,
+  Camera,
+  Hash,
+  Smile,
+  Zap,
+  Check,
+  Minus
+} from 'lucide-react';
+import { playChime, playClick, playPop } from '../services/soundEffects';
 
 interface UpgradeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onUpgrade: () => void;
-  trialDaysLeft: number | null;
+  showUpgradeModal: boolean;
+  setShowUpgradeModal: (show: boolean) => void;
+  user: any;
+  isPro: boolean;
+  trialEndDate: Date | null;
+  isSubscribed: boolean;
+  handleLogin: () => void;
+  handleSubscribe: (plan?: 'annual' | 'monthly') => void;
+  onOpenPricingPage?: () => void;
+  onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund') => void;
+  defaultPlan?: 'annual' | 'monthly';
 }
 
-const UpgradeModal: React.FC<UpgradeModalProps> = ({ isOpen, onClose, onUpgrade, trialDaysLeft }) => {
+const COMPARISON_FEATURES = [
+  { name: '📸 Turn Real Photos into Coloring Pages', free: false, vip: true },
+  { name: '🪄 Unlimited Magic AI Prompt Generator', free: '1 preview', vip: 'Unlimited' },
+  { name: '🔢 Color by Number & Phonics Mode', free: false, vip: true },
+  { name: '✨ Special Glitter, Neon & Pattern Fills', free: false, vip: true },
+  { name: '🌟 Cute Sticker Stamps & Faces (Smiley, Cry, Laugh...)', free: '25+ Free Stamps', vip: 'All 50+ VIP' },
+  { name: '🖨️ Printable A4 Sheets (Real Crayons)', free: 'Watermarked', vip: 'Ultra HD Crisp' },
+  { name: '🎨 50+ Magic Pro Color Palettes', free: '12 Colors', vip: '50+ Shades' },
+  { name: '🛡️ 100% Ad-Free & Child-Safe', free: 'Limited', vip: 'Guaranteed' },
+];
+
+const UpgradeModal: React.FC<UpgradeModalProps> = ({
+  showUpgradeModal,
+  setShowUpgradeModal,
+  user,
+  trialEndDate,
+  isSubscribed,
+  handleLogin,
+  handleSubscribe,
+  onOpenPricingPage,
+  onOpenLegalPage,
+  defaultPlan = 'annual',
+}) => {
+  const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
+  const [showParentGate, setShowParentGate] = useState(false);
+  const [gateNum1, setGateNum1] = useState(4);
+  const [gateNum2, setGateNum2] = useState(6);
+  const [gateAnswer, setGateAnswer] = useState('');
+  const [gateError, setGateError] = useState(false);
+  const [activeTab, setActiveTab] = useState<'highlights' | 'comparison'>('highlights');
+
+  const now = new Date();
+  const isTrialActive = trialEndDate && trialEndDate.getTime() > now.getTime();
+  const daysRemaining = trialEndDate ? Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+  useEffect(() => {
+    if (showUpgradeModal) {
+      playChime();
+      if (defaultPlan) {
+        setSelectedPlan(defaultPlan);
+      }
+      setShowParentGate(false);
+      setGateAnswer('');
+      setGateError(false);
+      // Generate random parent gate math challenge
+      const n1 = Math.floor(Math.random() * 6) + 3;
+      const n2 = Math.floor(Math.random() * 6) + 2;
+      setGateNum1(n1);
+      setGateNum2(n2);
+    }
+  }, [showUpgradeModal, defaultPlan]);
+
+  const handleStartCheckout = () => {
+    playClick();
+    if (!user) {
+      handleLogin();
+      return;
+    }
+    // Open parental gate before final payment
+    setShowParentGate(true);
+  };
+
+  const handleVerifyParentGate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (parseInt(gateAnswer.trim(), 10) === gateNum1 + gateNum2) {
+      playPop();
+      setShowParentGate(false);
+      handleSubscribe(selectedPlan);
+    } else {
+      setGateError(true);
+      playPop(200);
+    }
+  };
+
   return (
     <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => {
+              playClick();
+              setShowUpgradeModal(false);
+            }}
+            className="fixed inset-0 bg-black/65 backdrop-blur-sm"
           />
+
+          {/* Modal Card */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative bg-white rounded-[2.5rem] shadow-2xl overflow-hidden max-w-md w-full border-4 border-[#FFD93D]"
+            className="relative w-full max-w-xl bg-white rounded-3xl sm:rounded-[2.5rem] shadow-2xl overflow-hidden border-3 sm:border-4 border-[#FFF2B2] my-auto z-10 max-h-[90dvh] flex flex-col"
           >
-            <div className="bg-[#FFD93D] p-8 text-center relative">
-              <button 
-                onClick={onClose}
-                className="absolute top-4 right-4 p-2 hover:bg-black/10 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6 text-[#2D3436]" />
-              </button>
-              <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-3">
-                <Crown className="w-12 h-12 text-[#FFD93D]" />
-              </div>
-              <h2 className="text-3xl font-black text-[#2D3436] mb-2 uppercase tracking-tight">Unlock Magic!</h2>
-              <p className="text-[#2D3436]/80 font-bold">Get unlimited AI drawings & more!</p>
-            </div>
-            
-            <div className="p-8">
-              <ul className="space-y-4 mb-8">
-                {[
-                  { icon: Zap, text: "Unlimited AI Magic Drawings", color: "text-[#FFD93D]" },
-                  { icon: Crown, text: "Exclusive Pro Templates", color: "text-[#FF6B6B]" },
-                  { icon: Crown, text: "Magic Palette (35+ Extra Colors)", color: "text-[#4D96FF]" },
-                  { icon: Crown, text: "Save in High Quality", color: "text-[#6BCB77]" }
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3 font-bold text-[#2D3436]">
-                    <div className={`p-2 rounded-xl bg-gray-50 ${feature.color}`}>
-                      <feature.icon className="w-5 h-5" />
-                    </div>
-                    {feature.text}
-                  </li>
-                ))}
-              </ul>
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                playClick();
+                setShowUpgradeModal(false);
+              }}
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 rounded-full hover:bg-black/5 transition-all z-20 cursor-pointer text-[#888]"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
 
-              {trialDaysLeft !== null && (
-                <div className="mb-6 p-4 bg-[#FFFDF0] rounded-2xl border-2 border-dashed border-[#FFD93D] text-center">
-                  <p className="text-sm font-black text-[#FFD93D] uppercase">Free Trial Active</p>
-                  <p className="text-lg font-bold text-[#2D3436]">{trialDaysLeft} Days Remaining</p>
+            {/* Header */}
+            <div className="bg-gradient-to-b from-[#FFF8D6] via-[#FFFDF5] to-white p-4 sm:p-6 pb-2 pt-4 sm:pt-6 text-center relative shrink-0">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FFD93D]/30 border border-[#FFD93D] rounded-full text-[#8C5B00] text-xs font-black mb-1.5">
+                <Sparkles className="w-3.5 h-3.5 fill-current" />
+                <span>COLORO MAGIC VIP PASS</span>
+              </div>
+
+              <h2 className="text-xl sm:text-3xl font-black text-[#2D3436] font-display">
+                {isSubscribed ? "You're a VIP Explorer! 🌟" : "Unlock Ultimate Creative Superpowers"}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#636E72] font-semibold mt-1">
+                {isTrialActive 
+                  ? `✨ Trial Active (${daysRemaining} days left). Subscribe to keep all superpowers!` 
+                  : "Turn photos into coloring sheets, AI drawings, glitter fills & home printing"}
+              </p>
+
+              {/* View Tab Switcher */}
+              <div className="flex items-center justify-center gap-1 mt-2.5 sm:mt-3 p-1 bg-[#F4F1DE]/60 rounded-2xl max-w-xs mx-auto border border-[#E6E2D3]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setActiveTab('highlights');
+                  }}
+                  className={`flex-1 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    activeTab === 'highlights'
+                      ? 'bg-white text-[#2D3436] shadow-xs'
+                      : 'text-[#777] hover:text-[#2D3436]'
+                  }`}
+                >
+                  Top Superpowers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    playClick();
+                    setActiveTab('comparison');
+                  }}
+                  className={`flex-1 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    activeTab === 'comparison'
+                      ? 'bg-white text-[#2D3436] shadow-xs'
+                      : 'text-[#777] hover:text-[#2D3436]'
+                  }`}
+                >
+                  Free vs VIP Matrix
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="px-3.5 sm:px-6 py-2 overflow-y-auto space-y-3 sm:space-y-4 flex-1">
+              {/* Pricing Plan Selector */}
+              {!isSubscribed && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 pt-1">
+                  {/* Annual Plan (Best Value) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playClick();
+                      setSelectedPlan('annual');
+                    }}
+                    className={`relative p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 text-left transition-all cursor-pointer ${
+                      selectedPlan === 'annual'
+                        ? 'border-[#FF9F43] bg-[#FFFBF0] shadow-md -translate-y-0.5'
+                        : 'border-[#EBE8DC] bg-white hover:border-[#FFD93D]'
+                    }`}
+                  >
+                    <div className="absolute -top-2.5 right-3 bg-gradient-to-r from-[#FF6B6B] to-[#FA8231] text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs uppercase">
+                      Save 60% • Most Popular
+                    </div>
+                    <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Annual Pass</span>
+                    <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹499</span>
+                      <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ year</span>
+                    </div>
+                  </button>
+
+                  {/* Monthly Plan */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      playClick();
+                      setSelectedPlan('monthly');
+                    }}
+                    className={`relative p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl border-2 sm:border-3 text-left transition-all cursor-pointer ${
+                      selectedPlan === 'monthly'
+                        ? 'border-[#4D96FF] bg-[#F4F9FF] shadow-md -translate-y-0.5'
+                        : 'border-[#EBE8DC] bg-white hover:border-[#4D96FF]'
+                    }`}
+                  >
+                    <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Monthly Pass</span>
+                    <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹99</span>
+                      <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ mo</span>
+                    </div>
+                    <span className="block text-[10px] sm:text-[11px] font-semibold text-[#888] mt-0.5 sm:mt-1">
+                      Billed monthly • Cancel anytime
+                    </span>
+                  </button>
                 </div>
               )}
 
-              <button
-                onClick={onUpgrade}
-                className="w-full py-4 bg-[#FFD93D] hover:bg-[#F9CA24] text-[#2D3436] font-black text-xl rounded-2xl shadow-lg transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-              >
-                <Zap className="w-6 h-6" />
-                UPGRADE NOW
-              </button>
-              <p className="text-center mt-4 text-xs font-bold text-[#A0A0A0]">Cancel anytime • Secure payment</p>
+              {/* Tab 1: Highlights */}
+              {activeTab === 'highlights' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-2.5 bg-[#F0FDF4] rounded-2xl border border-[#86EFAC]/40">
+                    <div className="w-8 h-8 rounded-xl bg-[#16A34A] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Camera className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">Turn Real Photos to Coloring Outlines</span>
+                      <span className="text-[10px] text-[#555]">Convert child, pet, or toy photos into coloring sheets instantly</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                  </div>
+
+                  <div className="flex items-center gap-3 p-2.5 bg-[#F0F8FF] rounded-2xl border border-[#4D96FF]/30">
+                    <div className="w-8 h-8 rounded-xl bg-[#4D96FF] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">Unlimited AI Magic Line Art Generator</span>
+                      <span className="text-[10px] text-[#555]">Type any prompt (e.g. "Dinosaur eating pizza") & AI draws it</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                  </div>
+
+                  <div className="flex items-center gap-3 p-2.5 bg-[#FFFDF0] rounded-2xl border border-[#FFD93D]/40">
+                    <div className="w-8 h-8 rounded-xl bg-[#FFD93D] flex items-center justify-center text-[#7A4B00] shrink-0 shadow-xs">
+                      <Printer className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">1-Click Printable PDF Coloring Sheets</span>
+                      <span className="text-[10px] text-[#555]">Print unlimited A4 sheets for real crayons at home</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                  </div>
+
+                  <div className="flex items-center gap-3 p-2.5 bg-[#FAF5FF] rounded-2xl border border-[#9B72AA]/30">
+                    <div className="w-8 h-8 rounded-xl bg-[#9B72AA] flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Zap className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1">
+                      <span className="block font-black text-xs text-[#2D3436]">Glitter, Rainbow, Patterns & Stamps</span>
+                      <span className="text-[10px] text-[#555]">Polka dots, stars, hearts & 50+ face emojis & sticker stamps</span>
+                    </div>
+                    <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
+                  </div>
+                </div>
+              ) : (
+                /* Tab 2: Side-by-Side Comparison Table */
+                <div className="border border-[#EBE8DC] rounded-2xl overflow-hidden bg-white shadow-xs">
+                  <div className="grid grid-cols-12 bg-[#FBF9F1] p-2.5 border-b border-[#EBE8DC] text-[11px] font-black text-[#555]">
+                    <span className="col-span-7">Feature</span>
+                    <span className="col-span-2 text-center text-[#888]">Free</span>
+                    <span className="col-span-3 text-center text-[#FF9F43]">VIP Pass</span>
+                  </div>
+                  <div className="divide-y divide-[#F0ECE1]">
+                    {COMPARISON_FEATURES.map((item, idx) => (
+                      <div key={idx} className="grid grid-cols-12 p-2 items-center text-xs">
+                        <span className="col-span-7 font-bold text-[#2D3436] text-[11px]">
+                          {item.name}
+                        </span>
+                        <span className="col-span-2 text-center text-[10px] text-[#888] font-bold">
+                          {typeof item.free === 'boolean' ? (
+                            item.free ? <Check className="w-3.5 h-3.5 mx-auto text-[#10B981]" /> : <Minus className="w-3.5 h-3.5 mx-auto text-[#CCC]" />
+                          ) : (
+                            item.free
+                          )}
+                        </span>
+                        <span className="col-span-3 text-center text-[10px] font-black text-[#10B981]">
+                          {typeof item.vip === 'boolean' ? (
+                            item.vip ? <CheckCircle2 className="w-4 h-4 mx-auto text-[#10B981]" /> : <Minus className="w-3.5 h-3.5 mx-auto text-[#CCC]" />
+                          ) : (
+                            item.vip
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Parent Testimonial Quote */}
+              <div className="p-3 bg-[#FBF9F1] rounded-2xl border border-[#EBE8DC] text-center">
+                <div className="flex items-center justify-center gap-1 text-[#FFB800] mb-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-3 h-3 fill-current" />
+                  ))}
+                </div>
+                <p className="text-[11px] font-bold text-[#555] italic">
+                  "Turning our puppy's photos into coloring sheets is unbelievable. Saves ₹3,000 a year on paper coloring books!"
+                </p>
+                <span className="block text-[10px] font-black text-[#888] mt-0.5">— Priya S., Parent</span>
+              </div>
+            </div>
+
+            {/* Footer Action Area */}
+            <div className="p-6 pt-3 bg-white border-t border-[#EBE8DC] shrink-0">
+              {/* Parental Gate Modal Screen */}
+              {showParentGate ? (
+                <form onSubmit={handleVerifyParentGate} className="space-y-3">
+                  <div className="p-3 bg-[#FFFDF0] rounded-2xl border-2 border-[#FFD93D] text-center">
+                    <span className="flex items-center justify-center gap-1.5 text-xs font-black text-[#7A4B00] mb-1">
+                      <Lock className="w-3.5 h-3.5" /> Parental Security Check
+                    </span>
+                    <p className="text-xs font-bold text-[#444]">
+                      Please solve: <span className="text-base font-black text-[#2D3436] px-2 py-0.5 bg-white rounded-lg shadow-xs">{gateNum1} + {gateNum2} = ?</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={gateAnswer}
+                      onChange={(e) => {
+                        setGateAnswer(e.target.value);
+                        setGateError(false);
+                      }}
+                      placeholder="Answer..."
+                      className="flex-1 px-4 py-3 bg-[#F7F5EC] border-2 border-[#EBE8DC] focus:border-[#4D96FF] rounded-xl text-center font-black text-lg outline-none"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="btn-bubbly px-6 py-3 bg-[#10B981] hover:bg-[#059669] text-white font-black rounded-xl shadow-md cursor-pointer"
+                    >
+                      Verify & Pay
+                    </button>
+                  </div>
+
+                  {gateError && (
+                    <p className="text-[11px] font-bold text-[#FF6B6B] text-center">
+                      Incorrect answer. Please try again.
+                    </p>
+                  )}
+                </form>
+              ) : (
+                <>
+                  <button
+                    onClick={handleStartCheckout}
+                    className="btn-bubbly w-full py-4 bg-gradient-to-r from-[#FF6B6B] via-[#FA8231] to-[#FFD93D] text-white font-black text-base sm:text-lg rounded-2xl shadow-xl hover:brightness-105 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>
+                      {user 
+                        ? (selectedPlan === 'annual' ? 'Get 1-Year VIP Pass (₹499 one-time)' : 'Get 1-Month VIP Pass (₹99 one-time)')
+                        : 'Sign In & Start 15-Day Free Trial'}
+                    </span>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex items-center justify-center gap-4 mt-3 text-[11px] font-bold text-[#888]">
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" /> 100% Ad-Free & Kid-Safe
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-[#FFA801]" /> One-Time Pass (No Auto-Renew)
+                    </span>
+                  </div>
+
+                  <div className="mt-2 text-[10px] text-center text-[#8C7A58] bg-[#FFFBF0] py-1 px-3 rounded-full border border-[#FFF2B2]/80 flex items-center justify-center gap-1.5 font-semibold">
+                    <span>🔒 Secured by Cashfree (UPI, GPay, PhonePe, Cards, NetBanking)</span>
+                  </div>
+
+                  {onOpenPricingPage && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUpgradeModal(false);
+                        onOpenPricingPage();
+                      }}
+                      className="text-[11px] font-bold text-[#4D96FF] hover:underline block mx-auto mt-2 cursor-pointer text-center"
+                    >
+                      Compare full Free vs. VIP Features Breakdown →
+                    </button>
+                  )}
+
+                  {onOpenLegalPage && (
+                    <div className="mt-2.5 pt-2 border-t border-[#F0ECE1] flex items-center justify-center gap-2.5 text-[10px] text-[#888] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          onOpenLegalPage('privacy');
+                        }}
+                        className="hover:text-[#2D3436] hover:underline cursor-pointer"
+                      >
+                        Privacy Policy
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          onOpenLegalPage('terms');
+                        }}
+                        className="hover:text-[#2D3436] hover:underline cursor-pointer"
+                      >
+                        Terms
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUpgradeModal(false);
+                          onOpenLegalPage('refund');
+                        }}
+                        className="hover:text-[#2D3436] hover:underline cursor-pointer"
+                      >
+                        Refund Policy
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </motion.div>
         </div>

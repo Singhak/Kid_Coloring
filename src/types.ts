@@ -5,6 +5,8 @@
 
 export interface SvgPath {
   id: string;
+  /** Color role (e.g. 'body', 'sky'); only set on AI pictures made for Color by Number. */
+  slot?: string;
   d: string;
   fill: string;
   stroke: string;
@@ -12,7 +14,8 @@ export interface SvgPath {
 }
 
 export interface HistoryState {
-  paths: SvgPath[];
+  paths?: SvgPath[];
+  canvasDataUrl?: string;
 }
 
 export interface Category {
@@ -20,16 +23,49 @@ export interface Category {
   label: string;
   icon: any;
   color: string;
+  emoji?: string;
 }
 
 export interface Template {
+  id?: string;
   name: string;
   category: string;
+  difficulty?: 'Easy' | 'Medium' | 'Detailed';
   viewBox: string;
   paths: {
     id: string;
     d: string;
-    stroke: string;
-    strokeWidth: number;
+    stroke?: string;
+    strokeWidth?: number;
+    fill?: string;
   }[];
+  imageUrl?: string;
+  previewSvg?: string;
+  isVip?: boolean;
+  /** Non-tappable lines drawn on top of the regions (e.g. the open strokes of an auto-numbered picture). */
+  decor?: { d: string; strokeWidth?: number }[];
+  numberMode?: {
+    /** path id -> slot name (what the region is, e.g. 'body', 'sky') */
+    slots: Record<string, string>;
+    schemes: ColorScheme[];
+  };
+}
+
+/** A color assignment for a picture's slots. The numbered palette is derived from it. */
+export interface ColorScheme {
+  id: string;
+  name: string;
+  colors: Record<string, string>;
+}
+
+export interface NumberPaletteEntry {
+  number: number;
+  color: string;
+  pathIds: string[];
+}
+
+export interface ViewportTransform {
+  scale: number;
+  x: number;
+  y: number;
 }

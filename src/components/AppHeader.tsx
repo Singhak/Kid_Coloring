@@ -1,0 +1,907 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Palette, 
+  LogIn, 
+  LogOut, 
+  Download, 
+  Crown, 
+  Undo2, 
+  Redo2, 
+  Settings, 
+  Sparkles,
+  Volume2, 
+  VolumeX, 
+  LayoutGrid, 
+  Paintbrush,
+  Camera,
+  Hash,
+  Shuffle,
+  HelpCircle,
+  Compass,
+  Trash2,
+  Printer,
+  Bot,
+  BookOpen,
+  ShieldCheck,
+  FileText,
+  CreditCard,
+  Mail,
+  Home,
+  Instagram
+} from 'lucide-react';
+import { createAvatar } from '@dicebear/core';
+import { avataaars } from '@dicebear/collection';
+import { motion, AnimatePresence } from 'motion/react';
+import { isSoundEnabled, toggleSound, playClick, playSwish, playFanfare, playChime } from '../services/soundEffects';
+import { getActiveFestivalStatus } from '../constants/festivalPacks';
+
+interface AppHeaderProps {
+  user: any;
+  isPro: boolean;
+  isSubscribed: boolean;
+  trialEndDate?: Date | null;
+  showTemplates: boolean;
+  setShowTemplates: (show: boolean) => void;
+  handleLogin: () => void;
+  handleLogout: () => void;
+  downloadImage: () => void;
+  undo: () => void;
+  redo: () => void;
+  historyIndex: number;
+  historyLength: number;
+  setShowUpgradeModal: (show: boolean) => void;
+  handleCancelSubscription: () => void;
+  onOpenPhotoArt?: () => void;
+  onOpenFestivalPacks?: () => void;
+  isColorByNumber?: boolean;
+  onToggleColorByNumber?: () => void;
+  onOpenPricingPage?: () => void;
+  onOpenMagicAI?: () => void;
+  isGenerating?: boolean;
+  onQuickNext?: () => void;
+  onOpenHelpFlow?: () => void;
+  clearCanvas?: () => void;
+  onPrintSheet?: () => void;
+  onOpenChatBot?: () => void;
+  onOpenArticles?: () => void;
+  onOpenLegalPage?: (tab: 'privacy' | 'terms' | 'refund' | 'contact') => void;
+  onNavigateHome?: () => void;
+}
+
+const AppHeader: React.FC<AppHeaderProps> = ({
+  user,
+  isPro,
+  isSubscribed,
+  trialEndDate,
+  showTemplates,
+  setShowTemplates,
+  handleLogin,
+  handleLogout,
+  downloadImage,
+  undo,
+  redo,
+  historyIndex,
+  historyLength,
+  setShowUpgradeModal,
+  handleCancelSubscription,
+  onOpenPhotoArt,
+  onOpenFestivalPacks,
+  isColorByNumber = false,
+  onToggleColorByNumber,
+  onOpenPricingPage,
+  onOpenMagicAI,
+  isGenerating = false,
+  onQuickNext,
+  onOpenHelpFlow,
+  clearCanvas,
+  onPrintSheet,
+  onOpenChatBot,
+  onOpenArticles,
+  onOpenLegalPage,
+  onNavigateHome,
+}) => {
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [soundOn, setSoundOn] = useState(isSoundEnabled());
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
+  const activeFestival = getActiveFestivalStatus();
+
+  const now = new Date();
+  const isTrialActive = trialEndDate && trialEndDate.getTime() > now.getTime();
+  const daysRemaining = trialEndDate ? Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+  useEffect(() => {
+    if (user?.uid && !user.photoURL) {
+      const generateAndSetAvatar = async () => {
+        try {
+          const uri = createAvatar(avataaars, { seed: user.uid }).toDataUri();
+          setAvatarUri(uri);
+        } catch (error) {
+          console.error("Failed to generate DiceBear avatar:", error);
+        }
+      };
+      generateAndSetAvatar();
+    } else {
+      setAvatarUri(undefined);
+    }
+  }, [user?.uid, user?.photoURL]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node) &&
+          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, []);
+
+  const handleToggleSound = () => {
+    const newState = toggleSound();
+    setSoundOn(newState);
+  };
+
+  const handleUndo = () => {
+    playSwish();
+    undo();
+  };
+
+  const handleRedo = () => {
+    playSwish();
+    redo();
+  };
+
+  const handleSave = () => {
+    playFanfare();
+    downloadImage();
+  };
+
+  return (
+    <header className="relative flex flex-col bg-white/95 backdrop-blur-md border-b-2 border-[#EBE8DC] shadow-xs shrink-0 z-50 w-full">
+      {/* Primary Top Bar */}
+      <div className="w-full px-2 py-1.5 sm:px-3 md:px-4 sm:py-2 flex items-center justify-between gap-1 sm:gap-1.5 md:gap-2 shrink-0">
+        {/* Brand & Mode Switcher */}
+        <div id="tour-nav-brand" className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 min-w-0">
+          <button
+            onClick={() => {
+              playClick();
+              if (onNavigateHome) {
+                onNavigateHome();
+              } else {
+                setShowTemplates(true);
+              }
+            }}
+            className="flex items-center gap-1.5 sm:gap-2 group cursor-pointer focus:outline-none shrink-0"
+            title={onNavigateHome ? "Coloro: Return to Home Landing Page" : "Coloro: Kids Digital Art Studio"}
+          >
+            <img
+              src="/coloro-web-logo.png"
+              alt="Coloro - Kids Digital Art Studio"
+              className="h-7 sm:h-8 md:h-9 lg:h-10 w-auto object-contain drop-shadow-xs group-hover:scale-105 group-active:scale-95 transition-transform duration-200"
+            />
+          </button>
+
+          {onNavigateHome && (
+            <button
+              onClick={() => {
+                playClick();
+                onNavigateHome();
+              }}
+              className="flex items-center gap-1 px-2 py-1 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Return to Coloro Home"
+            >
+              <Home className="w-3.5 h-3.5 text-[#FF6B6B]" />
+              <span className="hidden xl:inline">Home</span>
+            </button>
+          )}
+
+          {/* Mobile Back to Active Canvas button (Shown when browsing Library on mobile) */}
+          {showTemplates && (
+            <button
+              onClick={() => {
+                playClick();
+                setShowTemplates(false);
+              }}
+              className="md:hidden flex items-center gap-1 px-2.5 py-1 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap shrink-0"
+              title="Return to your active coloring canvas"
+            >
+              <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B]" />
+              <span>Canvas</span>
+            </button>
+          )}
+
+          {/* Desktop Mode Navigation & Creative Superpowers (>= md) */}
+          {showTemplates ? (
+            /* Library Mode: View Mode Toggle & Quick Actions */
+            <>
+              <div className="hidden md:flex items-center p-0.5 bg-[#F4F1DE]/60 rounded-2xl border border-[#E6E2D3] ml-1 sm:ml-1.5 h-8 sm:h-9 md:h-9.5 shrink-0">
+                <button
+                  onClick={() => {
+                    playClick();
+                    setShowTemplates(true);
+                  }}
+                  className="flex items-center gap-1.5 px-2.5 md:px-3 h-full rounded-xl font-bold text-xs sm:text-sm bg-white text-[#2D3436] shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
+                  <span>Library</span>
+                </button>
+                <button
+                  onClick={() => {
+                    playClick();
+                    setShowTemplates(false);
+                  }}
+                  className="flex items-center gap-1.5 px-2.5 md:px-3 h-full rounded-xl font-bold text-xs sm:text-sm text-[#888] hover:text-[#2D3436] cursor-pointer transition-all whitespace-nowrap"
+                >
+                  <Paintbrush className="w-3.5 h-3.5 text-[#FF6B6B] shrink-0" />
+                  <span>Coloring Canvas</span>
+                </button>
+              </div>
+
+              {/* Why VIP Button — only for non-subscribers */}
+              {onOpenPricingPage && !isSubscribed && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPricingPage();
+                  }}
+                  className="hidden lg:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0"
+                  title="See all Free vs VIP Superpower features"
+                >
+                  <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+                  <span>Why VIP?</span>
+                </button>
+              )}
+
+              {/* Photo to Art Button */}
+              {onOpenPhotoArt && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPhotoArt();
+                  }}
+                  className="hidden sm:flex items-center gap-1.5 px-2.5 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Convert your real photos into coloring pages"
+                >
+                  <Camera className="w-3.5 h-3.5 shrink-0" />
+                  <span>Photo Art</span>
+                  {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+                </button>
+              )}
+
+              {/* Active Festival Spotlight Button */}
+              {onOpenFestivalPacks && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenFestivalPacks();
+                  }}
+                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-gradient-to-r from-[#FFF1F2] to-[#FFE4E6] hover:from-[#FFE4E6] hover:to-[#FECDD3] text-[#E11D48] border border-[#FDA4AF] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs shrink-0 group/fest"
+                  title={`Explore ${activeFestival.pack.name}`}
+                >
+                  <span className="text-sm group-hover/fest:scale-125 transition-transform">{activeFestival.pack.emoji}</span>
+                  <span>{activeFestival.pack.shortName}</span>
+                  <span className="bg-[#E11D48] text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
+                    {activeFestival.isLive ? 'LIVE' : 'SOON'}
+                  </span>
+                </button>
+              )}
+            </>
+          ) : (
+            /* Coloring Canvas Mode: Desktop Creative Toolbar (>= md) */
+            <div id="tour-creative-tools" className="hidden md:flex items-center gap-1 sm:gap-1.5 md:gap-2 ml-0.5 sm:ml-1">
+              {/* Back to Library */}
+              <button
+                onClick={() => {
+                  playClick();
+                  setShowTemplates(true);
+                }}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F4F1DE]/80 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-bold text-xs sm:text-sm transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                title="Return to Coloring Library"
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
+                <span>Library</span>
+              </button>
+
+              {/* Magic AI Generation */}
+              {onOpenMagicAI && (
+                <button
+                  onClick={() => {
+                    if (!isPro) {
+                      playChime();
+                      setShowUpgradeModal(true);
+                      return;
+                    }
+                    if (isGenerating) return;
+                    playChime();
+                    onOpenMagicAI();
+                  }}
+                  disabled={isGenerating}
+                  className={`flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                    isPro
+                      ? 'bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D]'
+                      : 'bg-white hover:bg-[#FFFDF0] text-[#2D3436] border border-[#EBE8DC]'
+                  }`}
+                  title="Create with AI Magic"
+                >
+                  <Sparkles className={`w-3.5 h-3.5 text-[#FF9F43] shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
+                  <span>Magic AI</span>
+                  {!isPro && (
+                    <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs shrink-0">
+                      <Crown className="w-2.5 h-2.5 fill-current" /> VIP
+                    </span>
+                  )}
+                </button>
+              )}
+
+              {/* Photo Art */}
+              {onOpenPhotoArt && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPhotoArt();
+                  }}
+                  className="hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Convert real photo into coloring page"
+                >
+                  <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                  <span>Photo Art</span>
+                  {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+                </button>
+              )}
+
+              {/* AI Buddy Chatbot */}
+              {onOpenChatBot && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenChatBot();
+                  }}
+                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] text-[#1D4ED8] border border-[#93C5FD] rounded-xl text-xs sm:text-sm font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Chat with Coloro AI Buddy for coloring ideas"
+                >
+                  <Bot className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+                  <span>AI Buddy</span>
+                  <span className="inline-block bg-[#2563EB] text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                    Chat
+                  </span>
+                </button>
+              )}
+
+              {/* Educational Numbers Mode Toggle */}
+              {onToggleColorByNumber && (
+                <button
+                  onClick={() => {
+                    if (!isPro) {
+                      playChime();
+                      setShowUpgradeModal(true);
+                      return;
+                    }
+                    playClick();
+                    onToggleColorByNumber();
+                  }}
+                  className={`hidden xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 rounded-xl font-black text-xs sm:text-sm transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                    isColorByNumber
+                      ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
+                      : 'bg-[#F7F5EC] hover:bg-[#EFECE0] text-[#636E72] border border-[#EBE8DC]'
+                  }`}
+                  title={isPro ? "Color by Number: open numbered pictures" : "VIP Superpower: Color-by-Number Mode"}
+                >
+                  <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
+                  <span className="hidden 2xl:inline">Numbers</span>
+                  {!isPro ? (
+                    <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
+                      <Crown className="w-2.5 h-2.5 fill-current" />
+                      <span>VIP</span>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+                  )}
+                </button>
+              )}
+
+              {/* Why VIP Button */}
+              {onOpenPricingPage && !isPro && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenPricingPage();
+                  }}
+                  className="hidden 2xl:flex items-center gap-1.5 px-3 h-8 sm:h-9 md:h-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
+                  title="See all Free vs VIP Superpower features"
+                >
+                  <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+                  <span>Why VIP?</span>
+                </button>
+              )}
+
+              {/* Benefits Guide for Parents & Teachers */}
+              {onOpenArticles && (
+                <button
+                  onClick={() => {
+                    playClick();
+                    onOpenArticles();
+                  }}
+                  className="hidden 2xl:flex items-center gap-1.5 px-2.5 sm:px-3 h-8 sm:h-9 md:h-9.5 bg-[#F0FDF4] hover:bg-[#DCFCE7] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+                  title="Read child development & color benefits guide"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+                  <span>Parent Guide</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Action Controls Cluster */}
+        <div id="tour-save-actions" className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0 min-w-max ml-auto">
+          {/* Undo / Redo (Only active on Canvas - Desktop) */}
+          {!showTemplates && (
+            <div className="hidden md:flex items-center bg-[#F7F5EC] px-1 h-8 sm:h-9 md:h-9.5 rounded-xl sm:rounded-2xl border border-[#E9E5D6] shadow-inner shrink-0">
+              <button
+                onClick={handleUndo}
+                disabled={historyIndex <= 0}
+                className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              </button>
+              <div className="w-px h-4 bg-[#E0DCBC] mx-0.5" />
+              <button
+                onClick={handleRedo}
+                disabled={historyIndex >= historyLength - 1}
+                className="p-1.5 rounded-xl hover:bg-white disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Sound FX Toggle */}
+          <button
+            onClick={handleToggleSound}
+            className={`h-8 w-8 sm:h-9 sm:w-9 md:h-9.5 md:w-9.5 rounded-xl sm:rounded-2xl border transition-all active:scale-90 cursor-pointer flex items-center justify-center shrink-0 ${
+              soundOn 
+                ? 'bg-[#EBF7FF] border-[#B9E0FF] text-[#0984E3] hover:bg-[#DDF0FF]' 
+                : 'bg-[#F5F5F5] border-[#E0E0E0] text-[#A0A0A0] hover:bg-[#EBEBEB]'
+            }`}
+            title={soundOn ? 'Sound FX: ON' : 'Sound FX: Muted'}
+          >
+            {soundOn ? <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5" /> : <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5" />}
+          </button>
+
+          {/* Simple Help (?) Button */}
+          {onOpenHelpFlow && (
+            <button
+              id="tour-help-button"
+              onClick={() => {
+                playClick();
+                onOpenHelpFlow();
+              }}
+              className="h-8 w-8 sm:h-9 sm:w-9 md:h-9.5 md:w-9.5 bg-[#FFF9E6] hover:bg-[#FFF2B2] text-[#8C5B00] border border-[#FFD93D] rounded-xl sm:rounded-2xl font-black flex items-center justify-center shadow-xs transition-all active:scale-90 cursor-pointer shrink-0"
+              title="Help & Studio Guide (?)"
+            >
+              <span className="font-display font-black text-sm sm:text-base md:text-lg text-[#E67E22] leading-none select-none">?</span>
+            </button>
+          )}
+
+          {/* Save Masterpiece Button (Shown on Canvas mode) */}
+          {!showTemplates && (
+            <button
+              onClick={handleSave}
+              className={`btn-bubbly h-8 sm:h-9 md:h-9.5 flex items-center gap-1 sm:gap-1.5 md:gap-2 px-2.5 sm:px-3.5 md:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm tracking-wide text-white transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap shrink-0 ${
+                isPro 
+                  ? 'bg-gradient-to-r from-[#6BCB77] to-[#4EBA5C] hover:brightness-105' 
+                  : 'bg-gradient-to-r from-[#FF9F43] to-[#EE5253] animate-shimmer'
+              }`}
+            >
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 drop-shadow-sm shrink-0" />
+              <span>Save</span>
+              {!isPro && (
+                <span className="hidden sm:inline-flex items-center gap-0.5 bg-yellow-300 text-yellow-900 text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-sm ml-0.5 shrink-0">
+                  <Crown className="w-2.5 h-2.5 fill-current" />
+                  VIP
+                </span>
+              )}
+            </button>
+          )}
+
+        {/* User Profile / Login */}
+        {user ? (
+          <div className="relative flex items-center ml-0.5 sm:ml-1 shrink-0 z-50">
+            <button
+              ref={buttonRef}
+              type="button"
+              onClick={() => {
+                playClick();
+                setShowProfileMenu(prev => !prev);
+              }}
+              className="flex items-center gap-1.5 p-1 rounded-2xl hover:bg-[#F5F3E9] border border-transparent hover:border-[#E5E1D0] transition-all cursor-pointer shrink-0 focus:outline-none"
+              title={user.displayName || 'User Profile'}
+              aria-label="User Profile"
+              aria-expanded={showProfileMenu}
+            >
+              <div className="relative shrink-0 pointer-events-none">
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt="Avatar" className="w-8 h-8 sm:w-8.5 sm:h-8.5 md:w-9 md:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
+                ) : (
+                  <img src={avatarUri || '/profile.png'} alt="Avatar" className="w-8 h-8 sm:w-8.5 sm:h-8.5 md:w-9 md:h-9 rounded-xl object-cover ring-2 ring-[#FFD93D]" />
+                )}
+                {isPro && (
+                  <div className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-[#FF9F43] to-[#FFD93D] text-white rounded-full p-0.5 shadow-sm ring-1 ring-white">
+                    <Crown className="w-2.5 h-2.5 fill-current" />
+                  </div>
+                )}
+              </div>
+            </button>
+
+            <AnimatePresence>
+              {showProfileMenu && (
+                <motion.div
+                  ref={menuRef}
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-2 w-60 bg-white rounded-3xl shadow-2xl border-2 border-[#EBE8DC] z-[100] overflow-hidden p-2 max-h-[85vh] overflow-y-auto"
+                >
+                  <div className="p-3 bg-[#FAF8EF] rounded-2xl mb-2">
+                    <p className="text-sm font-black text-[#2D3436] truncate">{user.displayName || 'Little Artist'}</p>
+                    <p className="text-xs text-[#888] truncate">{user.email}</p>
+                    {isTrialActive && !isSubscribed && (
+                      <div className="mt-2 px-2.5 py-1 bg-[#FFF2B2] text-[#8C5B00] text-[11px] font-black rounded-lg flex items-center gap-1">
+                        <Sparkles className="w-3 h-3 text-[#FF9F43] shrink-0" />
+                        <span>15-Day Trial: {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} left</span>
+                      </div>
+                    )}
+                    {isSubscribed && (
+                      <span className="inline-block mt-2 px-2 py-0.5 bg-[#D4EDDA] text-[#155724] text-[11px] font-bold rounded-lg">
+                        👑 Magic VIP Active
+                      </span>
+                    )}
+                  </div>
+
+                  {!isSubscribed && (
+                    <button
+                      onClick={() => {
+                        setShowUpgradeModal(true);
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-sm font-bold text-[#D97706] hover:bg-[#FFFBEB] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4 text-[#F59E0B]" /> 
+                      Upgrade to Magic VIP
+                    </button>
+                  )}
+
+                  {onOpenPricingPage && (
+                    <button
+                      onClick={() => {
+                        onOpenPricingPage();
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current" />
+                      <span>Compare Free vs VIP</span>
+                    </button>
+                  )}
+
+                  {isSubscribed && (
+                    <button
+                      onClick={() => {
+                        handleCancelSubscription();
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-semibold text-[#666] hover:bg-[#F5F5F5] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <Settings className="w-4 h-4 text-[#888]" /> Manage Subscription
+                    </button>
+                  )}
+
+                  {onOpenArticles && (
+                    <button
+                      onClick={() => {
+                        playClick();
+                        onOpenArticles();
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <BookOpen className="w-4 h-4 text-[#059669]" />
+                      <span>Benefits & Learning Guide</span>
+                    </button>
+                  )}
+
+                  {onOpenHelpFlow && (
+                    <button
+                      onClick={() => {
+                        playClick();
+                        onOpenHelpFlow();
+                        setShowProfileMenu(false);
+                      }}
+                      className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors mb-1 cursor-pointer"
+                    >
+                      <Compass className="w-4 h-4 text-[#4D96FF]" />
+                      <span>Help Flow & Studio Guide</span>
+                    </button>
+                  )}
+
+                  {onOpenLegalPage && (
+                    <div className="border-t border-[#EBE8DC] my-1 pt-1">
+                      <span className="px-3.5 py-1 text-[10px] font-black uppercase text-[#888] tracking-wider block">
+                        Legal & Support
+                      </span>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('contact');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Mail className="w-3.5 h-3.5 text-[#EC4899]" />
+                        <span>Contact Us</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('terms');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-[#3B82F6]" />
+                        <span>Terms & Conditions</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('refund');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-[#F59E0B]" />
+                        <span>Refund Policy</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          playClick();
+                          onOpenLegalPage('privacy');
+                          setShowProfileMenu(false);
+                        }}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+                        <span>Privacy Policy</span>
+                      </button>
+                      <a
+                        href="https://www.instagram.com/kidscoloro"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShowProfileMenu(false)}
+                        className="flex items-center gap-2.5 w-full px-3.5 py-1.5 text-xs font-bold text-[#555] hover:bg-[#F9F7EF] rounded-xl transition-colors cursor-pointer"
+                      >
+                        <Instagram className="w-3.5 h-3.5 text-[#EC4899]" />
+                        <span>Follow on Instagram</span>
+                      </a>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setShowProfileMenu(false);
+                    }}
+                    className="flex items-center gap-2.5 w-full px-3.5 py-2 text-sm font-bold text-[#FF6B6B] hover:bg-[#FFF5F5] rounded-xl transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4" /> Sign Out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <button
+            onClick={handleLogin}
+            className="btn-bubbly flex items-center gap-1.5 px-3 sm:px-3.5 h-8 sm:h-9 md:h-9.5 bg-[#4D96FF] text-white font-black rounded-xl sm:rounded-2xl shadow-md hover:bg-[#3B82F6] transition-all active:scale-95 text-xs sm:text-sm ml-0.5 sm:ml-1 cursor-pointer shrink-0 whitespace-nowrap min-w-max"
+          >
+            <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="whitespace-nowrap font-black">Login</span>
+          </button>
+        )}
+        </div>
+      </div>
+
+      {/* Mobile Secondary Creative Toolbar (Shown only on Canvas mode < md) */}
+      {!showTemplates && (
+        <div id="tour-creative-tools-mobile" className="md:hidden flex items-center gap-1.5 px-2.5 py-1.5 bg-[#FAF8EF] border-t border-[#EBE8DC] overflow-x-auto no-scrollbar shrink-0">
+          {/* Back to Library */}
+          <button
+            onClick={() => {
+              playClick();
+              setShowTemplates(true);
+            }}
+            className="flex items-center gap-1 px-2.5 py-1 bg-[#F4F1DE]/90 hover:bg-[#EFEAD6] text-[#2D3436] rounded-xl font-black text-xs transition-all border border-[#E6E1D0] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+            title="Return to Coloring Library"
+          >
+            <LayoutGrid className="w-3.5 h-3.5 text-[#4D96FF] shrink-0" />
+            <span>Pages</span>
+          </button>
+
+          {/* Undo / Redo */}
+          <div className="flex items-center bg-white px-1 py-0.5 rounded-xl border border-[#E9E5D6] shadow-2xs shrink-0">
+            <button
+              onClick={handleUndo}
+              disabled={historyIndex <= 0}
+              className="p-1 rounded-lg hover:bg-[#F5F3E9] disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+              title="Undo"
+            >
+              <Undo2 className="w-3.5 h-3.5" />
+            </button>
+            <div className="w-px h-3.5 bg-[#E0DCBC] mx-0.5" />
+            <button
+              onClick={handleRedo}
+              disabled={historyIndex >= historyLength - 1}
+              className="p-1 rounded-lg hover:bg-[#F5F3E9] disabled:opacity-25 transition-all text-[#2D3436] active:scale-90 cursor-pointer"
+              title="Redo"
+            >
+              <Redo2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Reset / Clear Drawing (Mobile) */}
+          {clearCanvas && (
+            <button
+              onClick={() => {
+                playClick();
+                clearCanvas();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-[#FFF5F5] text-[#FF6B6B] rounded-xl font-black text-xs transition-all border border-[#FFD5D5] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Clear Canvas / Reset Drawing"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Reset</span>
+            </button>
+          )}
+
+          {/* Print Coloring Sheet (Mobile) */}
+          {onPrintSheet && (
+            <button
+              onClick={() => {
+                if (!isPro) {
+                  playChime();
+                  setShowUpgradeModal(true);
+                  return;
+                }
+                playClick();
+                onPrintSheet();
+              }}
+              className="flex items-center gap-1 px-2 py-1 bg-white hover:bg-[#F0FDF4] text-[#15803D] rounded-xl font-bold text-xs transition-all border border-[#86EFAC] active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Print coloring sheet"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print</span>
+            </button>
+          )}
+
+          {/* Magic AI Generation */}
+          {onOpenMagicAI && (
+            <button
+              onClick={() => {
+                if (!isPro) {
+                  playChime();
+                  setShowUpgradeModal(true);
+                  return;
+                }
+                if (isGenerating) return;
+                playChime();
+                onOpenMagicAI();
+              }}
+              disabled={isGenerating}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-black text-xs transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                isPro
+                  ? 'bg-[#FFF9E6] text-[#8C5B00] border border-[#FFD93D]'
+                  : 'bg-white text-[#2D3436] border border-[#EBE8DC]'
+              }`}
+              title="Create with AI Magic"
+            >
+              <Sparkles className={`w-3.5 h-3.5 text-[#FF9F43] shrink-0 ${isGenerating ? 'animate-spin' : ''}`} />
+              <span>Magic AI</span>
+              {!isPro && (
+                <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[9px] font-black px-1 rounded-full shrink-0">
+                  VIP
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Photo Art */}
+          {onOpenPhotoArt && (
+            <button
+              onClick={() => {
+                playClick();
+                onOpenPhotoArt();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#F0FDF4] text-[#15803D] border border-[#86EFAC] rounded-xl text-xs font-black transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Convert real photo into coloring page"
+            >
+              <Camera className="w-3.5 h-3.5 text-[#16A34A] shrink-0" />
+              <span>Photo Art</span>
+              {!isPro && <Crown className="w-2.5 h-2.5 text-[#EAB308] fill-current shrink-0" />}
+            </button>
+          )}
+
+          {/* Educational Numbers Mode Toggle */}
+          {onToggleColorByNumber && (
+            <button
+              onClick={() => {
+                if (!isPro) {
+                  playChime();
+                  setShowUpgradeModal(true);
+                  return;
+                }
+                playClick();
+                onToggleColorByNumber();
+              }}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-black text-xs transition-all active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
+                isColorByNumber
+                  ? 'bg-[#FFD93D] text-[#7A4B00] shadow-xs border border-[#E6C62C]'
+                  : 'bg-white text-[#636E72] border border-[#EBE8DC]'
+              }`}
+              title={isPro ? "Toggle Color-by-Number Learning Mode" : "VIP Superpower: Color-by-Number Mode"}
+            >
+              <Hash className={`w-3.5 h-3.5 shrink-0 ${isColorByNumber ? 'text-[#7A4B00]' : 'text-[#4D96FF]'}`} />
+              <span>123</span>
+              {!isPro ? (
+                <span className="flex items-center gap-0.5 bg-[#FFD93D] text-[#7A4B00] text-[8px] font-black px-1 py-0.2 rounded-full shadow-2xs">
+                  <Crown className="w-2 h-2 fill-current" />
+                </span>
+              ) : (
+                <span className="text-[9px] font-black px-1 rounded bg-black/5 shrink-0">{isColorByNumber ? 'ON' : 'OFF'}</span>
+              )}
+            </button>
+          )}
+
+          {/* Instant Next button on mobile strip */}
+          {onQuickNext && (
+            <button
+              onClick={() => {
+                playClick();
+                onQuickNext();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-white text-[#2D3436] border border-[#EBE8DC] rounded-xl text-xs font-black active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap shrink-0"
+              title="Instant Next Drawing"
+            >
+              <Shuffle className="w-3.5 h-3.5 text-[#FF9F43] shrink-0" />
+              <span>Next</span>
+            </button>
+          )}
+
+          {/* Why VIP Button */}
+          {onOpenPricingPage && !isPro && (
+            <button
+              onClick={() => {
+                playClick();
+                onOpenPricingPage();
+              }}
+              className="flex items-center gap-1 px-2.5 py-1 bg-[#FFF9E6] text-[#8C5B00] border border-[#FFD93D] rounded-xl font-black text-xs transition-all cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap shrink-0"
+              title="See all Free vs VIP features"
+            >
+              <Crown className="w-3.5 h-3.5 text-[#FF9F43] fill-current shrink-0" />
+              <span>VIP</span>
+            </button>
+          )}
+        </div>
+      )}
+    </header>
+  );
+};
+
+export default AppHeader;
