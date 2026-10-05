@@ -136,10 +136,11 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
 
       // Check for Pinterest Studio tool trigger
       if (
+        !Capacitor.isNativePlatform() && (
         hash === '#pinterest-studio' || 
         hash === '#pinterest' || 
         params.get('tool') === 'pinterest-studio' || 
-        params.get('pinterest') === 'true'
+        params.get('pinterest') === 'true')
       ) {
         setShowPinterestStudio(true);
       }
@@ -1529,7 +1530,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
           onOpenArticles={() => setShowArticlesModal(true)}
           onOpenChatBot={() => setShowChatBotModal(true)}
           onOpenLegalPage={(tab) => setLegalTab(tab)}
-          onOpenPinterestStudio={() => setShowPinterestStudio(true)}
+          onOpenPinterestStudio={Capacitor.isNativePlatform() ? undefined : () => setShowPinterestStudio(true)}
         />
       )}
 
@@ -1725,7 +1726,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
 
       {/* Pinterest Batch Studio & Daily Graphics Exporter */}
       <PinterestStudioModal
-        isOpen={showPinterestStudio}
+        isOpen={showPinterestStudio && !Capacitor.isNativePlatform()}
         onClose={() => setShowPinterestStudio(false)}
         onSelectCategory={(cat) => {
           setSelectedCategory(cat);
