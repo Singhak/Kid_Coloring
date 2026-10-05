@@ -21,12 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Load API keys securely from .env file
-$envPath = __DIR__ . '/../.env';
-if (file_exists($envPath)) {
-    $env = parse_ini_file($envPath);
-} else {
-    $env = [];
-}
+require_once __DIR__ . '/env-helper.php';
+$env = coloroLoadEnv();
 
 $razorpayKeyId = $env['RAZORPAY_KEY_ID'] ?? $_SERVER['RAZORPAY_KEY_ID'] ?? $_SERVER['REDIRECT_RAZORPAY_KEY_ID'] ?? (getenv('RAZORPAY_KEY_ID') ?: null);
 $razorpayKeySecret = $env['RAZORPAY_KEY_SECRET'] ?? $_SERVER['RAZORPAY_KEY_SECRET'] ?? $_SERVER['REDIRECT_RAZORPAY_KEY_SECRET'] ?? (getenv('RAZORPAY_KEY_SECRET') ?: null);

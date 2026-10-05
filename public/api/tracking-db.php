@@ -245,9 +245,17 @@ function getTelemetryAdminKey(): string {
     $envFiles = [__DIR__ . '/.env', __DIR__ . '/../.env', dirname(__DIR__) . '/.env'];
     foreach ($envFiles as $file) {
         if (file_exists($file)) {
-            $parsed = @parse_ini_file($file, false, INI_SCANNER_RAW);
-            if (!empty($parsed['TELEMETRY_ADMIN_KEY'])) {
-                return $adminKey = trim((string)$parsed['TELEMETRY_ADMIN_KEY'], " \t\"'");
+            // parse_ini_file() returns false on the whole file if any line (e.g. a "#" comment
+            // containing parentheses or quotes) is not valid INI, which silently disabled login.
+            // Read the file line by line instead.
+            $lines = @file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+            foreach ($lines as $line) {
+                $line = ltrim($line, "\xEF\xBB\xBF \t"); // BOM / indentation
+                if ($line === '' || $line[0] === '#' || $line[0] === ';') continue;
+                $eq = strpos($line, '=');
+                if ($eq === false || trim(substr($line, 0, $eq)) !== 'TELEMETRY_ADMIN_KEY') continue;
+                $val = trim(substr($line, $eq + 1), " \t\r\"'");
+                if ($val !== '') return $adminKey = $val;
             }
         }
     }

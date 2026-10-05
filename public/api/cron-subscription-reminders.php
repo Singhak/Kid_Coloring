@@ -35,8 +35,8 @@ if (php_sapi_name() !== 'cli' && !isset($_GET['cron_secret'])) {
 
 // CLI secret check (optional) — set CRON_SECRET in .env for HTTP-triggered cron
 if (php_sapi_name() !== 'cli') {
-    $envPath = __DIR__ . '/.env';
-    $env = @parse_ini_file($envPath, false, INI_SCANNER_RAW) ?: [];
+    require_once __DIR__ . '/env-helper.php';
+    $env = coloroLoadEnv();
     $expectedSecret = $env['CRON_SECRET'] ?? '';
     if ($expectedSecret && ($_GET['cron_secret'] ?? '') !== $expectedSecret) {
         http_response_code(403);
@@ -48,13 +48,8 @@ require_once __DIR__ . '/firebase-helper.php';
 
 // Load .env
 $envPaths = [__DIR__ . '/.env', __DIR__ . '/../.env', dirname(__DIR__) . '/.env'];
-$env = [];
-foreach ($envPaths as $path) {
-    if (file_exists($path)) {
-        $parsed = @parse_ini_file($path, false, INI_SCANNER_RAW);
-        if ($parsed) { $env = array_merge($env, $parsed); break; }
-    }
-}
+require_once __DIR__ . '/env-helper.php';
+$env = coloroLoadEnv();
 
 $projectId   = $env['FIREBASE_PROJECT_ID'] ?? 'kidscoloro';
 $fromEmail   = $env['MAIL_FROM_ADDRESS']   ?? 'noreply@coloro.in';
