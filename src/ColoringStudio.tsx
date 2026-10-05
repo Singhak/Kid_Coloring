@@ -7,7 +7,6 @@ import confetti from 'canvas-confetti';
 import { auth, db } from './firebase';
 import { 
   signInWithPopup, 
-  signInWithRedirect,
   signInWithCredential,
   GoogleAuthProvider, 
   signOut 
@@ -21,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 
 import { SvgPath, Template } from './types';
@@ -491,12 +491,15 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
 
   // Google sign-in. The free trial is claimed from the server by the profile-sync effect.
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
     try {
       if (Capacitor.isNativePlatform()) {
-        await signInWithRedirect(auth, provider);
+        // Native Google account picker, then hand the ID token to the Firebase web SDK.
+        const result = await FirebaseAuthentication.signInWithGoogle({ useCredentialManager: false });
+        if (result.credential?.idToken) {
+          await signInWithCredential(auth, GoogleAuthProvider.credential(result.credential.idToken));
+        }
       } else {
-        await signInWithPopup(auth, provider);
+        await signInWithPopup(auth, new GoogleAuthProvider());
       }
     } catch (error) {
       console.error("Login failed:", error);
