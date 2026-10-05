@@ -5,10 +5,7 @@
  * one-time free-trial claim.
  */
 import type { User } from 'firebase/auth';
-import { Capacitor } from '@capacitor/core';
-
-// The native app is served from a local origin, so relative URLs must point at the live site.
-const API_BASE = Capacitor.isNativePlatform() ? 'https://coloro.in/api' : '/api';
+import { API_BASE } from './apiBase';
 
 export interface ApiError extends Error {
   code?: string;

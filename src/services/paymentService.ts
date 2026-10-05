@@ -1,3 +1,5 @@
+import { API_BASE } from './apiBase';
+
 import { doc, getDoc, setDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -32,16 +34,7 @@ export interface CashfreeVerifyResponse {
   alreadyProcessed?: boolean;
 }
 
-const getApiBaseUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname.includes('coloro.in') || hostname.includes('storywalla.com')) {
-      return '/api';
-    }
-  }
-  // If running in development or capacitor, try local proxy first, with remote fallback
-  return '/api';
-};
+const getApiBaseUrl = (): string => API_BASE;
 
 /**
  * Dynamically loads the Cashfree Checkout JS SDK v3 if not already present.

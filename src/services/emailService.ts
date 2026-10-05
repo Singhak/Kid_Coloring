@@ -1,18 +1,12 @@
+import { API_BASE } from './apiBase';
+
 /**
  * Email Service
  *
  * Handles client-triggered transactional emails (such as first-time login welcome email).
  */
 
-const getApiBaseUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname.includes('coloro.in') || hostname.includes('storywalla.com')) {
-      return '/api';
-    }
-  }
-  return '/api';
-};
+const getApiBaseUrl = (): string => API_BASE;
 
 export interface SendWelcomeEmailParams {
   userId: string;
