@@ -510,6 +510,7 @@ export function batchGeneratePins(templates: Template[], options: PinGenerationO
 
 export interface PinterestCsvExportOptions {
   baseUrl?: string;
+  mediaUrlPrefix?: string;
   boardOverride?: string;
   includePublishDate?: boolean;
   includeThumbnail?: boolean; // Set true only for video pins
@@ -527,6 +528,7 @@ export function exportPinsToPinterestCsv(
 ): string {
   const opts: PinterestCsvExportOptions = typeof options === 'string' ? { baseUrl: options } : options;
   const baseUrl = opts.baseUrl || 'https://coloro.in';
+  const mediaUrlPrefix = opts.mediaUrlPrefix || `${baseUrl}/pinterest-pins`;
   const boardOverride = opts.boardOverride?.trim();
   const includePublishDate = opts.includePublishDate !== false;
   const includeThumbnail = Boolean(opts.includeThumbnail);
@@ -542,7 +544,7 @@ export function exportPinsToPinterestCsv(
     const cleanTitle = `"${rawTitle.replace(/"/g, '""')}"`;
 
     // 2. Media URL: Public direct image link (.png / .jpg)
-    const mediaUrl = `"${baseUrl}/pinterest-pins/${pin.id}.png"`;
+    const mediaUrl = `"${mediaUrlPrefix.replace(/\/$/, '')}/${pin.id}.png"`;
 
     // 3. Pinterest board: Either user-specified board override or category-mapped board
     const targetBoard = boardOverride || pin.boardName;

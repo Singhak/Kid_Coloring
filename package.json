@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit",
     "test:mail": "tsx scripts/test-mail.ts",
     "generate:pins": "tsx scripts/generate_pinterest_pins.ts",
+    "generate:rss": "tsx scripts/rss_generator.ts",
     "generate:video": "tsx scripts/publish_video.ts --generate-only",
     "generate:short": "tsx scripts/publish_video.ts --generate-only --aspect=9:16 --duration=15",
     "generate:long": "tsx scripts/publish_video.ts --generate-only --aspect=16:9 --duration=60",
@@ -18,6 +19,9 @@
     "youtube:publish": "tsx scripts/publish_video.ts --target=youtube",
     "youtube:publish:long": "tsx scripts/publish_video.ts --target=youtube --aspect=16:9 --duration=60",
     "instagram:publish": "tsx scripts/publish_video.ts --target=instagram",
+    "instagram:csv": "tsx scripts/post_csv_to_instagram.ts",
+    "instagram:images": "tsx scripts/post_images_csv_to_instagram.ts",
+    "generate:images:csv": "tsx scripts/generate_images_csv.ts",
     "deploy": "deploy.bat"
   },
   "dependencies": {

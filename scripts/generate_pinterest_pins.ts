@@ -32,6 +32,10 @@ import {
   GeneratedPinData
 } from '../src/services/pinterestPinGenerator.js';
 import { Template } from '../src/types.js';
+import { getMediaDirectory, syncFileToGit, syncRepositoryToGit, getGitRawUrl, GITHUB_RAW_BASE } from './git_sync.js';
+import { insertPinRecord, getDbPath } from './db.js';
+import { generateAllRssFiles } from './rss_generator.js';
+import { generateImagesMetadataCsv } from './generate_images_csv.js';
 
 // Base static templates from constants
 const BASE_TEMPLATES: Template[] = [
@@ -177,12 +181,19 @@ function run() {
   // Deduplicate and filter templates with valid paths
   const validTemplates = allTemplates.filter(t => t && t.paths && t.paths.length > 0);
 
-  // We want to generate a robust batch of 50–100 pins (e.g. 70 pins for 10 full days of 7 pins/day)
-  // Ensure balanced representation across Alphabet, Animals, Numbers, Fruits, Vegetables, Space, Vehicles, Festivals
-  const desiredBatchSize = Math.min(Math.max(validTemplates.length, 50), 100);
+  // CLI options: --force (re-render existing), --count=N
+  const forceRebuild = process.argv.includes('--force');
+  const countArg = process.argv.find(a => a.startsWith('--count='));
+  const customCount = countArg ? parseInt(countArg.split('=')[1], 10) : null;
+
+  // Generate for all valid templates unless user specifies --count
+  const desiredBatchSize = customCount || validTemplates.length;
   const selectedBatch = validTemplates.slice(0, desiredBatchSize);
 
-  console.log(`[+] Curated batch of ${selectedBatch.length} templates for Pinterest pins`);
+  console.log(`[+] Found ${validTemplates.length} valid templates in app. Generating batch of ${selectedBatch.length} pins.`);
+  if (forceRebuild) {
+    console.log(`[+] Force mode enabled: Overwriting existing PNG graphics.`);
+  }
 
   // Target directory
   const outDir = path.resolve(process.cwd(), 'public', 'pinterest-pins');
@@ -199,6 +210,7 @@ function run() {
   startDate.setDate(startDate.getDate() + 1);
   const queryPins: GeneratedPinData[] = [];
   const hashPins: GeneratedPinData[] = [];
+  let renderedNewCount = 0;
 
   selectedBatch.forEach((template, index) => {
     const dayOffset = Math.floor(index / pinsPerDay);
@@ -251,9 +263,12 @@ function run() {
     const svgPath = path.join(outDir, `${filePrefix}.svg`);
     fs.writeFileSync(svgPath, querySvg, 'utf8');
 
-    // 2. Render and save high-resolution 1000x1500 PNG file for Pinterest (skip if already exists to be fast)
+    // 2. Render and save high-resolution 1000x1500 PNG file for Pinterest
     const pngPath = path.join(outDir, `${filePrefix}.png`);
-    if (!fs.existsSync(pngPath)) {
+    const mediaDir = getMediaDirectory();
+    const mediaPngPath = path.join(mediaDir, `${filePrefix}.png`);
+
+    if (forceRebuild || !fs.existsSync(pngPath) || !fs.existsSync(mediaPngPath)) {
       try {
         const resvg = new Resvg(querySvg, {
           fitTo: { mode: 'width', value: 1000 }
@@ -261,32 +276,67 @@ function run() {
         const pngData = resvg.render();
         const pngBuffer = pngData.asPng();
         fs.writeFileSync(pngPath, pngBuffer);
+        if (mediaDir !== outDir) {
+          fs.writeFileSync(mediaPngPath, pngBuffer);
+        }
+        renderedNewCount++;
+        process.stdout.write(`   [+] Rendered PNG #${index + 1}: ${filePrefix}.png\r`);
       } catch (renderErr) {
         console.warn(`[WARN] PNG rasterization failed for ${filePrefix}:`, renderErr);
       }
     }
+
+    // 3. Record in SQLite DB pins table with status 'unposted'
+    const gitMediaUrl = getGitRawUrl(`${filePrefix}.png`);
+    insertPinRecord({
+      name: template.name,
+      category: template.category,
+      aspect_ratio: '2:3',
+      media_type: 'image',
+      media_path: gitMediaUrl,
+      title: queryMeta.title,
+      description: queryMeta.description,
+      board_name: queryMeta.boardName,
+      destination_url: queryMeta.destinationUrl,
+      keywords: queryMeta.keywords.join(', '),
+      status: 'unposted'
+    });
   });
 
   // Save Pinterest Bulk Upload CSVs strictly following Pinterest's Official 8-column format:
   // Title, Media URL, Pinterest board, Thumbnail, Description, Link, Publish date, Keywords
   
-  // 1. Standard instant/blank date CSV (Safest for bulk upload - avoids all timezone/date errors)
-  const csvInstant = exportPinsToPinterestCsv(queryPins, { includePublishDate: false });
+  // 1. Standard instant/blank date CSV with Git Raw URLs (Safest for bulk upload - avoids all timezone/date errors)
+  const csvGitInstant = exportPinsToPinterestCsv(queryPins, {
+    mediaUrlPrefix: GITHUB_RAW_BASE,
+    includePublishDate: false
+  });
   const defaultCsvPath = path.join(outDir, 'pinterest_bulk_schedule.csv');
-  fs.writeFileSync(defaultCsvPath, csvInstant, 'utf8');
+  const mediaGitCsvPath = path.join(getMediaDirectory(), 'pinterest_bulk_schedule.csv');
+  fs.writeFileSync(defaultCsvPath, csvGitInstant, 'utf8');
+  fs.writeFileSync(mediaGitCsvPath, csvGitInstant, 'utf8');
 
-  // 2. Dated schedule CSV (includes ISO dates across 7-14 days)
-  const csvQueryDated = exportPinsToPinterestCsv(queryPins, { includePublishDate: true });
+  // 2. Dated schedule CSV with Git Raw URLs (includes ISO dates across 7-14 days)
+  const csvQueryDated = exportPinsToPinterestCsv(queryPins, {
+    mediaUrlPrefix: GITHUB_RAW_BASE,
+    includePublishDate: true
+  });
   const csvQueryPath = path.join(outDir, 'pinterest_bulk_schedule_query.csv');
   fs.writeFileSync(csvQueryPath, csvQueryDated, 'utf8');
 
-  // 3. Hash-based links CSV
-  const csvHash = exportPinsToPinterestCsv(hashPins, { includePublishDate: false });
+  // 3. Hash-based links CSV with Git Raw URLs
+  const csvHash = exportPinsToPinterestCsv(hashPins, {
+    mediaUrlPrefix: GITHUB_RAW_BASE,
+    includePublishDate: false
+  });
   const csvHashPath = path.join(outDir, 'pinterest_bulk_schedule_hash.csv');
   fs.writeFileSync(csvHashPath, csvHash, 'utf8');
 
   // 4. Quick 3-Pin Test Sample CSV (for instant 3-pin verification without risking 100 rows)
-  const csvSample = exportPinsToPinterestCsv(queryPins.slice(0, 3), { includePublishDate: false });
+  const csvSample = exportPinsToPinterestCsv(queryPins.slice(0, 3), {
+    mediaUrlPrefix: GITHUB_RAW_BASE,
+    includePublishDate: false
+  });
   const sampleCsvPath = path.join(outDir, 'pinterest_test_sample.csv');
   fs.writeFileSync(sampleCsvPath, csvSample, 'utf8');
 
@@ -543,7 +593,8 @@ function run() {
 
   fs.writeFileSync(path.join(outDir, 'index.html'), htmlGallery, 'utf8');
 
-  console.log(`\n[✓] Successfully generated ${queryPins.length} Pinterest pins!`);
+  console.log(`\n[✓] Successfully processed ${queryPins.length} Pinterest pins!`);
+  console.log(`[✓] PNG Images: ${renderedNewCount} newly rendered (${queryPins.length - renderedNewCount} cached on disk)`);
   console.log(`[✓] Output folder: ${outDir}`);
   console.log(`[✓] Saved SVGs: ${queryPins.length} high-contrast 1000x1500 graphics`);
   console.log(`[✓] Saved CSV: ${defaultCsvPath}`);
@@ -560,6 +611,16 @@ function run() {
   });
 
   console.log('\n[✓] All pins are linked to https://coloro.in/?category=... and https://coloro.in/#category=...');
+  console.log(`[✓] SQLite DB updated: ${getDbPath()}`);
+
+  // Generate updated Instagram images CSV & RSS feeds
+  generateImagesMetadataCsv();
+  generateAllRssFiles(getMediaDirectory());
+
+  // Push all new images, CSVs, RSS feeds, and videos.db to GitHub
+  console.log('\n🚀 Synchronizing generated pins, CSVs, RSS feeds, and videos.db with GitHub...');
+  syncRepositoryToGit(`Add ${queryPins.length} Pinterest pins, bulk CSVs, RSS feeds & update videos.db`);
+
   console.log('====================================================\n');
 }
 
