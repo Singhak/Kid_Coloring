@@ -79,6 +79,58 @@ export function playPop(frequency = 520): void {
 }
 
 /**
+ * Brush stroke for filling a region: a soft paintbrush "swish" (filtered noise sweeping up)
+ * with a small bubbly "bloop" as the colour lands. The bloop's pitch drifts a little each
+ * time so repeated fills sound playful instead of mechanical. Silent when sound is off.
+ */
+let fillStep = 0;
+export function playFill(): void {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    // Brush swish: short burst of noise through a sweeping band-pass filter
+    const length = Math.floor(ctx.sampleRate * 0.2);
+    const noiseBuffer = ctx.createBuffer(1, length, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 1.2;
+    filter.frequency.setValueAtTime(900, now);
+    filter.frequency.exponentialRampToValueAtTime(3200, now + 0.18);
+    const swishGain = ctx.createGain();
+    swishGain.gain.setValueAtTime(0.0001, now);
+    swishGain.gain.exponentialRampToValueAtTime(0.22, now + 0.04);
+    swishGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+    noise.connect(filter);
+    filter.connect(swishGain);
+    swishGain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + 0.2);
+
+    // Bloop as the colour lands
+    const base = 300 + (fillStep++ % 7) * 45;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(base, now + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(base * 2.2, now + 0.16);
+    gain.gain.setValueAtTime(0.0001, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.22, now + 0.065);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.21);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now + 0.05);
+    osc.stop(now + 0.22);
+  } catch (e) {}
+}
+
+/**
  * Soft tactile click
  */
 export function playClick(): void {

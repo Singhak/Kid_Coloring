@@ -11,7 +11,7 @@ import { performFloodFill } from '../services/floodFill';
 import { getBrushCursor, getEraserCursor, getStickerCursor } from '../services/cursorService';
 import { StickerItem } from './StickerStampsModal';
 import ColorByNumberOverlay, { NumberTarget } from './ColorByNumberOverlay';
-import { playPop, playFanfare, playChime } from '../services/soundEffects';
+import { playPop, playFill, playFanfare, playChime } from '../services/soundEffects';
 import { COLORS } from '../constants';
 import { tracker } from '../services/tracker';
 
@@ -336,6 +336,12 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     ctx.restore();
   }, [imageUrl, paths, viewBox, lineArtCanvasRef]);
 
+  // Keep the latest onHistoryPush in a ref. The parent recreates this callback every time the
+  // history index changes; if initPaintCanvas depended on it, the effect below would re-run after
+  // every push, repainting the canvas white and wiping the user's first stroke.
+  const onHistoryPushRef = useRef(onHistoryPush);
+  onHistoryPushRef.current = onHistoryPush;
+
   // Initialize or restore Paint Canvas
   const initPaintCanvas = useCallback((dataUrl?: string | null) => {
     const paintCanvas = paintCanvasRef.current;
@@ -354,9 +360,9 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     } else {
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, INTERNAL_WIDTH, INTERNAL_HEIGHT);
-      onHistoryPush(paintCanvas.toDataURL());
+      onHistoryPushRef.current(paintCanvas.toDataURL());
     }
-  }, [paintCanvasRef, onHistoryPush]);
+  }, [paintCanvasRef]);
 
   // On template / image change: re-render line art and reset paint canvas
   useEffect(() => {
@@ -461,6 +467,7 @@ const DualLayerCanvas: React.FC<DualLayerCanvasProps> = ({
     );
 
     if (success) {
+      playFill();
       tracker.trackCanvas('flood_fill', {
         color: selectedColor,
         isColorByNumber,
