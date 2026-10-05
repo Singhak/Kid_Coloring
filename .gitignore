@@ -20,7 +20,6 @@ firebase-applet-config.json
 .deploy_manifest_pending.json
 output/*
 /pinterest-pins/pin-10*
-scripts/*
 public/pinterest-pins/pin-10*
 public/pinterest-pins/pin-11*
 public/pinterest-pins/pin-12*
