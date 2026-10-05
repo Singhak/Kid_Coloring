@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import { playClick, playChime, playFanfare, playSwish } from '../services/soundEffects';
 import LegalPolicyPage, { LegalTabType } from './LegalPolicyPage';
+import { tracker } from '../services/tracker';
 
 interface LandingPageProps {
   onLaunchApp: (category?: string) => void;
@@ -81,6 +82,9 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
 
   // FAQ Accordion State
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
+  // Record which CTA drove a launch (lets us compare campaign traffic by button)
+  const trackCta = (label: string) => tracker.event('landing', 'cta_click', label);
 
   // Color a region in the live demo
   const handleColorRegion = (regionKey: string) => {
@@ -232,8 +236,8 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
       icon: <ShieldCheck className="w-6 h-6 text-teal-500" />,
       title: '100% Ad-Free & Child-Safe Haven',
       description:
-        'Safe, mindful screen time. Zero third-party advertisements, zero tracking pixels, no popups or algorithmic rabbit holes. Certified kid-safe environment.',
-      badge: 'COPPA Friendly',
+        'Safe, mindful screen time. No third-party advertisements, no popups and no algorithmic rabbit holes, so kids stay on their picture.',
+      badge: 'Ad-Free',
       badgeColor: 'bg-teal-100 text-teal-800',
     },
   ];
@@ -245,7 +249,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
     },
     {
       q: 'Do I need to download or install an application?',
-      a: 'Not at all! Coloro runs smoothly right inside your modern web browser on iPads, Android tablets, iPhones, Chromebooks, Macs, and Windows PCs. You can also add it to your home screen as a Progressive Web App (PWA) for full-screen offline fun.',
+      a: 'No install needed. Coloro runs right in your browser on iPads, tablets, phones, Chromebooks, Macs, and Windows PCs. An Android app is coming soon.',
     },
     {
       q: 'Can I print these coloring pages on regular home paper?',
@@ -257,7 +261,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
     },
     {
       q: 'Is Coloro safe for toddlers and young children?',
-      a: 'Absolutely. Coloro was designed from the ground up to provide mindful, constructive screen time. There are zero third-party banners, no tracking cookies, and no chat interactions with strangers.',
+      a: 'Coloro is built for mindful, constructive screen time: no third-party ads or banners, no chat with strangers, and no links out to other content. See our Privacy Policy for exactly what data we collect.',
     },
   ];
 
@@ -297,8 +301,8 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
             <a href="#categories" className="hover:text-[#FF5252] transition-colors">
               Coloring Pages
             </a>
-            <a href="#benefits" className="hover:text-[#FF5252] transition-colors">
-              For Parents &amp; Teachers
+            <a href="#who" className="hover:text-[#FF5252] transition-colors">
+              For Kids, Parents &amp; Teachers
             </a>
             <a href="#pricing" className="hover:text-[#FF5252] transition-colors">
               VIP Superpowers
@@ -310,28 +314,16 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
 
           {/* Header Action CTAs */}
           <div className="flex items-center gap-2.5 sm:gap-3">
-            <a
-              href="https://www.instagram.com/kidscoloro"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Follow Coloro on Instagram"
-              className="flex items-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-tr from-[#F9CE34] via-[#EE2A7B] to-[#6228D7] text-white font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all"
-            >
-              <Instagram className="w-4 h-4" />
-              <span className="hidden sm:inline">Instagram</span>
-            </a>
             <button
               onClick={() => {
+                trackCta('header_start');
                 playFanfare();
                 onLaunchApp();
               }}
               className="btn-bubbly flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] hover:from-[#FA5252] hover:to-[#FF763B] text-white rounded-2xl font-black text-xs sm:text-sm shadow-md hover:shadow-lg cursor-pointer transition-all"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Launch App</span>
-              <span className="hidden sm:inline bg-white/25 px-1.5 py-0.5 rounded-full text-[10px] uppercase tracking-wide">
-                Free
-              </span>
+              <span>Start Coloring Free</span>
             </button>
 
             {/* Mobile Menu Toggle Button */}
@@ -376,11 +368,11 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 Coloring Categories
               </a>
               <a
-                href="#benefits"
+                href="#who"
                 onClick={() => setMobileMenuOpen(false)}
                 className="block text-sm font-bold text-[#2D3436] py-1.5 px-2 rounded-lg hover:bg-[#FFF9E6]"
               >
-                Educational Benefits
+                For Kids, Parents &amp; Teachers
               </a>
               <a
                 href="#pricing"
@@ -399,13 +391,14 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
               <div className="pt-2 border-t border-[#EFEAD6]">
                 <button
                   onClick={() => {
+                    trackCta('mobile_menu_start');
                     setMobileMenuOpen(false);
                     onLaunchApp();
                   }}
                   className="w-full py-3 bg-[#FF6B6B] text-white rounded-xl font-black text-sm flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Start Coloring Free at coloro.in/app</span>
+                  <span>Start Coloring Free</span>
                 </button>
               </div>
             </motion.div>
@@ -428,28 +421,28 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
               {/* Shimmering Badge */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#FFF9E6] border border-[#FFE082] rounded-full text-xs sm:text-sm font-black text-[#8C5B00] shadow-xs">
                 <Sparkles className="w-4 h-4 text-[#FF9F43] animate-spin" style={{ animationDuration: '4s' }} />
-                <span>#1 AI-Powered Creative Studio for Kids &amp; Families</span>
+                <span>Free &amp; ad-free coloring app for kids aged 2–10</span>
               </div>
 
               {/* Main Headline */}
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-[#2D3436] leading-[1.12]">
-                Where <span className="text-[#FF595E]">Imaginations</span> Come Alive in{' '}
+                Free coloring pages that help kids learn{' '}
                 <span className="bg-gradient-to-r from-[#FF6B6B] via-[#FFA900] to-[#4ECDC4] bg-clip-text text-transparent">
-                  Pure Color
+                  colors, numbers &amp; letters
                 </span>
               </h1>
 
-              {/* Subheading */}
+              {/* Subheading: the one-sentence explanation */}
               <p className="text-base sm:text-lg text-[#555E68] max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-                The magical digital coloring book loved by toddlers, preschoolers, and parents.
-                Generate personalized coloring sheets with Gemini AI, paint with glitter brushes,
-                learn with Color-by-Number, and download 100+ free printable PDF sheets.
+                Coloro is a free, ad-free coloring app where children color 100+ pages, create their own
+                with AI, and print any page at home. Made for preschoolers, parents and teachers.
               </p>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
                 <button
                   onClick={() => {
+                    trackCta('hero_start');
                     playFanfare();
                     onLaunchApp();
                   }}
@@ -465,24 +458,30 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                   onClick={(e) => {
                     e.preventDefault();
                     playClick();
+                    trackCta('hero_demo');
                     document.getElementById('interactive-demo')?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="w-full sm:w-auto px-6 py-4 bg-white hover:bg-[#FDFBF7] text-[#2D3436] border-2 border-[#E2DDD0] hover:border-[#FFCA3A] rounded-2xl font-bold text-sm shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center gap-2 transition-all"
+                  className="text-sm font-bold text-[#636E72] hover:text-[#FF595E] underline underline-offset-4 cursor-pointer flex items-center justify-center gap-2 transition-colors"
                 >
-                  <Play className="w-4 h-4 text-[#FF595E] fill-current" />
-                  <span>Try Interactive Demo</span>
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>or try a quick demo</span>
                 </a>
               </div>
+
+              <p className="text-xs text-[#636E72] font-medium">
+                Works in your browser — nothing to install.{' '}
+                <span className="font-bold text-[#FF595E]">Android app coming soon</span>
+              </p>
 
               {/* Trust Badges */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 text-xs font-bold text-[#636E72]">
                 <div className="flex items-center gap-1.5 justify-center lg:justify-start">
                   <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span>100% Kid Safe</span>
+                  <span>Made for Kids</span>
                 </div>
                 <div className="flex items-center gap-1.5 justify-center lg:justify-start">
                   <Zap className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>No Login Needed</span>
+                  <span>No Sign-up to Start</span>
                 </div>
                 <div className="flex items-center gap-1.5 justify-center lg:justify-start">
                   <Printer className="w-4 h-4 text-blue-500 shrink-0" />
@@ -490,7 +489,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 </div>
                 <div className="flex items-center gap-1.5 justify-center lg:justify-start">
                   <Heart className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span>Zero Ads Ever</span>
+                  <span>Ad-Free</span>
                 </div>
               </div>
             </div>
@@ -521,7 +520,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                   <div className="mt-3 w-full bg-white/90 backdrop-blur-xs rounded-xl p-3 border border-[#EAE4D5] flex items-center justify-between">
                     <div>
                       <p className="text-xs font-black text-[#2D3436]">Chameleon in the Jungle 🌴</p>
-                      <p className="text-[11px] text-[#636E72]">128+ More Coloring Pages Online</p>
+                      <p className="text-[11px] text-[#636E72]">100+ More Coloring Pages Online</p>
                     </div>
                     <button
                       onClick={() => onLaunchApp('animal')}
@@ -542,6 +541,152 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 </div>
               </motion.div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 2b. WHO IT'S FOR                                               */}
+      {/* ------------------------------------------------------------- */}
+      <section id="who" className="py-14 sm:py-20 bg-white border-b border-[#EFEAD6]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="text-center space-y-3 max-w-2xl mx-auto">
+            <h2 className="text-2xl sm:text-4xl font-black font-display text-[#2D3436]">
+              Made for kids. Loved by parents &amp; teachers.
+            </h2>
+            <p className="text-sm sm:text-base text-[#636E72]">
+              One free app, three ways to use it.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+            {[
+              {
+                emoji: '🧒',
+                who: 'Preschoolers (2–10)',
+                points: [
+                  'Tap to fill, no fine control needed',
+                  'Learn colors, numbers and letters while coloring',
+                  'Sounds, stickers and glitter keep little hands busy',
+                ],
+                cta: 'Let them color',
+                id: 'who_kids',
+                category: undefined as string | undefined,
+                bg: 'from-amber-50 to-orange-100/70 border-amber-200',
+              },
+              {
+                emoji: '👩‍👧',
+                who: 'Parents',
+                points: [
+                  'Free to start, no sign-up, no ads',
+                  'Calm screen time for trips, waiting rooms and bedtime',
+                  'Print any page at home on regular paper',
+                ],
+                cta: 'Start free',
+                id: 'who_parents',
+                category: undefined as string | undefined,
+                bg: 'from-emerald-50 to-teal-100/70 border-emerald-200',
+              },
+              {
+                emoji: '🧑‍🏫',
+                who: 'Teachers',
+                points: [
+                  'Alphabet, number and festival sheets ready to print',
+                  'Color-by-number on any picture for number practice',
+                  'Crisp black-and-white PDFs that save printer ink',
+                ],
+                cta: 'Browse alphabet sheets',
+                id: 'who_teachers',
+                category: 'alphabet' as string | undefined,
+                bg: 'from-indigo-50 to-blue-100/70 border-indigo-200',
+              },
+            ].map((card) => (
+              <div
+                key={card.id}
+                className={`rounded-3xl p-6 bg-gradient-to-br ${card.bg} border shadow-xs flex flex-col justify-between`}
+              >
+                <div className="space-y-3">
+                  <span className="text-4xl">{card.emoji}</span>
+                  <h3 className="text-xl font-black font-display text-[#2D3436]">{card.who}</h3>
+                  <ul className="space-y-2 text-sm text-[#4A5568]">
+                    {card.points.map((p) => (
+                      <li key={p} className="flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <button
+                  onClick={() => {
+                    trackCta(card.id);
+                    playSwish();
+                    onLaunchApp(card.category);
+                  }}
+                  className="btn-bubbly mt-6 w-full py-2.5 bg-white hover:bg-[#FFFDF9] text-[#2D3436] border border-black/10 rounded-2xl font-black text-xs shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>{card.cta}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#FF595E]" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 2c. WHY COLORO (vs. typical alternatives)                      */}
+      {/* ------------------------------------------------------------- */}
+      <section id="why" className="py-14 sm:py-20 bg-[#FBF9F1] border-b border-[#EFEAD6]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center space-y-3">
+            <h2 className="text-2xl sm:text-4xl font-black font-display text-[#2D3436]">
+              Why families choose Coloro
+            </h2>
+            <p className="text-sm sm:text-base text-[#636E72] max-w-xl mx-auto">
+              Most free coloring sites are ad-filled and fixed. Most kids' apps are busy and distracting. Coloro is neither.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto rounded-3xl border border-[#EAE4D5] bg-white shadow-xs">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead>
+                <tr className="bg-[#FFF9E6] text-[#7A4B00]">
+                  <th className="p-3 sm:p-4 font-black"></th>
+                  <th className="p-3 sm:p-4 font-black">Coloro</th>
+                  <th className="p-3 sm:p-4 font-black">Typical printable sites &amp; kids' apps</th>
+                </tr>
+              </thead>
+              <tbody className="text-[#4A5568]">
+                {[
+                  ['Ads and popups', 'None', 'Common'],
+                  ['Pages', 'Make your own with AI, or turn a photo into line art', 'Fixed set of pages'],
+                  ['Learning', 'Color-by-number on any picture, alphabet sheets', 'Mostly just coloring'],
+                  ['Use it', 'Color on screen or print at home', 'Usually one or the other'],
+                  ['Getting started', 'Open in browser, no sign-up', 'Install or create an account'],
+                ].map(([label, us, them]) => (
+                  <tr key={label} className="border-t border-[#F5F2EA]">
+                    <td className="p-3 sm:p-4 font-black text-[#2D3436]">{label}</td>
+                    <td className="p-3 sm:p-4 font-bold text-emerald-700">✓ {us}</td>
+                    <td className="p-3 sm:p-4 text-[#888]">{them}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => {
+                trackCta('why_start');
+                playFanfare();
+                onLaunchApp();
+              }}
+              className="btn-bubbly px-7 py-3.5 bg-gradient-to-r from-[#FF595E] to-[#FF9248] text-white rounded-2xl font-black text-sm shadow-lg cursor-pointer inline-flex items-center gap-2"
+            >
+              <Palette className="w-4 h-4" />
+              <span>Start Coloring Free</span>
+            </button>
           </div>
         </div>
       </section>
@@ -929,10 +1074,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 />
                 <div className="mt-4 p-4 bg-[#F0FDF4] border border-[#BBF7D0] rounded-2xl text-center">
                   <p className="text-xs font-black text-[#15803D]">
-                    ⭐ Backed by Early Childhood Development Principles
-                  </p>
-                  <p className="text-[11px] text-[#166534] mt-0.5">
-                    Encouraging hand-eye dexterity and emotional calm since day one.
+                    Coloring builds focus, patience and hand-eye coordination
                   </p>
                 </div>
               </div>
@@ -942,7 +1084,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
             <div className="lg:col-span-7 space-y-6 order-1 lg:order-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FEF2F2] border border-[#FECACA] rounded-full text-xs font-black text-[#991B1B]">
                 <Heart className="w-3.5 h-3.5 text-rose-500 fill-current" />
-                <span>Loved by 10,000+ Families</span>
+                <span>Why screen time can be creative</span>
               </div>
 
               <h2 className="text-3xl sm:text-5xl font-black font-display text-[#2D3436] leading-tight">
@@ -1000,91 +1142,6 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                   <Sparkles className="w-4 h-4 text-[#FFD93D]" />
                   <span>Explore Coloring Studio</span>
                 </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ------------------------------------------------------------- */}
-      {/* 7. PARENT & TEACHER TESTIMONIALS                               */}
-      {/* ------------------------------------------------------------- */}
-      <section className="py-16 sm:py-24 bg-[#FBF9F1] border-b border-[#EFEAD6]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center space-y-3 max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FEF3C7] border border-[#FDE68A] rounded-full text-xs font-black text-[#92400E]">
-              <Star className="w-3.5 h-3.5 text-amber-500 fill-current" />
-              <span>Real Parent Reviews</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black font-display text-[#2D3436]">
-              Stories from Happy Little Artists
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#EAE4D5] shadow-xs flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="flex text-amber-400">
-                  {'★★★★★'.split('').map((s, i) => (
-                    <span key={i} className="text-lg">{s}</span>
-                  ))}
-                </div>
-                <p className="text-sm text-[#4A5568] italic leading-relaxed">
-                  "My 4-year-old daughter asks to generate a new animal every morning! She printed out a 'space puppy' and colored it with real crayons for kindergarten show-and-tell."
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#F5F2EA] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center font-bold text-rose-600 text-sm">
-                  P
-                </div>
-                <div>
-                  <h3 className="text-xs font-black text-[#2D3436]">Priya S.</h3>
-                  <p className="text-[11px] text-[#888]">Mom of 2, Bengaluru</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#EAE4D5] shadow-xs flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="flex text-amber-400">
-                  {'★★★★★'.split('').map((s, i) => (
-                    <span key={i} className="text-lg">{s}</span>
-                  ))}
-                </div>
-                <p className="text-sm text-[#4A5568] italic leading-relaxed">
-                  "As a Montessori preschool educator, the printable 300 DPI PDF export is an absolute gamechanger. Crisp lines, zero ads, and instant classroom printouts."
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#F5F2EA] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600 text-sm">
-                  A
-                </div>
-                <div>
-                  <h3 className="text-xs font-black text-[#2D3436]">Ananya M.</h3>
-                  <p className="text-[11px] text-[#888]">Early Childhood Educator</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 sm:p-7 border border-[#EAE4D5] shadow-xs flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="flex text-amber-400">
-                  {'★★★★★'.split('').map((s, i) => (
-                    <span key={i} className="text-lg">{s}</span>
-                  ))}
-                </div>
-                <p className="text-sm text-[#4A5568] italic leading-relaxed">
-                  "The sound effects and glitter stamps keep my son engaged during doctor visits or road trips without any popups or annoying subscription walls. Best kid app!"
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-[#F5F2EA] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-600 text-sm">
-                  R
-                </div>
-                <div>
-                  <h3 className="text-xs font-black text-[#2D3436]">Rohan K.</h3>
-                  <p className="text-[11px] text-[#888]">Dad of a 5-year-old</p>
-                </div>
               </div>
             </div>
           </div>
@@ -1321,13 +1378,14 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
           <div className="pt-3 flex justify-center">
             <button
               onClick={() => {
+                trackCta('bottom_banner_start');
                 playFanfare();
                 onLaunchApp();
               }}
               className="btn-bubbly px-8 py-4 bg-white hover:bg-[#FFFDF9] text-[#FF595E] rounded-2xl font-black text-base shadow-xl cursor-pointer flex items-center gap-3 transition-transform hover:scale-105"
             >
               <Sparkles className="w-5 h-5 text-[#FFA900]" />
-              <span>Launch Coloro Studio Now (Free)</span>
+              <span>Start Coloring Free</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
@@ -1370,7 +1428,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 className="h-10 w-auto object-contain brightness-110"
               />
               <p className="text-xs text-[#B2BEC3] leading-relaxed">
-                Coloro is the #1 kid-safe digital coloring book and Gemini AI printable art generator. Mindful, creative screen time for young artists.
+                Coloro is a free, ad-free coloring app with AI-made printable pages. Mindful, creative screen time for young artists.
               </p>
               <p className="text-[11px] text-[#A4B0BE]">
                 Host: <span className="text-white font-bold">https://coloro.in</span>
@@ -1501,9 +1559,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
           <div className="pt-8 border-t border-[#3D484D] flex flex-col sm:flex-row items-center justify-between text-xs text-[#A4B0BE] gap-4">
             <p>© {new Date().getFullYear()} Coloro (coloro.in). All rights reserved. Crafted with ❤️ for curious kids.</p>
             <div className="flex items-center gap-4">
-              <span>COPPA Compliant</span>
-              <span>•</span>
-              <span>100% Kid Safe</span>
+              <span>Made for Kids</span>
               <span>•</span>
               <span>Ad-Free</span>
             </div>
