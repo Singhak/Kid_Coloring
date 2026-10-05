@@ -69,6 +69,8 @@ import {
   PlanType,
 } from './services/paymentService';
 import { sendWelcomeEmail } from './services/emailService';
+import { IS_ANDROID_APP, PLAN_PRICES, planTitle } from './services/pricing';
+import { initPlayBilling, purchasePlan, manageSubscription } from './services/playBilling';
 import { claimTrial } from './services/authService';
 import { LoginModal } from './components/LoginModal';
 import { motion, AnimatePresence } from 'motion/react';
@@ -576,14 +578,50 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     }
 
     setShowUpgradeModal(false);
-    const planTitle = plan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+    const planTitleText = planTitle(plan);
 
     setPaymentModalState({
       isOpen: true,
       status: 'verifying',
-      planName: planTitle,
+      planName: planTitleText,
       planType: plan,
     });
+
+    // Android app: Google Play Billing (Play policy requires it for digital subscriptions)
+    if (IS_ANDROID_APP) {
+      const outcome = await purchasePlan(plan);
+      if (outcome.status === 'success') {
+        const boughtPlan: PlanType = outcome.result.planType || plan;
+        tracker.trackMonetization('payment_success', boughtPlan, PLAN_PRICES[boughtPlan], { gateway: 'google_play' });
+        setIsSubscribed(true);
+        setIsPro(true);
+        setPaymentModalState({
+          isOpen: true,
+          status: 'success',
+          planName: planTitle(boughtPlan),
+          planType: boughtPlan,
+        });
+      } else if (outcome.status === 'cancelled') {
+        tracker.trackMonetization('payment_failed', plan, undefined, { stage: 'play_cancelled' });
+        setPaymentModalState({
+          isOpen: true,
+          status: 'failed',
+          errorMessage: 'Purchase cancelled.',
+          planName: planTitleText,
+          planType: plan,
+        });
+      } else {
+        tracker.trackMonetization('payment_failed', plan, undefined, { stage: 'play_error', error: outcome.message });
+        setPaymentModalState({
+          isOpen: true,
+          status: 'failed',
+          errorMessage: outcome.message,
+          planName: planTitleText,
+          planType: plan,
+        });
+      }
+      return;
+    }
 
     try {
       // 1. Create order on Cashfree via secure backend
@@ -614,7 +652,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
           status: 'failed',
           orderId: order.order_id,
           errorMessage: checkoutResult.error || 'Payment was cancelled or closed.',
-          planName: planTitle,
+          planName: planTitleText,
           planType: plan,
         });
         return;
@@ -633,7 +671,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         user.displayName || undefined
       );
       const verifiedPlan: PlanType = (verifyRes.planType as PlanType) || plan;
-      const finalPlanTitle = verifiedPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+      const finalPlanTitle = planTitle(verifiedPlan);
 
       if (verifyRes.success) {
         tracker.trackMonetization('payment_success', verifiedPlan, verifyRes.amount);
@@ -673,7 +711,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
                 isOpen: true,
                 status: 'success',
                 orderId: order.order_id,
-                planName: pollPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)',
+                planName: planTitle(pollPlan),
                 planType: pollPlan,
               });
             } else if (!pollRes.isPending && pollRes.error) {
@@ -709,7 +747,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         isOpen: true,
         status: 'failed',
         errorMessage: err.message || 'Payment initiation failed. Please try again.',
-        planName: planTitle,
+        planName: planTitleText,
         planType: plan,
       });
     }
@@ -729,20 +767,20 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     }
 
     const initialPlan: PlanType = (returnedOrderId.includes('mon') || returnedOrderId.startsWith('kc_mon_')) ? 'monthly' : 'annual';
-    const planTitle = initialPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+    const planTitleText = planTitle(initialPlan);
 
     setPaymentModalState({
       isOpen: true,
       status: 'verifying',
       orderId: returnedOrderId,
-      planName: planTitle,
+      planName: planTitleText,
       planType: initialPlan,
     });
 
     try {
       const verifyRes = await verifyCashfreePayment(returnedOrderId, user.uid);
       const verifiedPlan: PlanType = (verifyRes.planType as PlanType) || initialPlan;
-      const finalPlanTitle = verifiedPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)';
+      const finalPlanTitle = planTitle(verifiedPlan);
 
       if (verifyRes.success) {
         await recordOrderSuccessInFirestore(returnedOrderId, user.uid, verifiedPlan, verifyRes);
@@ -774,7 +812,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
               isOpen: true,
               status: 'success',
               orderId: returnedOrderId,
-              planName: pollPlan === 'monthly' ? 'VIP Monthly Pass (₹99)' : 'VIP Annual Magic Pass (₹499)',
+              planName: planTitle(pollPlan),
               planType: pollPlan,
             });
           } else if (!pollRes.isPending && pollRes.error) {
@@ -804,7 +842,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
         status: 'failed',
         orderId: returnedOrderId,
         errorMessage: e.message || 'Payment verification failed.',
-        planName: planTitle,
+        planName: planTitleText,
         planType: initialPlan,
       });
     }
@@ -832,8 +870,22 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     }
   }, [user, handleVerifyReturnedOrder]);
 
+  // Android: connect to Google Play Billing and re-check owned subscriptions so renewals extend VIP
+  useEffect(() => {
+    if (!IS_ANDROID_APP || !user) return;
+    initPlayBilling(user.uid, () => {
+      setIsSubscribed(true);
+      setIsPro(true);
+    }).catch((err) => console.warn('Play Billing init failed:', err));
+  }, [user]);
+
   const handleCancelSubscription = async () => {
     if (!user) return;
+    if (IS_ANDROID_APP) {
+      // Google Play owns the subscription; cancellation happens in the Play Store.
+      await manageSubscription();
+      return;
+    }
     if (window.confirm("Are you sure you want to cancel your subscription? This will revoke access to Pro features at the end of your current billing period.")) {
       const userRef = doc(db, 'users', user.uid);
       await setDoc(userRef, { isSubscribed: false }, { merge: true });

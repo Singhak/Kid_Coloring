@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import LandingPage from './components/LandingPage';
 import { tracker } from './services/tracker';
+import { Capacitor } from '@capacitor/core';
 
 // Code-split ColoringStudio so the landing page loads at lightning speed
 const ColoringStudio = lazy(() => import('./ColoringStudio'));
@@ -10,6 +11,7 @@ type AppRoute = 'landing' | 'app';
 export default function App() {
   const [route, setRoute] = useState<AppRoute>(() => {
     if (typeof window === 'undefined') return 'landing';
+    if (Capacitor.isNativePlatform()) return 'app';
 
     const pathname = window.location.pathname.toLowerCase();
     const search = window.location.search;
@@ -79,6 +81,7 @@ export default function App() {
 
   // Smooth Client-Side Router Navigation without Hard Page Reload
   const navigateTo = useCallback((targetUrl: string) => {
+    if (Capacitor.isNativePlatform()) return; // the app has no landing page
     try {
       window.history.pushState(null, '', targetUrl);
     } catch (e) {}

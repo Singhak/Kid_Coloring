@@ -6,6 +6,7 @@ import { Template } from '../types';
 import { getCurrentWeeklyDrop } from '../constants/weeklyDrops';
 import { getActiveFestivalStatus, FESTIVAL_PACKS, FestivalPack } from '../constants/festivalPacks';
 import { playPop, playChime } from '../services/soundEffects';
+import { IS_ANDROID_APP } from '../services/pricing';
 
 interface TemplateGridProps {
   isPro: boolean;
@@ -510,7 +511,7 @@ const TemplateGrid: React.FC<TemplateGridProps> = ({
           <a href="mailto:support@coloro.in" className="hover:text-[#4D96FF]">support@coloro.in</a>
         </div>
         <p className="text-[11px] text-[#A0A0A0]">
-          100% Ad-Free • Kid-Safe • Non-Recurring One-Time Passes
+          {IS_ANDROID_APP ? '100% Ad-Free • Kid-Safe • Cancel anytime in Google Play' : '100% Ad-Free • Kid-Safe • Non-Recurring One-Time Passes'}
         </p>
       </footer>
     </motion.div>

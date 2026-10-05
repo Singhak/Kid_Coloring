@@ -20,6 +20,7 @@ import {
   Minus
 } from 'lucide-react';
 import { playChime, playClick, playPop } from '../services/soundEffects';
+import { IS_ANDROID_APP, PLAN_PRICES, annualSavePercent } from '../services/pricing';
 
 interface UpgradeModalProps {
   showUpgradeModal: boolean;
@@ -211,11 +212,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     }`}
                   >
                     <div className="absolute -top-2.5 right-3 bg-gradient-to-r from-[#FF6B6B] to-[#FA8231] text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs uppercase">
-                      Save 60% • Most Popular
+                      Save {annualSavePercent()}% • Most Popular
                     </div>
                     <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Annual Pass</span>
                     <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
-                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹499</span>
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹{PLAN_PRICES.annual}</span>
                       <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ year</span>
                     </div>
                   </button>
@@ -235,11 +236,11 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   >
                     <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Monthly Pass</span>
                     <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
-                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹99</span>
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹{PLAN_PRICES.monthly}</span>
                       <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ mo</span>
                     </div>
                     <span className="block text-[10px] sm:text-[11px] font-semibold text-[#888] mt-0.5 sm:mt-1">
-                      Billed monthly • Cancel anytime
+                      {IS_ANDROID_APP ? 'Renews monthly • Cancel anytime in Google Play' : 'Billed monthly • Cancel anytime'}
                     </span>
                   </button>
                 </div>
@@ -388,7 +389,9 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   >
                     <span>
                       {user 
-                        ? (selectedPlan === 'annual' ? 'Get 1-Year VIP Pass (₹499 one-time)' : 'Get 1-Month VIP Pass (₹99 one-time)')
+                        ? (IS_ANDROID_APP
+                          ? (selectedPlan === 'annual' ? `Get Annual VIP (₹${PLAN_PRICES.annual}/year)` : `Get Monthly VIP (₹${PLAN_PRICES.monthly}/month)`)
+                          : (selectedPlan === 'annual' ? `Get 1-Year VIP Pass (₹${PLAN_PRICES.annual} one-time)` : `Get 1-Month VIP Pass (₹${PLAN_PRICES.monthly} one-time)`))
                         : 'Sign In & Start 15-Day Free Trial'}
                     </span>
                     <ArrowRight className="w-5 h-5" />
@@ -400,12 +403,12 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-[#FFA801]" /> One-Time Pass (No Auto-Renew)
+                      <Sparkles className="w-3.5 h-3.5 text-[#FFA801]" /> {IS_ANDROID_APP ? 'Auto-renews • Cancel anytime' : 'One-Time Pass (No Auto-Renew)'}
                     </span>
                   </div>
 
                   <div className="mt-2 text-[10px] text-center text-[#8C7A58] bg-[#FFFBF0] py-1 px-3 rounded-full border border-[#FFF2B2]/80 flex items-center justify-center gap-1.5 font-semibold">
-                    <span>🔒 Secured by Cashfree (UPI, GPay, PhonePe, Cards, NetBanking)</span>
+                    <span>{IS_ANDROID_APP ? '🔒 Secure payment by Google Play' : '🔒 Secured by Cashfree (UPI, GPay, PhonePe, Cards, NetBanking)'}</span>
                   </div>
 
                   {onOpenPricingPage && (

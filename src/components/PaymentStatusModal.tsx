@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { playChime, playPop, playClick } from '../services/soundEffects';
+import { IS_ANDROID_APP } from '../services/pricing';
 
 export type PaymentModalStatus = 'idle' | 'verifying' | 'pending' | 'success' | 'failed';
 
@@ -96,7 +97,7 @@ export const PaymentStatusModal: React.FC<PaymentStatusModalProps> = ({
                 Verifying Payment...
               </h3>
               <p className="text-xs sm:text-sm text-[#636E72] font-semibold">
-                Connecting securely with Cashfree & your bank. Please do not close or refresh this window.
+                {IS_ANDROID_APP ? 'Confirming your purchase with Google Play.' : 'Connecting securely with Cashfree & your bank.'} Please do not close or refresh this window.
               </p>
               {orderId && (
                 <span className="inline-block text-[11px] font-mono text-[#888] bg-[#F7F5EC] px-3 py-1 rounded-full border border-[#EBE8DC]">

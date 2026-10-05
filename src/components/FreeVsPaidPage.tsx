@@ -21,6 +21,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { playClick, playPop, playChime } from '../services/soundEffects';
+import { IS_ANDROID_APP, PLAN_PRICES, annualSavePercent, annualPerMonth } from '../services/pricing';
 
 interface FreeVsPaidPageProps {
   onBack: () => void;
@@ -305,14 +306,14 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
             {/* Annual Card */}
             <div className="p-6 rounded-3xl border-3 border-[#FF9F43] bg-gradient-to-b from-[#FFFDF5] to-[#FFF8E6] shadow-lg relative flex flex-col justify-between space-y-4">
               <div className="absolute -top-3.5 right-4 bg-gradient-to-r from-[#FF6B6B] to-[#FA8231] text-white text-[11px] font-black px-3 py-1 rounded-full shadow-xs uppercase">
-                Save 60% • Most Popular
+                Save {annualSavePercent()}% • Most Popular
               </div>
 
               <div>
                 <span className="block font-black text-lg text-[#2D3436]">Annual VIP Explorer</span>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">₹499</span>
-                  <span className="text-xs font-bold text-[#888]">/ year (just ~₹41/mo)</span>
+                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">₹{PLAN_PRICES.annual}</span>
+                  <span className="text-xs font-bold text-[#888]">/ year (just ~₹{annualPerMonth()}/mo)</span>
                 </div>
                 <p className="text-xs font-black text-[#10B981] mt-1.5 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" /> 15-Day Free Trial on Sign-Up
@@ -336,7 +337,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
               <div>
                 <span className="block font-black text-lg text-[#2D3436]">Monthly VIP Pass</span>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">₹99</span>
+                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">₹{PLAN_PRICES.monthly}</span>
                   <span className="text-xs font-bold text-[#888]">/ month</span>
                 </div>
                 <p className="text-xs font-semibold text-[#888] mt-1.5">
@@ -474,7 +475,9 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
               Unlock All VIP Superpowers — Choose Your Pass
             </span>
             <span className="text-xs text-[#888] font-bold">
-              ₹499 for 1 Full Year (~₹41/mo) • One-Time Pass • No Auto-Renew
+              {IS_ANDROID_APP
+                ? `₹${PLAN_PRICES.annual} for 1 Full Year (~₹${annualPerMonth()}/mo) • Cancel anytime in Google Play`
+                : `₹${PLAN_PRICES.annual} for 1 Full Year (~₹${annualPerMonth()}/mo) • One-Time Pass • No Auto-Renew`}
             </span>
           </div>
 
