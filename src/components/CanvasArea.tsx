@@ -35,6 +35,7 @@ interface CanvasAreaProps {
   isColorByNumber?: boolean;
   numberTemplate?: Template | null;
   numberPrintRef?: React.MutableRefObject<(() => boolean) | null>;
+  numberExportRef?: React.MutableRefObject<(() => Promise<HTMLCanvasElement | null>) | null>;
   onCreateNumberedAi?: () => void;
   onToggleColorByNumber?: () => void;
   onOpenStickers?: () => void;
@@ -71,6 +72,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   isColorByNumber = false,
   numberTemplate = null,
   numberPrintRef,
+  numberExportRef,
   onCreateNumberedAi,
   onToggleColorByNumber,
   onOpenStickers,
@@ -163,6 +165,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                 template={numberTemplate}
                 resetTrigger={resetTrigger}
                 printRef={numberPrintRef}
+                exportRef={numberExportRef}
                 onBackToLibrary={() => setShowTemplates(true)}
               />
             </div>
