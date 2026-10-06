@@ -134,7 +134,7 @@ $orderTags = $orderData['order_tags'] ?? [];
 // Determine authoritative plan type from tags, order ID prefix, or amount
 $planType = $orderTags['plan_type'] ?? null;
 if (!$planType) {
-    if (stripos($orderId, 'mon') !== false || $orderAmount < 200) {
+    if (stripos($orderId, 'mon') !== false) {
         $planType = 'monthly';
     } else {
         $planType = 'annual';

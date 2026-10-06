@@ -100,14 +100,16 @@ if (!$userId) {
     exit;
 }
 
-// Authoritative server-side pricing logic: Annual = ₹499, Monthly = ₹99
-// Client-supplied amount is strictly ignored to eliminate price-tampering vulnerabilities
+// Authoritative server-side PPP pricing (see pricing-helper.php). Country is detected from the
+// request IP; neither amount nor currency is accepted from the client.
+require_once __DIR__ . '/pricing-helper.php';
+$quote = pppQuote(pppDetectCountry());
+$currency = $quote['currency'];
+$amount = (float)$quote[$planType];
 if ($planType === 'monthly') {
-    $amount = 99.00;
     $orderNote = "Coloro VIP Magic Pass - Monthly (1 Month)";
     $planPrefix = "mon_";
 } else {
-    $amount = 499.00;
     $orderNote = "Coloro VIP Magic Pass - Annual (1 Year + 15 Day Trial)";
     $planPrefix = "ann_";
 }
@@ -142,7 +144,7 @@ $notifyUrl = (!$isLocal && $host)
 $orderPayload = [
     "order_id" => $orderId,
     "order_amount" => $amount,
-    "order_currency" => "INR",
+    "order_currency" => $currency,
     "customer_details" => [
         "customer_id" => $customerId,
         "customer_email" => filter_var($customerEmail, FILTER_VALIDATE_EMAIL) ? $customerEmail : "parent@coloro.com",
@@ -157,6 +159,7 @@ $orderPayload = [
     "order_tags" => [
         "user_id" => substr($userId, 0, 40),
         "plan_type" => $planType,
+        "country" => (string)($quote['country'] ?? ''),
         "app" => "Coloro"
     ]
 ];
@@ -235,7 +238,7 @@ try {
                 'gateway'   => 'cashfree',
                 'planType'  => $planType,
                 'amount'    => $amount,
-                'currency'  => 'INR',
+                'currency'  => $currency,
                 'status'    => 'pending',
                 'createdAt' => FIRESTORE_NOW,
                 'updatedAt' => FIRESTORE_NOW,
@@ -270,7 +273,7 @@ echo json_encode([
     "payment_session_id" => $result["payment_session_id"],
     "order_status"     => $result["order_status"] ?? "ACTIVE",
     "order_amount"     => $result["order_amount"] ?? $amount,
-    "order_currency"   => $result["order_currency"] ?? "INR",
+    "order_currency"   => $result["order_currency"] ?? $currency,
     "planType"         => $planType,
     "environment"      => $cashfreeEnv
 ]);

@@ -71,7 +71,7 @@ import {
   PlanType,
 } from './services/paymentService';
 import { sendWelcomeEmail } from './services/emailService';
-import { IS_ANDROID_APP, PLAN_PRICES, planTitle } from './services/pricing';
+import { IS_ANDROID_APP, planAmount, planTitle, usePricing } from './services/pricing';
 import { initPlayBilling, purchasePlan, manageSubscription } from './services/playBilling';
 import { claimTrial } from './services/authService';
 import { LoginModal } from './components/LoginModal';
@@ -85,6 +85,7 @@ export interface ColoringStudioProps {
 }
 
 export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps = {}) {
+  usePricing(); // re-render when Google Play reports localized prices
   const [user, loadingAuth] = useAuthState(auth); // Firebase user object
   const [isPro, setIsPro] = useState(false); // Derived state: true if subscribed or trial active
   const [trialEndDate, setTrialEndDate] = useState<Date | null>(null); // User's trial end date
@@ -596,7 +597,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       const outcome = await purchasePlan(plan);
       if (outcome.status === 'success') {
         const boughtPlan: PlanType = outcome.result.planType || plan;
-        tracker.trackMonetization('payment_success', boughtPlan, PLAN_PRICES[boughtPlan], { gateway: 'google_play' });
+        tracker.trackMonetization('payment_success', boughtPlan, planAmount(boughtPlan).amount, { gateway: 'google_play' });
         setIsSubscribed(true);
         setIsPro(true);
         setPaymentModalState({

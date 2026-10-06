@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { formatPrice, annualPerMonth, usePricing } from '../services/pricing';
 import confetti from 'canvas-confetti';
 import {
   Sparkles,
@@ -56,6 +57,7 @@ const DEMO_CRAYONS: CrayonColor[] = [
 ];
 
 export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade }: LandingPageProps) {
+  usePricing();
   // Mobile navigation drawer toggle
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -1174,8 +1176,8 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                   <h3 className="text-xl font-black text-[#2D3436] font-display">Free Starter</h3>
                   <p className="text-xs text-[#636E72] mt-1">Perfect for casual home coloring &amp; printouts</p>
                   <div className="mt-4">
-                    <span className="text-4xl font-black text-[#2D3436]">₹0</span>
-                    <span className="text-xs font-bold text-[#888] ml-1.5">Free Forever</span>
+                    <span className="text-4xl font-black text-[#2D3436]">Free</span>
+                    <span className="text-xs font-bold text-[#888] ml-1.5">Forever</span>
                   </div>
                 </div>
 
@@ -1227,8 +1229,8 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                   </h3>
                   <p className="text-xs text-[#9B6E00] mt-1">Unlimited AI creative superpowers for the whole family • Full 1-Year Pass</p>
                   <div className="mt-3 flex flex-wrap items-baseline gap-2">
-                    <span className="text-4xl font-black text-[#7A4B00]">₹499</span>
-                    <span className="text-xs font-bold text-[#8C5B00]">/ year (just ~₹41/mo)</span>
+                    <span className="text-4xl font-black text-[#7A4B00]">{formatPrice('annual')}</span>
+                    <span className="text-xs font-bold text-[#8C5B00]">/ year (just ~{annualPerMonth()}/mo)</span>
                     <span className="text-[11px] font-black bg-[#10B981] text-white px-2.5 py-0.5 rounded-full shadow-2xs">
                       15-Day Free Trial on Sign-Up
                     </span>
@@ -1275,7 +1277,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                       }}
                       className="font-black text-[#E17055] hover:underline cursor-pointer"
                     >
-                      ₹99/mo (Cancel anytime) →
+                      {formatPrice('monthly')}/mo (Cancel anytime) →
                     </button>
                   </div>
                 </div>
@@ -1295,7 +1297,7 @@ export default function LandingPage({ onLaunchApp, onOpenPricing, onOpenUpgrade 
                 className="btn-bubbly mt-6 w-full py-3.5 bg-gradient-to-r from-[#FF9F43] via-[#FF6B6B] to-[#FF5252] hover:from-[#FA8231] hover:to-[#EB3B5A] text-white rounded-2xl font-black text-sm shadow-md cursor-pointer transition-all flex items-center justify-center gap-2"
               >
                 <Crown className="w-4 h-4 fill-current" />
-                <span>Unlock VIP Annual Pass (₹499/yr)</span>
+                <span>Unlock VIP Annual Pass ({formatPrice('annual')}/yr)</span>
               </button>
               <p className="mt-2 text-center text-[11px] font-bold text-[#8C5B00]">
                 ✨ Sign in today and get a 15-day free VIP trial

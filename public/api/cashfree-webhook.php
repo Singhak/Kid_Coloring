@@ -118,7 +118,7 @@ $rawMethod     = $paymentData['payment_method']   ?? 'cashfree';
 // Derive plan from tags → orderId prefix → amount (in that priority order)
 $planType = $tagPlanType;
 if (!$planType) {
-    if (stripos((string)$orderId, 'mon') !== false || $orderAmount < 200) {
+    if (stripos((string)$orderId, 'mon') !== false) {
         $planType = 'monthly';
     } else {
         $planType = 'annual';

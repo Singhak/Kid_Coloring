@@ -1,6 +1,6 @@
 import { auth } from '../firebase';
 import { API_BASE } from './apiBase';
-import { IS_ANDROID_APP, PlanType } from './pricing';
+import { IS_ANDROID_APP, PlanType, setPlayPrices, LocalizedPrice } from './pricing';
 
 /**
  * Google Play Billing for the Android app (cordova-plugin-purchase).
@@ -8,6 +8,7 @@ import { IS_ANDROID_APP, PlanType } from './pricing';
  * Play Console must have two auto-renewing subscriptions, each with one base plan:
  *   coloro_vip_monthly  (INR 120 / month)
  *   coloro_vip_annual   (INR 699 / year)
+ * Add every country you sell in under each base plan; the app shows Google Play's localized price.
  *
  * A purchase is only trusted after /api/verify-play-purchase.php has checked it
  * with the Google Play Developer API and updated the user's Firestore profile.
@@ -51,6 +52,20 @@ const waitForPlugin = async (timeoutMs = 8000): Promise<any> => {
 const tokenOf = (transaction: any): string | undefined => transaction?.nativePurchase?.purchaseToken;
 const productOf = (transaction: any): string | undefined =>
   transaction?.nativePurchase?.productIds?.[0] ?? transaction?.products?.[0]?.id;
+
+/** Reads Google Play's localized recurring price for each of our products and shares it with the UI. */
+const publishLocalizedPrices = (cdv: any): void => {
+  const found: Partial<Record<PlanType, LocalizedPrice>> = {};
+  (Object.entries(PLAY_PRODUCT_IDS) as [PlanType, string][]).forEach(([plan, id]) => {
+    const phases: any[] = cdv.store.get(id, cdv.Platform.GOOGLE_PLAY)?.getOffer?.()?.pricingPhases ?? [];
+    // Last phase is the regular price (earlier phases may be a free trial / intro price)
+    const phase = phases[phases.length - 1];
+    if (phase?.price && phase.priceMicros > 0 && phase.currency) {
+      found[plan] = { text: phase.price, micros: phase.priceMicros, currency: phase.currency };
+    }
+  });
+  if (Object.keys(found).length) setPlayPrices(found);
+};
 
 const isOurProduct = (id?: string): boolean => !!id && Object.values(PLAY_PRODUCT_IDS).includes(id);
 
@@ -129,6 +144,7 @@ export const initPlayBilling = (
     );
 
     store.when()
+      .productUpdated(() => publishLocalizedPrices(cdv))
       .approved((transaction: any) => { void handleTransaction(transaction); })
       .receiptsReady(() => {
         // Owned (already acknowledged) subscriptions: refresh expiry on the server.
@@ -144,6 +160,7 @@ export const initPlayBilling = (
       console.warn('Play Billing initialisation errors:', errors);
       return false;
     }
+    publishLocalizedPrices(cdv);
     return true;
   })();
 

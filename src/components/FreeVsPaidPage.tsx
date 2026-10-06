@@ -21,7 +21,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { playClick, playPop, playChime } from '../services/soundEffects';
-import { IS_ANDROID_APP, PLAN_PRICES, annualSavePercent, annualPerMonth } from '../services/pricing';
+import { IS_ANDROID_APP, formatPrice, annualSavePercent, annualPerMonth, usePricing } from '../services/pricing';
 
 interface FreeVsPaidPageProps {
   onBack: () => void;
@@ -99,6 +99,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
   onOpenUpgradeModal,
   onOpenLegalPage
 }) => {
+  usePricing();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleCtaClick = (plan: 'annual' | 'monthly' = 'annual') => {
@@ -312,8 +313,8 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
               <div>
                 <span className="block font-black text-lg text-[#2D3436]">Annual VIP Explorer</span>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">₹{PLAN_PRICES.annual}</span>
-                  <span className="text-xs font-bold text-[#888]">/ year (just ~₹{annualPerMonth()}/mo)</span>
+                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">{formatPrice('annual')}</span>
+                  <span className="text-xs font-bold text-[#888]">/ year (just ~{annualPerMonth()}/mo)</span>
                 </div>
                 <p className="text-xs font-black text-[#10B981] mt-1.5 flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" /> 15-Day Free Trial on Sign-Up
@@ -337,7 +338,7 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
               <div>
                 <span className="block font-black text-lg text-[#2D3436]">Monthly VIP Pass</span>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">₹{PLAN_PRICES.monthly}</span>
+                  <span className="text-3xl sm:text-4xl font-black text-[#2D3436]">{formatPrice('monthly')}</span>
                   <span className="text-xs font-bold text-[#888]">/ month</span>
                 </div>
                 <p className="text-xs font-semibold text-[#888] mt-1.5">
@@ -476,8 +477,8 @@ const FreeVsPaidPage: React.FC<FreeVsPaidPageProps> = ({
             </span>
             <span className="text-xs text-[#888] font-bold">
               {IS_ANDROID_APP
-                ? `₹${PLAN_PRICES.annual} for 1 Full Year (~₹${annualPerMonth()}/mo) • Cancel anytime in Google Play`
-                : `₹${PLAN_PRICES.annual} for 1 Full Year (~₹${annualPerMonth()}/mo) • One-Time Pass • No Auto-Renew`}
+                ? `${formatPrice('annual')} for 1 Full Year (~${annualPerMonth()}/mo) • Cancel anytime in Google Play`
+                : `${formatPrice('annual')} for 1 Full Year (~${annualPerMonth()}/mo) • One-Time Pass • No Auto-Renew`}
             </span>
           </div>
 

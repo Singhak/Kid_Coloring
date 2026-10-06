@@ -20,7 +20,7 @@ import {
   Minus
 } from 'lucide-react';
 import { playChime, playClick, playPop } from '../services/soundEffects';
-import { IS_ANDROID_APP, PLAN_PRICES, annualSavePercent } from '../services/pricing';
+import { IS_ANDROID_APP, formatPrice, annualSavePercent, usePricing } from '../services/pricing';
 
 interface UpgradeModalProps {
   showUpgradeModal: boolean;
@@ -59,6 +59,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   onOpenLegalPage,
   defaultPlan = 'annual',
 }) => {
+  usePricing();
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [showParentGate, setShowParentGate] = useState(false);
   const [gateNum1, setGateNum1] = useState(4);
@@ -216,7 +217,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     </div>
                     <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Annual Pass</span>
                     <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
-                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹{PLAN_PRICES.annual}</span>
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">{formatPrice('annual')}</span>
                       <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ year</span>
                     </div>
                   </button>
@@ -236,7 +237,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                   >
                     <span className="block font-black text-xs sm:text-sm text-[#2D3436]">Monthly Pass</span>
                     <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
-                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">₹{PLAN_PRICES.monthly}</span>
+                      <span className="text-lg sm:text-2xl font-black text-[#2D3436]">{formatPrice('monthly')}</span>
                       <span className="text-[11px] sm:text-xs font-bold text-[#888]">/ mo</span>
                     </div>
                     <span className="block text-[10px] sm:text-[11px] font-semibold text-[#888] mt-0.5 sm:mt-1">
@@ -390,8 +391,8 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
                     <span>
                       {user 
                         ? (IS_ANDROID_APP
-                          ? (selectedPlan === 'annual' ? `Get Annual VIP (₹${PLAN_PRICES.annual}/year)` : `Get Monthly VIP (₹${PLAN_PRICES.monthly}/month)`)
-                          : (selectedPlan === 'annual' ? `Get 1-Year VIP Pass (₹${PLAN_PRICES.annual} one-time)` : `Get 1-Month VIP Pass (₹${PLAN_PRICES.monthly} one-time)`))
+                          ? (selectedPlan === 'annual' ? `Get Annual VIP (${formatPrice('annual')}/year)` : `Get Monthly VIP (${formatPrice('monthly')}/month)`)
+                          : (selectedPlan === 'annual' ? `Get 1-Year VIP Pass (${formatPrice('annual')} one-time)` : `Get 1-Month VIP Pass (${formatPrice('monthly')} one-time)`))
                         : 'Sign In & Start 15-Day Free Trial'}
                     </span>
                     <ArrowRight className="w-5 h-5" />
