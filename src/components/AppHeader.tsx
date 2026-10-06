@@ -3,8 +3,9 @@ import {
   Palette, 
   LogIn, 
   LogOut, 
-  Download, 
-  Crown, 
+  Download,
+  Share2,
+  Crown,
   Undo2, 
   Redo2, 
   Settings, 
@@ -44,7 +45,7 @@ interface AppHeaderProps {
   setShowTemplates: (show: boolean) => void;
   handleLogin: () => void;
   handleLogout: () => void;
-  downloadImage: () => void;
+  downloadImage: (mode?: 'save' | 'share') => void;
   undo: () => void;
   redo: () => void;
   historyIndex: number;
@@ -159,7 +160,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   const handleSave = () => {
     playFanfare();
-    downloadImage();
+    downloadImage('save');
+  };
+
+  const handleShare = () => {
+    playClick();
+    downloadImage('share');
   };
 
   return (
@@ -488,6 +494,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               title="Help & Studio Guide (?)"
             >
               <span className="font-display font-black text-sm sm:text-base md:text-lg text-[#E67E22] leading-none select-none">?</span>
+            </button>
+          )}
+
+          {/* Share Masterpiece Button (Shown on Canvas mode) */}
+          {!showTemplates && (
+            <button
+              onClick={handleShare}
+              className="h-8 w-8 sm:h-9 sm:w-9 md:h-9.5 md:w-9.5 bg-[#EBF7FF] hover:bg-[#DDF0FF] text-[#0984E3] border border-[#B9E0FF] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-xs transition-all active:scale-90 cursor-pointer shrink-0"
+              title="Share your creation"
+              aria-label="Share your creation"
+            >
+              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-4.5 md:h-4.5" />
             </button>
           )}
 
