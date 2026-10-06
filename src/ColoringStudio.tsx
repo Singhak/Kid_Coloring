@@ -104,6 +104,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
   // The Numbers button is "on" while a real numbered picture is open (the old random-badge overlay is retired)
   const isColorByNumber = Boolean(numberTemplate);
   const numberPrintRef = useRef<(() => boolean) | null>(null);
+  const numberExportRef = useRef<(() => Promise<HTMLCanvasElement | null>) | null>(null);
   const [showTrialWelcome, setShowTrialWelcome] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showHelpFlow, setShowHelpFlow] = useState(false);
@@ -1240,19 +1241,25 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
 
   const [shareData, setShareData] = useState<{ imageUrl: string; fileName: string } | null>(null);
 
-  const downloadImage = (mode: 'save' | 'share' = 'save') => {
+  const downloadImage = async (mode: 'save' | 'share' = 'save') => {
     if (mode === 'save' && !isPro) {
       tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
       return;
     }
     tracker.trackCanvas(mode === 'share' ? 'share_image' : 'download_image', { isPro });
+    // Color by Number draws an SVG instead of the paint/line-art canvases
+    const numberCanvas = numberTemplate && numberExportRef.current ? await numberExportRef.current() : null;
+    if (numberTemplate && !numberCanvas) {
+      alert("Could not prepare your picture. Please try again.");
+      return;
+    }
     const paintCanvas = paintCanvasRef.current;
     const lineArtCanvas = lineArtCanvasRef.current;
-    if (!paintCanvas || !lineArtCanvas) return;
+    if (!numberCanvas && (!paintCanvas || !lineArtCanvas)) return;
 
     // Silent background auto-publish on download
-    if (fillCount >= 1) {
+    if (!numberCanvas && paintCanvas && lineArtCanvas && fillCount >= 1) {
       autoPublishArtworkSilently({
         paintCanvas,
         lineArtCanvas,
@@ -1274,13 +1281,17 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
 
     // 2. Draw paint layer (including colors, patterns, and stickers)
-    ctx.drawImage(paintCanvas, 0, 0, 1000, 1000);
+    if (numberCanvas) {
+      ctx.drawImage(numberCanvas, 0, 0, 1000, 1000);
+    } else if (paintCanvas && lineArtCanvas) {
+      ctx.drawImage(paintCanvas, 0, 0, 1000, 1000);
 
-    // 3. Composite line art layer with multiply
-    ctx.save();
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.drawImage(lineArtCanvas, 0, 0, 1000, 1000);
-    ctx.restore();
+      // 3. Composite line art layer with multiply
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.drawImage(lineArtCanvas, 0, 0, 1000, 1000);
+      ctx.restore();
+    }
 
     // 4. Footer branding
     ctx.fillStyle = "#FDFCF0";
@@ -1306,10 +1317,14 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
           }).then(file => Share.share({
             title: 'My Coloro Masterpiece',
             text: shareText,
-            url: file.uri,
+            files: [file.uri],
             dialogTitle: 'Share your creation'
           })).catch(err => {
-            if (!/cancel/i.test(String(err?.message ?? err))) console.error("Share failed:", err);
+            const msg = String(err?.message ?? err);
+            if (!/cancel/i.test(msg)) {
+              console.error("Share failed:", err);
+              alert(`Could not share: ${msg}`);
+            }
           });
         } else {
           tempCanvas.toBlob(async (blob) => {
@@ -1535,6 +1550,7 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
             resetTrigger={resetTrigger}
             numberTemplate={numberTemplate}
             numberPrintRef={numberPrintRef}
+            numberExportRef={numberExportRef}
             onCreateNumberedAi={() => handleGenerateNumberedAi()}
             setSelectedCategory={setSelectedCategory}
           />

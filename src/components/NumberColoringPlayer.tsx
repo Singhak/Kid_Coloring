@@ -13,6 +13,8 @@ interface NumberColoringPlayerProps {
   onBackToLibrary?: () => void;
   /** The player registers its print action here so the app's Print button can call it. */
   printRef?: React.MutableRefObject<(() => boolean) | null>;
+  /** The player registers a function that renders the current picture to a 1000x1000 canvas (for Save / Share). */
+  exportRef?: React.MutableRefObject<(() => Promise<HTMLCanvasElement | null>) | null>;
 }
 
 interface LabelSpot {
@@ -87,7 +89,7 @@ function computeLabelSpots(svg: SVGSVGElement, ids: string[], cornerIds: Set<str
   return spots;
 }
 
-const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, resetTrigger, onBackToLibrary, printRef }) => {
+const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, resetTrigger, onBackToLibrary, printRef, exportRef }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   // Badge sizes are tuned for a 1000-wide picture; scale them for other viewBox sizes (e.g. AI pictures)
   const vbScale = (Number(template.viewBox.split(/[\s,]+/)[2]) || 1000) / 1000;
@@ -152,6 +154,46 @@ const NumberColoringPlayer: React.FC<NumberColoringPlayerProps> = ({ template, r
       printRef.current = null;
     };
   }, [printRef, template, scheme, palette, spots]);
+
+  // Save / Share action: rasterize the live SVG (current fills + remaining badges)
+  useEffect(() => {
+    if (!exportRef) return;
+    exportRef.current = () =>
+      new Promise<HTMLCanvasElement | null>(resolve => {
+        const svg = svgRef.current;
+        if (!svg) return resolve(null);
+        const clone = svg.cloneNode(true) as SVGSVGElement;
+        clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        clone.setAttribute('width', '1000');
+        clone.setAttribute('height', '1000');
+        clone.removeAttribute('style');
+        clone.removeAttribute('class');
+        const xml = new XMLSerializer().serializeToString(clone);
+        const url = URL.createObjectURL(new Blob([xml], { type: 'image/svg+xml;charset=utf-8' }));
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 1000;
+          canvas.height = 1000;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, 1000, 1000);
+            ctx.drawImage(img, 0, 0, 1000, 1000);
+          }
+          URL.revokeObjectURL(url);
+          resolve(ctx ? canvas : null);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        };
+        img.src = url;
+      });
+    return () => {
+      exportRef.current = null;
+    };
+  }, [exportRef]);
 
   const total = template.paths.filter(p => numberByPath[p.id]).length;
   const isDone = total > 0 && filled.size === total;
