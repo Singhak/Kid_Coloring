@@ -9,12 +9,21 @@
  * Keep the Google Play per-country prices in line with the same tiers.
  */
 
+require_once __DIR__ . '/env-helper.php';
+
 /**
- * Master switch. Keep false until international payments (USD) are enabled on the Cashfree account:
- * while false, every visitor is quoted and charged in INR exactly as before.
- * Set to true to start charging the regional USD tiers below to visitors outside India.
+ * Master switch, read from the .env file: INTERNATIONAL_PAYMENTS_ENABLED=true|false (default false).
+ * Keep it false until international payments (USD) are enabled on the Cashfree account: while off,
+ * every visitor is quoted and charged in INR. Set true to charge the regional USD tiers below to
+ * visitors outside India.
  */
-const INTERNATIONAL_PAYMENTS_ENABLED = false;
+function pppInternationalEnabled(): bool {
+    $v = coloroLoadEnv()['INTERNATIONAL_PAYMENTS_ENABLED']
+        ?? $_SERVER['INTERNATIONAL_PAYMENTS_ENABLED']
+        ?? getenv('INTERNATIONAL_PAYMENTS_ENABLED')
+        ?: 'false';
+    return in_array(strtolower(trim((string)$v)), ['1', 'true', 'yes', 'on'], true);
+}
 
 const PPP_TIERS = [
     1 => ['currency' => 'USD', 'monthly' => 1.99, 'annual' => 7.99],  // high income
@@ -53,9 +62,9 @@ function pppDetectCountry(): ?string {
     return null;
 }
 
-/** Price quote for a country: ['country','tier','currency','monthly','annual']. Unknown country -> tier 2. Always INR while INTERNATIONAL_PAYMENTS_ENABLED is false. */
+/** Price quote for a country: ['country','tier','currency','monthly','annual']. Unknown country -> tier 2. Always INR while INTERNATIONAL_PAYMENTS_ENABLED is off. */
 function pppQuote(?string $country): array {
-    if (!INTERNATIONAL_PAYMENTS_ENABLED || $country === 'IN') {
+    if (!pppInternationalEnabled() || $country === 'IN') {
         return ['country' => $country, 'tier' => 0] + PPP_INDIA;
     }
     $tier = in_array($country, PPP_TIER_1, true) ? 1 : (in_array($country, PPP_TIER_3, true) ? 3 : 2);
