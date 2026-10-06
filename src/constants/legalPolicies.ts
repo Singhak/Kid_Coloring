@@ -175,7 +175,8 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund' | 'contact',
         id: 'purchases-non-recurring',
         title: '5. Non-Recurring One-Time Purchases (No Auto-Renewals)',
         content: [
-          'Coloro offers VIP Passes (e.g., 1-Month Pass at ₹99, 1-Year Pass at ₹499) that grant enhanced features such as unlimited AI generations, photo-to-sketch conversions, pro palettes, and exclusive stamps.',
+          'ANDROID APP EXCEPTION: VIP plans bought inside the Coloro Android app (₹120 per month or ₹699 per year in India; the equivalent local price in other countries as shown in Google Play) are auto-renewing subscriptions billed by Google Play. They renew until you cancel in Google Play (Play Store > Payments & subscriptions > Subscriptions), at least 24 hours before the renewal date. Payment, renewal and refunds for these purchases are handled under Google Play policies. The statements below about one-time, non-recurring payments apply to passes bought on the Coloro website.',
+          'Coloro offers VIP Passes (e.g., 1-Month Pass at ₹99 in India, 1-Year Pass at ₹499 in India; customers elsewhere pay in USD at a regional price shown at checkout) that grant enhanced features such as unlimited AI generations, photo-to-sketch conversions, pro palettes, and exclusive stamps.',
           'IMPORTANT BILLING CLARIFICATION:',
           '• ALL PURCHASES ON COLORO ARE STRICTLY ONE-TIME, NON-RECURRING PAYMENTS.',
           '• We DO NOT practice auto-renewal or recurring card debits. There are NO unexpected future charges.',
@@ -219,8 +220,9 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund' | 'contact',
         id: 'non-recurring',
         title: '1. One-Time Purchase Model (No Recurring Debits)',
         content: [
+          'ANDROID APP EXCEPTION: VIP plans bought inside the Coloro Android app (₹120 per month or ₹699 per year in India; the equivalent local price in other countries as shown in Google Play) are auto-renewing subscriptions billed by Google Play. They renew until you cancel in Google Play (Play Store > Payments & subscriptions > Subscriptions), at least 24 hours before the renewal date. Payment, renewal and refunds for these purchases are handled under Google Play policies. The statements below about one-time, non-recurring payments apply to passes bought on the Coloro website.',
           'At Coloro, we value transparency and parent peace of mind. We DO NOT use recurring subscriptions, hidden auto-debits, or surprise renewal charges.',
-          'Every VIP pass purchase (such as a 1-Month Pass for ₹99 or 1-Year Pass for ₹499) is an upfront, ONE-TIME purchase for a fixed period of digital access.',
+          'Every VIP pass purchase (such as a 1-Month Pass for ₹99 or 1-Year Pass for ₹499 in India; regional USD prices apply elsewhere) is an upfront, ONE-TIME purchase for a fixed period of digital access.',
           'Because there is no recurring billing or automatic renewal, there are no standing subscription mandates to cancel.',
         ],
       },
@@ -326,7 +328,7 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund' | 'contact',
         ],
         subsections: [
           {
-            subtitle: 'A. Free Forever Starter Tier — ₹0 (INR)',
+            subtitle: 'A. Free Forever Starter Tier — Free',
             details: [
               '• 100+ standard coloring book templates (Animals, Alphabet, Numbers, Nature, Vehicles).',
               '• Full digital crayon and marker palette with sound effects.',
@@ -336,7 +338,7 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund' | 'contact',
             ],
           },
           {
-            subtitle: 'B. VIP Magic Pass - Monthly — ₹99 (INR)',
+            subtitle: 'B. VIP Magic Pass - Monthly — ₹99 in India; US$0.59 – US$1.99 elsewhere (by country)',
             details: [
               '• 30 Days of unrestricted digital VIP Superpowers.',
               '• Unlimited Google Gemini AI Prompt Line Art Generator.',
@@ -347,7 +349,7 @@ export const LEGAL_DOCUMENTS: Record<'privacy' | 'terms' | 'refund' | 'contact',
             ],
           },
           {
-            subtitle: 'C. VIP Magic Pass - Annual — ₹499 (INR)',
+            subtitle: 'C. VIP Magic Pass - Annual — ₹499 in India; US$2.49 – US$7.99 elsewhere (by country)',
             details: [
               '• 365 Days (1 Full Year) of unrestricted VIP access + 15-day free trial on signup.',
               '• Full access to all current and weekly upcoming educational content drops.',

@@ -4,9 +4,68 @@
 
 import { Template, NumberPaletteEntry } from '../types';
 import { basicColorName } from '../constants/colorByNumberTemplates';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+
+const A4_W = 794; // CSS px at 96dpi
+const A4_H = 1123;
+const RENDER_SCALE = 2;
+
+/**
+ * Android's WebView ignores window.print() on an iframe, so on native we rasterize the
+ * sheet to an A4 PNG and hand it to the share sheet (which offers Print / Save).
+ */
+async function sharePrintableImage(html: string): Promise<void> {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+  const css = Array.from(parsed.querySelectorAll('style')).map(s => s.textContent ?? '').join('\n')
+    .replace(/@page\s*\{[^}]*\}/g, '');
+  const body = new XMLSerializer().serializeToString(parsed.body);
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${A4_W * RENDER_SCALE}" height="${A4_H * RENDER_SCALE}" viewBox="0 0 ${A4_W} ${A4_H}">` +
+    `<foreignObject width="${A4_W}" height="${A4_H}">` +
+    `<div xmlns="http://www.w3.org/1999/xhtml" style="width:${A4_W}px;height:${A4_H}px;background:#fff;overflow:hidden;padding:40px 30px;box-sizing:border-box">` +
+    `<style>${css}</style>${body}</div></foreignObject></svg>`;
+
+  const img = new Image();
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('Could not render the print sheet'));
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+  const canvas = document.createElement('canvas');
+  canvas.width = A4_W * RENDER_SCALE;
+  canvas.height = A4_H * RENDER_SCALE;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas unavailable');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0);
+
+  const file = await Filesystem.writeFile({
+    path: `coloro-print-${Date.now()}.png`,
+    data: canvas.toDataURL('image/png').split(',')[1],
+    directory: Directory.Cache,
+  });
+  await Share.share({
+    title: 'Coloro printable sheet',
+    files: [file.uri],
+    dialogTitle: 'Print or save your coloring sheet',
+  });
+}
 
 /** Prints an HTML document through a hidden iframe so the main UI is untouched. */
 function printHtml(html: string): boolean {
+  if (Capacitor.isNativePlatform()) {
+    sharePrintableImage(html).catch(err => {
+      const msg = String(err?.message ?? err);
+      if (!/cancel/i.test(msg)) {
+        console.error('Print failed:', err);
+        alert(`Could not prepare the print sheet: ${msg}`);
+      }
+    });
+    return true;
+  }
   const printFrame = document.createElement('iframe');
   printFrame.style.position = 'fixed';
   printFrame.style.right = '0';

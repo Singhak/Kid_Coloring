@@ -5,8 +5,7 @@
  * one-time free-trial claim.
  */
 import type { User } from 'firebase/auth';
-
-const API_BASE = '/api';
+import { API_BASE } from './apiBase';
 
 export interface ApiError extends Error {
   code?: string;

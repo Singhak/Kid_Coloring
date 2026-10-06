@@ -1,9 +1,15 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.storywalla.coloro',
+  appId: 'in.coloro',
   appName: 'Coloro',
-  webDir: 'dist'
+  webDir: 'dist',
+  plugins: {
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com']
+    }
+  }
 };
 
 export default config;

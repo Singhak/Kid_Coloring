@@ -1,3 +1,4 @@
+import { API_BASE } from './apiBase';
 /**
  * Coloro Analytics & Telemetry Client
  * 
@@ -106,13 +107,7 @@ class TelemetryTracker {
   }
 
   private getApiEndpoint(): string {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname.includes('coloro.in') || hostname.includes('storywalla.com')) {
-        return '/api/track.php';
-      }
-    }
-    return '/api/track.php';
+    return `${API_BASE}/track.php`;
   }
 
   private generateId(prefix: string): string {

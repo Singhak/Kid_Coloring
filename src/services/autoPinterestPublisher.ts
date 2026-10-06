@@ -4,6 +4,8 @@
  * so Pinterest's RSS Auto-Publisher posts them automatically with ZERO user interaction.
  */
 
+import { Capacitor } from '@capacitor/core';
+
 interface AutoPublishOptions {
   paintCanvas: HTMLCanvasElement | null;
   lineArtCanvas: HTMLCanvasElement | null;
@@ -21,6 +23,9 @@ const publishedHashes = new Set<string>();
  * Triggered automatically when a drawing is finished (e.g. fillCount >= 5, on template switch, or download).
  */
 export async function autoPublishArtworkSilently(options: AutoPublishOptions): Promise<void> {
+  // The community/Pinterest feed is a website feature; the Android app doesn't publish to it
+  if (Capacitor.isNativePlatform()) return;
+
   const { paintCanvas, lineArtCanvas, category, templateName, isAi, fillCount } = options;
 
   // Safety check: Only publish if canvas exists and user actually colored at least 1 region
