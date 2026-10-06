@@ -292,7 +292,7 @@ class TelemetryTracker {
   }
 
   public trackCanvas(
-    action: 'flood_fill' | 'undo' | 'redo' | 'clear' | 'zoom_in' | 'zoom_out' | 'download_image' | 'print_sheet' | 'stamp_sticker',
+    action: 'flood_fill' | 'undo' | 'redo' | 'clear' | 'zoom_in' | 'zoom_out' | 'download_image' | 'share_image' | 'print_sheet' | 'stamp_sticker',
     details?: Record<string, any>
   ): void {
     this.event('canvas', action, details?.target || undefined, details?.count || undefined, details);

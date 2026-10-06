@@ -22,6 +22,8 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import ShareModal from './components/ShareModal';
 
 import { SvgPath, Template } from './types';
 import { 
@@ -1236,13 +1238,15 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     setResetTrigger((prev) => prev + 1);
   };
 
-  const downloadImage = () => {
-    if (!isPro) {
+  const [shareData, setShareData] = useState<{ imageUrl: string; fileName: string } | null>(null);
+
+  const downloadImage = (mode: 'save' | 'share' = 'save') => {
+    if (mode === 'save' && !isPro) {
       tracker.trackMonetization('open_upgrade_modal');
       setShowUpgradeModal(true);
       return;
     }
-    tracker.trackCanvas('download_image', { isPro });
+    tracker.trackCanvas(mode === 'share' ? 'share_image' : 'download_image', { isPro });
     const paintCanvas = paintCanvasRef.current;
     const lineArtCanvas = lineArtCanvasRef.current;
     if (!paintCanvas || !lineArtCanvas) return;
@@ -1292,6 +1296,39 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
     const logoImg = new Image();
     const finishExport = () => {
       const pngUrl = tempCanvas.toDataURL("image/png");
+      if (mode === 'share') {
+        const shareText = "Look at my coloring masterpiece made with Coloro! 🎨 https://coloro.in";
+        if (Capacitor.isNativePlatform()) {
+          Filesystem.writeFile({
+            path: `coloro-share-${Date.now()}.png`,
+            data: pngUrl.split(',')[1],
+            directory: Directory.Cache
+          }).then(file => Share.share({
+            title: 'My Coloro Masterpiece',
+            text: shareText,
+            url: file.uri,
+            dialogTitle: 'Share your creation'
+          })).catch(err => {
+            if (!/cancel/i.test(String(err?.message ?? err))) console.error("Share failed:", err);
+          });
+        } else {
+          tempCanvas.toBlob(async (blob) => {
+            if (!blob) return;
+            const file = new File([blob], `coloro-${Date.now()}.png`, { type: 'image/png' });
+            try {
+              if (navigator.canShare?.({ files: [file] })) {
+                await navigator.share({ files: [file], title: 'My Coloro Masterpiece', text: shareText });
+              } else {
+                // No file sharing support (e.g. desktop browsers): show our own share dialog
+                setShareData({ imageUrl: pngUrl, fileName: file.name });
+              }
+            } catch (err) {
+              if ((err as Error)?.name !== 'AbortError') console.error("Share failed:", err);
+            }
+          }, 'image/png');
+        }
+        return;
+      }
       if (Capacitor.isNativePlatform()) {
         const base64Data = pngUrl.split(',')[1];
         Filesystem.writeFile({
@@ -1616,6 +1653,14 @@ export default function ColoringStudio({ onNavigateHome }: ColoringStudioProps =
       />
 
       {/* Upgrade Modal */}
+      {shareData && (
+        <ShareModal
+          imageUrl={shareData.imageUrl}
+          fileName={shareData.fileName}
+          onClose={() => setShareData(null)}
+        />
+      )}
+
       <UpgradeModal
         showUpgradeModal={showUpgradeModal}
         setShowUpgradeModal={setShowUpgradeModal}
